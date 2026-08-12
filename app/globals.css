@@ -1,0 +1,103 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400&family=Noto+Sans+KR:wght@700&display=swap");
+@import "tailwindcss";
+
+@font-face {
+  font-family: "Pretendard";
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/woff2/PretendardVariable.woff2") format("woff2");
+}
+
+@theme {
+  --color-main-primary: #625738;
+  --color-main-secondary: #584439;
+  --color-main-tertiary: #f2e7bc;
+  --color-main-neutral: #efede5;
+  --color-label-studio-comment: #888379;
+  --color-label-studio-black: #201d17;
+  --color-label-disabled: #cbcdce;
+  --color-label-assistive: #83898f;
+}
+
+:root {
+  color-scheme: light;
+  --color-main-primary: #625738;
+  --color-main-secondary: #584439;
+  --color-main-tertiary: #f2e7bc;
+  --color-main-neutral: #efede5;
+  --color-main-neutral-light: #f5f3ed;
+  --color-label-studio-comment: #888379;
+  --color-label-studio-black: #201d17;
+  --color-label-disabled: #cbcdce;
+  --color-label-assistive: #83898f;
+  --color-label-draft: #ffd9a4;
+  --color-label-draft-accent: #bf750c;
+  --color-label-final: #a4cfff;
+  --color-label-final-accent: #0159be;
+  --color-surface: #ffffff;
+  --color-border: #e4e4e3;
+  --space-3xs: 4px;
+  --space-2xs: 8px;
+  --space-xs: 12px;
+  --space-sm: 16px;
+  --space-md: 20px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 36px;
+  --space-3xl: 48px;
+}
+
+:root.dark {
+  color-scheme: dark;
+  --color-main-primary: #b7aa7a;
+  --color-main-secondary: #d0bda5;
+  --color-main-tertiary: #4a432c;
+  --color-main-neutral: #302e28;
+  --color-main-neutral-light: #211f1b;
+  --color-label-studio-comment: #aaa397;
+  --color-label-studio-black: #f0ece4;
+  --color-label-disabled: #66645f;
+  --color-label-assistive: #a1a6aa;
+  --color-label-draft: #5b421f;
+  --color-label-draft-accent: #f0b35e;
+  --color-label-final: #243f5c;
+  --color-label-final-accent: #77b8ff;
+  --color-surface: #292722;
+  --color-border: #46423a;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; min-height: 0; }
+body {
+  margin: 0;
+  overflow: hidden;
+  background: var(--color-main-neutral);
+  color: var(--color-label-studio-black);
+  font-family: "Pretendard", "Noto Sans KR", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body,
+button,
+input,
+select,
+textarea {
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
+}
+button, a { color: inherit; font: inherit; }
+a { text-decoration: none; }
+img { display: block; }
+h1, h2, p { margin: 0; }
+
+.type-studio-logo { font-family: "Noto Sans KR", sans-serif; font-size: 24px; font-weight: 700; line-height: 1; letter-spacing: .15em; }
+.type-small-head { font-family: "Pretendard", sans-serif; font-size: 12px; font-weight: 700; line-height: 1; letter-spacing: .05em; }
+.type-medium-thin { font-family: "Pretendard", sans-serif; font-size: 16px; font-weight: 400; line-height: 1; }
+.type-medium-head { font-family: "Pretendard", sans-serif; font-size: 24px; font-weight: 700; line-height: 1; }
+.type-xsmall-thin { font-family: "Inter", sans-serif; font-size: 12px; font-weight: 400; line-height: 1; }
+.type-xsmall-body { font-family: "Pretendard", sans-serif; font-size: 16px; font-weight: 500; line-height: 1; }
+.type-small-body { font-family: "Pretendard", sans-serif; font-size: 20px; font-weight: 500; line-height: 1; }
