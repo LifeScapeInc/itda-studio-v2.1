@@ -5,10 +5,13 @@ import { ArrowLeft } from "lucide-react";
 import styled, { css } from "styled-components";
 
 const sharedStyle = css`
-  position: absolute;
-  z-index: 2;
+  position: fixed;
+  z-index: 12;
   top: 78px;
-  left: var(--space-2xl);
+  left: calc(
+    var(--navigation-left-width, 203px)
+    + var(--space-2xl)
+  );
   display: inline-flex;
   align-items: center;
   gap: var(--space-2xs);
@@ -20,6 +23,7 @@ const sharedStyle = css`
   line-height: 1;
   cursor: pointer;
   transition:
+    left 220ms ease,
     color 160ms ease,
     transform 160ms ease;
 
