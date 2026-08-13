@@ -5,10 +5,14 @@ import { ChevronDown } from "lucide-react";
 import styled from "styled-components";
 
 const Section = styled.section<{ $disabled: boolean }>`
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+  padding-bottom: var(--space-sm);
+  border: 0;
+  border-bottom: 1px solid var(--color-border);
+  border-radius: 0;
   background: var(--color-surface);
-  overflow: hidden;
   opacity: ${({ $disabled }) => ($disabled ? 0.46 : 1)};
 `;
 
@@ -17,7 +21,7 @@ const Header = styled.button`
   width: 100%;
   align-items: center;
   justify-content: space-between;
-  padding: var(--space-sm);
+  padding: 0;
   border: 0;
   background: transparent;
   cursor: pointer;
@@ -43,7 +47,7 @@ const Chevron = styled(ChevronDown)<{ $open: boolean }>`
 `;
 
 const Body = styled.div`
-  padding: 0 var(--space-sm) var(--space-sm);
+  padding: 0;
 `;
 
 type CollapsibleSectionProps = {

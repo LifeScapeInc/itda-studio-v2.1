@@ -37,7 +37,7 @@ const Generate = styled.button`
   justify-content: center;
   gap: var(--space-2xs);
   border: 0;
-  border-radius: 10px;
+  border-radius: 8px;
   background: var(--color-main-primary);
   color: var(--color-surface);
   cursor: pointer;

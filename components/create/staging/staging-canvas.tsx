@@ -1,18 +1,23 @@
 "use client";
 
-import Image from "next/image";
-import { ImageIcon } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import { useCreateStore } from "@/stores/useCreateStore";
 import { getCutCount } from "@/system/create/generation-options";
+import type { LibraryGenerationShot } from "@/system/create/generation-library";
+import { GenerationHistoryGallery } from "./generation-history-gallery";
+import { GenerationMetadataModal } from "./generation-metadata-modal";
 import { GenerationProgressGrid } from "./generation-progress-grid";
+import { GenerationResultActions } from "./generation-result-actions";
+import { StagingAreaResizeHandle } from "./staging-area-resize-handle";
+import { StagingEmptyState } from "./staging-empty-state";
 
 const Canvas = styled.section`
   display: flex;
   min-width: 0;
   min-height: 0;
   flex-direction: column;
-  background: var(--color-main-neutral-light);
+  background: var(--color-surface);
 `;
 
 const Header = styled.header`
@@ -21,6 +26,7 @@ const Header = styled.header`
   flex: 0 0 58px;
   align-items: center;
   justify-content: space-between;
+  gap: var(--space-sm);
   padding: 0 var(--space-md);
   border-bottom: 1px solid var(--color-border);
   background: var(--color-surface);
@@ -28,6 +34,7 @@ const Header = styled.header`
 
 const HeaderText = styled.div`
   display: flex;
+  min-width: 0;
   flex-direction: column;
   gap: var(--space-3xs);
 
@@ -36,92 +43,83 @@ const HeaderText = styled.div`
   }
 `;
 
-const Stage = styled.div`
-  display: flex;
+const SplitStage = styled.div<{ $historyHeight: number }>`
+  display: grid;
   min-height: 0;
   flex: 1;
-  align-items: center;
-  justify-content: center;
-  padding: var(--space-2xs);
+  grid-template-rows: minmax(0, 1fr) 9px ${({ $historyHeight }) => $historyHeight}px;
 `;
 
-const ImageStage = styled.div`
-  position: relative;
+const CurrentArea = styled.div`
   display: flex;
-  width: 100%;
-  height: 100%;
-  align-items: center;
+  min-height: 0;
+  align-items: stretch;
   justify-content: center;
-  border: 1px solid var(--color-border);
-  border-radius: 16px;
   background: var(--color-surface);
-  overflow: hidden;
-
-  img {
-    object-fit: contain;
-  }
+  overflow: auto;
+  scrollbar-width: thin;
 `;
 
-const Empty = styled.div`
-  display: flex;
-  width: min(100%, 640px);
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-sm);
-  color: var(--color-label-studio-comment);
-  text-align: center;
-`;
-
-const Materials = styled.div`
-  display: flex;
-  width: min(100%, 488px);
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2xs);
-`;
-
-const MaterialPreview = styled.span`
-  position: relative;
-  display: grid;
-  width: 224px;
-  max-width: calc((100% - 24px) / 2);
-  aspect-ratio: 1;
-  flex: 0 1 224px;
-  place-items: center;
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
-  background: var(--color-main-neutral-light);
-  overflow: hidden;
-
-  img {
-    object-fit: cover;
-  }
-`;
+const HISTORY_DEFAULT_HEIGHT = 182;
+const HISTORY_MIN_HEIGHT = 142;
+const CURRENT_MIN_HEIGHT = 180;
+const RESIZE_HANDLE_HEIGHT = 9;
 
 export function StagingCanvas() {
-  const productImage = useCreateStore((state) => state.productImage);
-  const referenceImage = useCreateStore((state) => state.referenceImage);
-  const contentSet = useCreateStore((state) => state.contentSet);
-  const freeCount = useCreateStore((state) => state.freeCount);
-  const angleVariationIds = useCreateStore(
-    (state) => state.angleVariationIds,
+  const state = useCreateStore();
+  const hydrateLibrary = state.hydrateLibrary;
+  const splitStageRef = useRef<HTMLDivElement>(null);
+  const [historyHeight, setHistoryHeight] = useState(HISTORY_DEFAULT_HEIGHT);
+  const [maximumHistoryHeight, setMaximumHistoryHeight] = useState(
+    HISTORY_DEFAULT_HEIGHT,
   );
-  const generationRequested = useCreateStore(
-    (state) => state.generationRequested,
+  const [metadataShot, setMetadataShot] = useState<LibraryGenerationShot | null>(
+    null,
   );
-  const generationShots = useCreateStore(
-    (state) => state.generationShots,
-  );
-  const generationMessage = useCreateStore(
-    (state) => state.generationMessage,
-  );
+
+  const resizeHistory = useCallback((delta: number) => {
+    setHistoryHeight((current) => Math.min(
+      maximumHistoryHeight,
+      Math.max(HISTORY_MIN_HEIGHT, current + delta),
+    ));
+  }, [maximumHistoryHeight]);
+
+  useEffect(() => {
+    void hydrateLibrary();
+  }, [hydrateLibrary]);
+
+  useEffect(() => {
+    const stage = splitStageRef.current;
+    if (!stage) return;
+
+    const observer = new ResizeObserver(() => {
+      const nextMaximum = Math.max(
+        HISTORY_MIN_HEIGHT,
+        stage.clientHeight - CURRENT_MIN_HEIGHT - RESIZE_HANDLE_HEIGHT,
+      );
+      setMaximumHistoryHeight(nextMaximum);
+      setHistoryHeight((current) => Math.min(
+        nextMaximum,
+        Math.max(HISTORY_MIN_HEIGHT, current),
+      ));
+    });
+    observer.observe(stage);
+    return () => observer.disconnect();
+  }, []);
+
   const cutCount = getCutCount(
-    contentSet,
-    freeCount,
-    angleVariationIds,
+    state.contentSet,
+    state.freeCount,
+    state.angleVariationIds,
   );
   const hasGenerationMode = Boolean(
-    contentSet || angleVariationIds.length > 0,
+    state.contentSet || state.angleVariationIds.length > 0,
+  );
+  const selectedShot = state.generationShots.find(
+    (shot) => shot.id === state.selectedShotId && shot.status === "done",
+  ) as LibraryGenerationShot | undefined;
+  const activeSet = state.generationHistory.find(
+    (history) => history.id === state.activeHistoryId,
   );
 
   return (
@@ -129,68 +127,61 @@ export function StagingCanvas() {
       <Header>
         <HeaderText>
           <h2 className="type-xsmall-body">
-            {generationRequested ? "생성 결과" : "스테이징 캔버스"}
+            {state.generationRequested ? "생성 결과" : "스테이징 캔버스"}
           </h2>
           <p className="type-xsmall-thin">
-            {generationRequested
-              ? generationMessage
+            {state.generationRequested
+              ? state.generationMessage
               : "좌측에서 재료를 준비하고 우측에서 생성을 실행하세요."}
           </p>
         </HeaderText>
-        {hasGenerationMode ? (
+        {state.generationRequested ? (
+          <GenerationResultActions
+            selectedShot={selectedShot}
+            shots={state.generationShots as LibraryGenerationShot[]}
+            setTitle={activeSet?.title ?? "itda-image-set"}
+            onToggleBookmark={state.toggleBookmark}
+            onShowInfo={setMetadataShot}
+          />
+        ) : hasGenerationMode ? (
           <span className="type-xsmall-thin">{cutCount}컷 예정</span>
         ) : null}
       </Header>
-      <Stage>
-        <ImageStage>
-          {generationRequested ? (
-            <GenerationProgressGrid shots={generationShots} />
-          ) : productImage || referenceImage ? (
-            <Empty>
-              <Materials>
-                <MaterialPreview>
-                  {productImage ? (
-                    <Image
-                      src={productImage}
-                      alt="내 제품"
-                      fill
-                      unoptimized
-                      sizes="224px"
-                    />
-                  ) : (
-                    <ImageIcon />
-                  )}
-                </MaterialPreview>
-                <span>+</span>
-                <MaterialPreview>
-                  {referenceImage ? (
-                    <Image
-                      src={referenceImage}
-                      alt="레퍼런스"
-                      fill
-                      unoptimized
-                      sizes="224px"
-                    />
-                  ) : (
-                    <ImageIcon />
-                  )}
-                </MaterialPreview>
-              </Materials>
-              <p className="type-xsmall-thin">
-                우측에서 콘텐츠 세트 또는 앵글 변주를 선택하세요.
-              </p>
-            </Empty>
+      <SplitStage ref={splitStageRef} $historyHeight={historyHeight}>
+        <CurrentArea>
+          {state.generationRequested ? (
+            <GenerationProgressGrid
+              shots={state.generationShots}
+              selectedShotId={state.selectedShotId}
+              onSelect={state.selectShot}
+            />
           ) : (
-            <Empty>
-              <ImageIcon size={42} strokeWidth={1.3} />
-              <strong>생성할 재료를 준비해 주세요.</strong>
-              <p className="type-xsmall-thin">
-                내 제품 이미지를 등록하면 미리보기가 표시됩니다.
-              </p>
-            </Empty>
+            <StagingEmptyState
+              productImage={state.productImage}
+              referenceImage={state.referenceImage}
+            />
           )}
-        </ImageStage>
-      </Stage>
+        </CurrentArea>
+        <StagingAreaResizeHandle
+          value={historyHeight}
+          minimum={HISTORY_MIN_HEIGHT}
+          maximum={maximumHistoryHeight}
+          onResize={resizeHistory}
+        />
+        <GenerationHistoryGallery
+          history={state.generationHistory}
+          activeHistoryId={state.activeHistoryId}
+          deleteDisabled={state.isGenerating}
+          onRestore={state.restoreHistory}
+          onDelete={state.deleteHistory}
+        />
+      </SplitStage>
+      {metadataShot ? (
+        <GenerationMetadataModal
+          shot={metadataShot}
+          onClose={() => setMetadataShot(null)}
+        />
+      ) : null}
     </Canvas>
   );
 }

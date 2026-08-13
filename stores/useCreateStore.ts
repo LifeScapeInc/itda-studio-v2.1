@@ -18,6 +18,17 @@ import type {
   GenerationApiError,
   GenerationApiResponse,
 } from "@/system/create/generation-api";
+import {
+  loadGenerationHistory,
+  saveGenerationHistory,
+  type GenerationHistorySet,
+  type LibraryGenerationShot,
+} from "@/system/create/generation-library";
+import {
+  EDIT_MODE_OPTIONS,
+  QUALITY_OPTIONS,
+} from "@/system/create/generation-options";
+import { getGenerationModeLabel } from "@/system/create/generation-prompt";
 
 export type GenerationRunResult = {
   usedActualGeneration: boolean;
@@ -43,6 +54,10 @@ type CreateStore = {
   generationMessage: string;
   lastGenerationPrompts: GenerationPrompt[];
   generationShots: GenerationShot[];
+  generationHistory: GenerationHistorySet[];
+  activeHistoryId: string | null;
+  selectedShotId: string | null;
+  libraryHydrated: boolean;
   setProductImage: (image: string | null) => void;
   setReferenceImage: (image: string | null) => void;
   setContentSet: (contentSet: ContentSetId) => void;
@@ -54,6 +69,11 @@ type CreateStore = {
   setMood: (mood: string) => void;
   toggleProp: (prop: string) => void;
   setPrompt: (prompt: string) => void;
+  hydrateLibrary: () => Promise<void>;
+  selectShot: (shotId: string) => void;
+  restoreHistory: (historyId: string) => void;
+  deleteHistory: (historyId: string) => void;
+  toggleBookmark: (shotId: string) => void;
   requestGeneration: (mockMode: boolean) => Promise<GenerationRunResult>;
 };
 
@@ -74,6 +94,10 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
   generationMessage: "",
   lastGenerationPrompts: [],
   generationShots: [],
+  generationHistory: [],
+  activeHistoryId: null,
+  selectedShotId: null,
+  libraryHydrated: false,
   setProductImage: (productImage) => {
     set({ productImage, generationRequested: false });
   },
@@ -121,10 +145,113 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
   setPrompt: (prompt) => {
     set({ prompt });
   },
+  hydrateLibrary: async () => {
+    if (get().libraryHydrated) return;
+    try {
+      const generationHistory = await loadGenerationHistory();
+      set({ generationHistory, libraryHydrated: true });
+    } catch {
+      set({ libraryHydrated: true });
+    }
+  },
+  selectShot: (selectedShotId) => set({ selectedShotId }),
+  restoreHistory: (historyId) => {
+    const history = get().generationHistory.find((item) => item.id === historyId);
+    if (!history) return;
+    set({
+      activeHistoryId: history.id,
+      generationRequested: true,
+      generationShots: history.shots,
+      selectedShotId: history.shots.find((shot) => shot.status === "done")?.id ?? null,
+      generationMessage: `${new Date(history.createdAt).toLocaleString("ko-KR")} 생성 결과`,
+    });
+  },
+  deleteHistory: (historyId) => {
+    const current = get();
+    if (current.isGenerating && current.activeHistoryId === historyId) return;
+
+    const generationHistory = current.generationHistory.filter(
+      (history) => history.id !== historyId,
+    );
+    const deletedActiveHistory = current.activeHistoryId === historyId;
+    const nextActiveHistory = deletedActiveHistory
+      ? generationHistory[0]
+      : generationHistory.find(
+          (history) => history.id === current.activeHistoryId,
+        );
+
+    set({
+      generationHistory,
+      ...(deletedActiveHistory ? {
+        activeHistoryId: nextActiveHistory?.id ?? null,
+        generationRequested: Boolean(nextActiveHistory),
+        generationShots: nextActiveHistory?.shots ?? [],
+        selectedShotId: nextActiveHistory?.shots.find(
+          (shot) => shot.status === "done",
+        )?.id ?? null,
+        generationMessage: nextActiveHistory
+          ? `${new Date(nextActiveHistory.createdAt).toLocaleString("ko-KR")} 생성 결과`
+          : "",
+      } : {}),
+    });
+    void saveGenerationHistory(generationHistory);
+  },
+  toggleBookmark: (shotId) => {
+    set((state) => {
+      const generationHistory = state.generationHistory.map((history) => ({
+        ...history,
+        shots: history.shots.map((shot) => shot.id === shotId
+          ? { ...shot, bookmarked: !shot.bookmarked }
+          : shot),
+      }));
+      const active = generationHistory.find(
+        (history) => history.id === state.activeHistoryId,
+      );
+      void saveGenerationHistory(generationHistory);
+      return {
+        generationHistory,
+        generationShots: active?.shots ?? state.generationShots,
+      };
+    });
+  },
   requestGeneration: async (mockMode) => {
     const current = get();
     const lastGenerationPrompts = buildGenerationPrompts(current);
-    const generationShots = createGenerationShots(current);
+    const runCreatedAt = new Date().toISOString();
+    const runId = `generation-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const editModeLabel = EDIT_MODE_OPTIONS.find(
+      (option) => option.id === current.editMode,
+    )?.label ?? "기본";
+    const qualityLabel = QUALITY_OPTIONS.find(
+      (option) => option.id === current.quality,
+    )?.label ?? current.quality;
+    const variationType = getGenerationModeLabel(
+      current.contentSet,
+      current.angleVariationIds,
+    );
+    const generationShots: LibraryGenerationShot[] = createGenerationShots(current)
+      .map((shot) => {
+        const shotPrompt = lastGenerationPrompts.find((item) => item.id === shot.id)
+          ?? lastGenerationPrompts[0];
+        return {
+          ...shot,
+          id: `${runId}-${shot.id}`,
+          bookmarked: false,
+          metadata: {
+            finalPrompt: shotPrompt?.prompt ?? "",
+            generatedAt: runCreatedAt,
+            aiModel: "gpt-image-2",
+            variationType: `${variationType} · ${shot.label}`,
+            quality: qualityLabel,
+            editMode: current.referenceImage ? editModeLabel : "기본",
+            light: current.light,
+            mood: current.mood,
+            props: current.props,
+            additionalDirection: current.prompt.trim() || "없음",
+            imageSize: shot.resolution,
+          },
+        };
+      });
 
     if (
       generationShots.length === 0
@@ -144,6 +271,17 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
       generationRequested: true,
       lastGenerationPrompts,
       generationShots,
+      activeHistoryId: runId,
+      selectedShotId: null,
+      generationHistory: [
+        {
+          id: runId,
+          createdAt: runCreatedAt,
+          title: variationType,
+          shots: generationShots,
+        },
+        ...current.generationHistory,
+      ],
       generationMessage: "생성 작업을 준비하고 있습니다.",
     });
 
@@ -152,9 +290,10 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
     let completed = 0;
     let failed = 0;
 
+    void saveGenerationHistory(get().generationHistory);
+
     for (const shot of generationShots) {
-      const prompt = lastGenerationPrompts.find((item) => item.id === shot.id)
-        ?? lastGenerationPrompts[0];
+      const prompt = { prompt: shot.metadata.finalPrompt };
 
       set((state) => ({
         generationShots: state.generationShots.map((item) => ({
@@ -197,32 +336,45 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
         }
         completed += 1;
 
-        set((state) => ({
-          generationShots: state.generationShots.map((item) => item.id === shot.id
+        set((state) => {
+          const generationShots = state.generationShots.map((item) => item.id === shot.id
             ? {
                 ...item,
                 status: "done",
                 imageUrl: result.images[0],
               }
-            : item),
-          generationMessage: result.note,
-        }));
+            : item) as LibraryGenerationShot[];
+          const generationHistory = state.generationHistory.map((history) => history.id === runId
+            ? { ...history, shots: generationShots }
+            : history);
+          void saveGenerationHistory(generationHistory);
+          return {
+            generationShots,
+            generationHistory,
+            selectedShotId: state.selectedShotId ?? shot.id,
+            generationMessage: result.note,
+          };
+        });
       } catch (error) {
         failed += 1;
         const message = error instanceof Error
           ? error.message
           : "이미지를 생성하지 못했습니다.";
 
-        set((state) => ({
-          generationShots: state.generationShots.map((item) => item.id === shot.id
+        set((state) => {
+          const generationShots = state.generationShots.map((item) => item.id === shot.id
             ? {
                 ...item,
                 status: "error",
                 error: message,
               }
-            : item),
-          generationMessage: message,
-        }));
+            : item) as LibraryGenerationShot[];
+          const generationHistory = state.generationHistory.map((history) => history.id === runId
+            ? { ...history, shots: generationShots }
+            : history);
+          void saveGenerationHistory(generationHistory);
+          return { generationShots, generationHistory, generationMessage: message };
+        });
       }
     }
 

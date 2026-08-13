@@ -11,7 +11,7 @@ const Card = styled.button`
   flex-direction: column;
   padding: var(--space-xs);
   border: 1px solid var(--color-border);
-  border-radius: 16px;
+  border-radius: 12px;
   background: var(--color-surface);
   overflow: hidden;
   cursor: pointer;

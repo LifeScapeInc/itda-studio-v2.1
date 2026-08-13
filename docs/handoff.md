@@ -1,82 +1,142 @@
 # ITDA Studio v2.1 Handoff
 
-## 프로젝트 기준
+## 1. 작업 기준과 경로
 
-ITDA Studio v2.1은 `C:\Users\jusmi\Desktop\+\LifeScape\workspace\itda-studio_v2`를 기반 참고 프로젝트로 사용한다.
+- 실제 작업 루트는 `C:\Users\jusmi\Desktop\+\LifeScape\workspace\itda-studio-v2.1`이다.
+- `C:\Users\jusmi\Desktop\+\LifeScape\workspace\itda-studio_v2`는 구현 방식과 기능 흐름을 확인하기 위한 참고 프로젝트다.
+- v2.1을 수정하기 전에 관련 기능이 v2에 존재하는지 먼저 확인한다. 특히 생성 과정, 비용 산정, 프롬프트 조합, API 연동, navigation interaction을 적극 참고한다.
+- v2는 읽기 전용으로 취급한다. 사용자가 명시적으로 요청하지 않는 한 v2에 v2.1 코드, 임시 파일, 빌드 결과 또는 로그를 생성하지 않는다.
+- Figma 명세와 v2 구현이 충돌하면 시각 결과는 Figma를 우선하고, 코드 구조와 동작 방식은 가능한 v2의 검증된 패턴을 따른다.
 
-앞으로 v2.1의 기능을 구현하거나 구조를 변경할 때는 **반드시 `itda-studio_v2`를 먼저 참고한다.** 특히 다음 항목은 v2의 기존 방식을 우선 확인하고, 특별한 사유가 없는 한 같은 패턴을 유지한다.
+## 2. 기술 구성
 
-- Next.js, React, TypeScript 및 스타일링 기술 구성
-- `app`, `components`, `lib`, `public`, `docs` 등의 파일 및 디렉터리 구조
-- `package.json`, TypeScript, ESLint, PostCSS, Next.js 설정
-- 컴포넌트 분리 방식과 파일 명명 규칙
-- 상태 관리, API route, 데이터 타입 및 유틸리티 구성 방식
-- README와 개발 문서의 작성 형식
+- Next.js App Router, React, TypeScript
+- `styled-components`
+- Zustand
+- OpenAI Node SDK
+- Lucide React와 `public/assets`의 프로젝트 SVG
 
-Figma 디자인 명세가 v2의 기존 UI와 충돌하는 경우에는 Figma의 시각적 요구사항을 반영하되, 코드 구조와 구현 방식은 가능한 한 `itda-studio_v2`의 관례를 따른다. 새로운 패턴이나 의존성을 도입해야 한다면 기존 방식으로 해결할 수 없는지 먼저 검토하고, 도입 이유를 관련 문서나 코드 주석에 남긴다.
+새 의존성이나 구현 패턴을 추가하기 전에는 현재 구성으로 해결할 수 있는지 먼저 확인한다.
 
-## UI 확장 원칙
+## 3. UI 및 디자인 시스템
 
-새 페이지나 컴포넌트를 확장할 때는 먼저 v2.1에 이미 구현된 화면을 확인하고 색상, 타이포그래피, spacing 및 interaction 관습을 그대로 재사용한다. 임의의 값을 추가하기 전에 `app/globals.css`의 디자인 토큰과 유사 컴포넌트의 구현을 우선 확인한다.
+새 페이지와 컴포넌트는 `app/globals.css`에 정의된 v2.1 color, typography, spacing token을 우선 사용한다. 임의의 색상, 글꼴 크기, 간격을 만들기 전에 기존 화면과 토큰을 확인한다.
 
-- item grid의 기본 간격은 기존 가져오기 및 프로젝트 페이지와 동일하게 `var(--space-lg)`, 즉 24px을 사용한다.
-- scrollable item grid wrapper에는 위아래로 `var(--space-3xs)`, 즉 4px padding을 둔다. 카드 hover 시 이동, outline 또는 border가 scroll 경계에서 잘리지 않도록 하기 위한 필수 여백이다.
-- scroll 영역은 `workspace-content` 내부의 남은 높이만 차지하게 하며, 문서 전체가 대신 scroll되지 않도록 `min-height: 0`, flex sizing 및 내부 overflow를 함께 설정한다.
-- 새로운 색상, 글꼴 크기, 여백 값을 직접 만들기보다 기존 color, typography, spacing 토큰으로 표현할 수 있는지 먼저 검토한다.
+- item grid의 기본 간격은 `var(--space-lg)`, 즉 24px이다.
+- scrollable item grid에는 위아래 `var(--space-3xs)`, 즉 4px padding을 둔다. hover border, outline, shadow가 잘리지 않아야 한다.
+- 내부 scroll 영역은 `min-height: 0`, flex sizing, `overflow`를 함께 설정하여 문서 전체가 scroll되지 않게 한다.
+- workspace에서 남는 영역을 채우는 패널은 기존 가져오기, 프로젝트, create 및 furniture 화면의 sizing 방식을 참고한다.
+- hover, focus, shadow 효과는 기존 공용 효과나 유사 컴포넌트의 interaction을 재사용한다.
 
-새 grid 화면을 구현할 때는 `customer-grid-scroll`/`customer-grid`와 `project-grid-scroll`/`project-grid`를 기준 구현으로 참고한다.
+### Border radius 규칙
 
-## 프론트엔드 구조 및 스타일
+**앞으로 새로 생성하는 모든 컴포넌트의 CSS `border-radius`는 `0px` 이상 `8px` 이하만 허용한다.**
 
-컴포넌트 스타일은 `styled-components`로 해당 컴포넌트의 TSX 파일 안에 함께 둔다. 컴포넌트별 CSS Module 파일을 새로 만들거나 화면별 selector를 `app/globals.css`에 추가하지 않는다. `globals.css`는 color, typography, spacing token과 reset 같은 foundation만 담당한다.
+- `border-radius: 999px`, `50%` 또는 8px을 초과하는 값으로 pill·원형 외곽을 만드는 새 컴포넌트는 허용하지 않는다.
+- 필요한 경우 `0`, `4px`, `8px` 또는 이에 대응하는 기존 token을 사용한다.
+- 이미지 자체의 형태가 원형이어야 한다면 CSS radius를 새로 추가하기보다 제공된 SVG/이미지 에셋을 우선 사용한다.
+- 기존 컴포넌트의 8px 초과 radius는 별도 수정 요구가 없는 한 즉시 일괄 변경하지 않는다.
 
-- 공통 shell/navigation은 `components/layout/`, 재사용 UI는 `components/ui/`에 둔다.
-- 페이지 전용 컴포넌트는 `components/<페이지>/`에 둔다.
-- 화면과 분리 가능한 formatter, validation, data definition, hook은 `system/<페이지>/`에 둔다.
-- TSX 파일 하나는 하나의 공개 컴포넌트를 중심으로 구성한다. 페이지 파일은 feature 컴포넌트를 조립하는 역할만 담당한다.
-- Zustand store는 `stores/`에 유지하고, store 외부에서도 재사용 가능한 domain 함수는 feature/system으로 분리한다.
+## 4. 코드 구조
 
-## 작업 경로 격리
+- 공통 shell과 navigation: `components/layout/`
+- 여러 페이지가 공유하는 UI: `components/ui/`, `components/references/`
+- 페이지 전용 UI: `components/<페이지>/`
+- 화면에서 분리 가능한 데이터 정의, formatter, validation, hook, domain 함수: `system/<페이지>/`
+- 전역 또는 여러 컴포넌트가 공유하는 상태: `stores/`
+- 페이지 파일은 데이터 준비와 feature 조립에 집중하고, 유의미한 UI 단위는 컴포넌트로 분리한다.
+- TSX 파일 하나는 하나의 공개 컴포넌트를 중심으로 구성한다.
+- 컴포넌트 스타일은 같은 TSX 파일의 `styled-components`로 작성한다. 컴포넌트별 CSS Module 파일이나 페이지 selector를 `globals.css`에 추가하지 않는다.
+- 컴포넌트 밖으로 뺄 수 있는 formatter, validation, 파일 탐색, API 변환 로직은 `system/`에 둔다.
+- 코드와 JSX는 한 줄로 압축하지 않고 읽기 쉬운 여러 줄 형식을 유지한다.
 
-v2.1의 실제 작업 루트는 `C:\Users\jusmi\Desktop\+\LifeScape\workspace\itda-studio-v2.1`이다. 모든 코드 수정, 생성 파일, 빌드 산출물, 로그 및 임시 검증 파일은 이 작업 루트 또는 운영체제의 임시 디렉터리 안에서만 관리한다.
+## 5. 상태 관리
 
-기준 참고 프로젝트인 `C:\Users\jusmi\Desktop\+\LifeScape\workspace\itda-studio_v2`는 **읽기 전용 참고 자료로 취급한다.** 사용자가 v2 자체의 변경을 명시적으로 요청하지 않는 한 이 경로에는 파일이나 디렉터리를 생성·수정·삭제하지 않는다. 특히 `.v21-*` 같은 기능별 스냅샷, 임시 빌드, 테스트 서버 로그 또는 v2.1 작업 산출물을 `itda-studio_v2` 안에 만들지 않는다.
+공유 상태에는 가능한 Zustand를 사용하되, 단순한 일시적 UI 상태는 React 로컬 상태로 유지한다.
 
-명령이나 개발 서버를 실행하기 전에는 작업 디렉터리가 v2.1 루트인지 확인한다. 일시적인 복사본이 필요하면 운영체제의 임시 디렉터리를 사용하고, 검증이 끝나면 해당 산출물을 정리한다. 인접한 다른 workspace 디렉터리를 임시 저장소로 사용하지 않는다.
+- store는 `stores/` 아래에서 용도별로 분리한다.
+- 이름은 `use***Store` 관습을 따른다.
+- 하나의 거대한 store에 서로 다른 도메인을 섞지 않는다.
+- 재사용 가능한 순수 함수와 서버 데이터 변환은 store가 아니라 `system/`에 둔다.
 
-## 프론트엔드 상태 관리
+현재 주요 store는 다음과 같다.
 
-프론트엔드의 전역 또는 여러 컴포넌트가 공유하는 상태에는 **가능한 한 Zustand를 사용한다.** 단순한 컴포넌트 내부 UI 상태처럼 공유할 필요가 없는 값은 React의 로컬 상태로 유지하며, 모든 상태를 불필요하게 전역화하지 않는다.
+- `useImportStore`: case 조회, 이메일별 고객 그룹, 고객/case 선택
+- `useProjectStore`: 프로젝트 생성·조회·삭제와 선택 상태
+- `useCreateStore`: 생성 설정, 업로드 이미지, 생성 상태
+- `useWorkspaceLayoutStore`: navigation 접힘과 resizable panel 너비
+- `useAppSettingsStore`: API key 연결, mock mode 등 앱 설정
+- `useThemeStore`: light/dark theme
 
-Zustand store는 프로젝트 루트의 `stores/` 경로에 모아 관리한다. 하나의 거대한 store에 모든 상태를 넣지 않고, 상태의 도메인과 용도에 따라 서로 다른 store로 분리한다. 예를 들면 계정, 고객 가져오기, 프로젝트 편집, UI 상태는 각각 별도의 store가 되어야 한다.
+## 6. 공유 컴포넌트 기준
 
-store hook의 이름은 관습에 따라 `use***Store` 형식을 사용한다.
+- `ButtonBack`: 가져오기 depth 2, 무드보드 상세, 가구 상세에서 공유한다.
+- `ItemReferences`: 무드보드와 가구의 목록 item에서 공유하고, 페이지별 이동 로직은 부모가 담당한다.
+- `ReferenceDetailTitle`: 무드보드와 가구 상세의 제목·설명 조합에서 공유한다.
+- `ImageAlbum`: 가구 viewer와 무드보드 상세 overlay에서 공유한다.
+- `PanelResizeHandle`: create 양쪽 panel과 furniture gallery처럼 너비 조절이 필요한 영역에서 공유한다.
 
-- `stores/useAccountStore.ts`
-- `stores/useImportStore.ts`
-- `stores/useProjectStore.ts`
-- `stores/useUIStore.ts`
+공유 컴포넌트의 변경은 모든 소비 페이지에 미치는 영향을 확인한다. 페이지별 특수 동작은 무리하게 공용 컴포넌트 안에 넣지 말고 props 또는 페이지 전용 wrapper로 분리한다.
 
-각 store는 자신이 담당하는 상태, 해당 상태를 변경하는 action, 필요한 selector만 제공한다. 다른 도메인의 상태를 직접 포함하거나 서로 강하게 결합하지 않으며, 서버에서 가져온 데이터의 캐시와 일시적인 화면 상태도 용도에 맞게 구분한다.
+## 7. 주요 페이지 현황
 
-## 현재 구현 범위
+### 가져오기
 
-첫 화면은 Figma의 `파일-가져오기` 프레임을 기준으로 구현되어 있으며 다음 컴포넌트로 구성되어 있다.
+- `GET /api/integrations/cases`를 통해 ITDA NEO case를 가져온다.
+- case는 이메일 주소별로 묶어 `ItemCustomer`로 표시한다.
+- 고객 선택 후 route 이동 없이 workspace content가 해당 이메일의 case 목록으로 전환된다.
+- 이미 프로젝트가 존재하는 case는 disabled 영역에 분리한다.
+- case 기반 프로젝트 생성 시 프로젝트 페이지로 연결된다.
 
-- `NavigationTop`
-- `NavigationLeft`
-- `LabelTitle`
-- `ItemCustomer`
-- `Account`
+### 프로젝트
 
-색상, 타이포그래피, spacing 토큰은 `app/globals.css`에서 관리한다. Figma에서 내보낸 정식 SVG 에셋은 `public/assets/`에서 관리한다.
+- case 기반 또는 사용자 입력 기반 프로젝트를 생성할 수 있다.
+- 프로젝트 목록은 Zustand store를 사용하며 삭제 overlay를 제공한다.
+- 프로젝트 썸네일은 이후 생성 결과를 저장할 수 있는 구조를 유지한다.
 
-## ITDA NEO case 연동
+### 컷 연출(Create)
 
-가져오기 페이지의 고객 카드는 정적 placeholder가 아니다. v2.1의 서버 route인 `GET /api/integrations/cases`가 ITDA NEO의 `http://localhost:3002/api/integrations/cases`를 서버 간 인증으로 호출한다. 연동 secret은 `INTEGRATION_API_SECRET` 환경 변수에서만 읽으며 클라이언트에 노출하지 않는다.
+- 재료 준비, staging canvas, 생성 설정의 세 영역으로 구성된다.
+- 재료 준비와 생성 설정 panel은 최소 너비와 drag resize를 지원한다.
+- 콘텐츠 세트와 앵글 변주는 동시에 선택할 수 없다.
+- 레퍼런스 이미지가 있을 때만 AI 편집 방식 설정을 노출한다.
+- 설정값은 `system/create/generation-prompt.ts`를 통해 최종 프롬프트로 조합한다.
+- API key가 없거나 mock mode이면 mock 생성 흐름을 사용하고, 그 외에는 `/api/generate`를 호출한다.
 
-클라이언트의 `useImportStore`는 v2.1 서버 route의 응답을 가져와 case를 이메일 주소별로 그룹화한다. 각 그룹은 `ItemCustomer` 하나로 렌더링하며 `name`은 담당자명, 그룹에 포함된 case의 수는 `n건`으로 표시한다. 원본 case 배열도 각 그룹에 유지하여 이후 case 선택 화면에서 사용할 수 있도록 한다.
+### 무드보드
 
-고객과 case 선택 상태 역시 `useImportStore`에서 관리한다. `ItemCustomer` 선택 시 별도 route로 이동하지 않고 `workspace-content`만 해당 이메일의 case 목록으로 전환한다.
+- `public/references/mood/<style>/`를 데이터 원본으로 사용한다.
+- 목록은 `ItemReferences` grid로 표시한다.
+- 상세 화면은 `<style>_render.jpg`를 workspace에 맞춰 표시한다.
+- 상세보기는 `<style> (n).png` 이미지들을 workspace 범위의 overlay album으로 표시한다.
 
-case 응답에 `project_exists: true` 또는 유효한 `project_id`가 있으면 이미 프로젝트가 존재하는 case로 분류하고 `ItemCase`의 disabled 상태로 표시한다. 현재 기본 응답 계약에는 이 값이 없으므로 서버가 이 신호를 제공하지 않으면 해당 영역은 비어 있다. `ButtonCreateProject`는 일반 case가 선택됐을 때만 표시하지만, 실제 프로젝트 생성 동작은 다음 구현 단계까지 연결하지 않는다.
+### 가구
+
+- `public/references/furniture/<category>/`를 데이터 원본으로 사용한다.
+- 영문 디렉터리 이름을 한글 표시명으로 변환한다.
+- 상세 화면은 이미지 album과 우측 resizable gallery panel로 구성한다.
+- 방향키와 gallery item으로 현재 이미지를 변경할 수 있다.
+
+## 8. API와 환경변수
+
+### ITDA NEO 연동
+
+- `ITDA_NEO_BASE_URL`: ITDA NEO 서버의 base URL
+- `INTEGRATION_API_SECRET`: server-to-server Bearer 인증 secret
+
+브라우저가 NEO를 직접 호출하지 않고 v2.1의 `/api/integrations/cases` route를 통한다. secret은 클라이언트 번들에 노출하지 않는다.
+
+### 이미지 생성
+
+- 로컬 환경변수 `OPENAI_API_KEY`를 최우선으로 확인한다.
+- 환경변수가 없으면 설정 화면에서 사용자가 등록한 key를 서버 설정 경로를 통해 사용한다.
+- key 원문을 클라이언트 상태나 로그에 노출하지 않는다.
+- mock mode에서는 실제 OpenAI 요청을 보내지 않는다.
+
+## 9. 검증과 Git
+
+- 변경 범위에 맞춰 ESLint와 `tsc --noEmit --incremental false`를 실행한다.
+- 레이아웃 또는 interaction 변경은 실제 브라우저에서 표시, scroll, resize, keyboard, overlay 범위를 확인한다.
+- shared component 변경은 최소 두 개 이상의 소비 화면에서 회귀 여부를 확인한다.
+- 무드보드 전용, 가구 전용, shared reference UI, 공용 navigation/UI 변경은 가능한 별도 커밋으로 나눈다.
+- 사용자의 기존 변경을 덮어쓰거나 관련 없는 파일을 정리하지 않는다.

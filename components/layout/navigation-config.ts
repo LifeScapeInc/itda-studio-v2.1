@@ -49,7 +49,7 @@ export const NAVIGATION_GROUPS: Array<{
       },
       {
         label: "북마크",
-        href: "#",
+        href: "/bookmarks",
         icon: Bookmark,
       },
     ],

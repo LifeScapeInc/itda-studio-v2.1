@@ -53,7 +53,7 @@ const ScrollArea = styled.div`
 const Sections = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--space-xs);
+  gap: var(--space-sm);
 `;
 
 export function GenerationSettingsPanel() {

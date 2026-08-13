@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { X } from "lucide-react";
+import Image from "next/image";
 import styled from "styled-components";
 import type { GenerationQuality } from "@/system/create/generation-options";
 import type { GenerationPrompt } from "@/system/create/generation-prompt";
@@ -25,9 +25,9 @@ const Backdrop = styled.div`
 const Modal = styled.section`
   display: flex;
   width: min(720px, 100%);
-  max-height: min(760px, calc(100vh - 64px));
+  height: min(760px, calc(100vh - 64px));
+  min-height: 520px;
   flex-direction: column;
-  border-radius: 16px;
   background: var(--color-surface);
   box-shadow: 0 20px 52px rgb(32 29 23 / 22%);
   overflow: hidden;
@@ -38,8 +38,8 @@ const Header = styled.header`
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--space-lg);
-  padding: var(--space-md) var(--space-lg);
-  border-bottom: 1px solid var(--color-border);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--color-main-neutral-light);
 `;
 
 const Heading = styled.div`
@@ -62,7 +62,7 @@ const Meta = styled.div`
 
 const Badge = styled.span`
   padding: var(--space-3xs) var(--space-2xs);
-  border-radius: 999px;
+  border-radius: 6px;
   background: var(--color-main-neutral);
   color: var(--color-label-studio-comment);
   font-size: 11px;
@@ -70,19 +70,20 @@ const Badge = styled.span`
 
 const Close = styled.button`
   display: grid;
-  width: 32px;
-  height: 32px;
-  flex: 0 0 32px;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+  margin: -6px -6px 0 0;
   place-items: center;
   padding: 0;
   border: 0;
-  border-radius: 8px;
+  border-radius: 4px;
   background: transparent;
   cursor: pointer;
 
   &:hover,
   &:focus-visible {
-    background: var(--color-main-neutral-light);
+    background: rgb(32 29 23 / 5%);
     outline: none;
   }
 `;
@@ -94,6 +95,7 @@ const Content = styled.div`
   flex-direction: column;
   gap: var(--space-sm);
   padding: var(--space-lg);
+  border-top: 1px solid var(--color-border);
   background: var(--color-main-neutral-light);
   overflow-y: auto;
   scrollbar-width: none;
@@ -109,7 +111,7 @@ const PromptCard = styled.article`
   gap: var(--space-xs);
   padding: var(--space-sm);
   border: 1px solid var(--color-border);
-  border-radius: 12px;
+  border-radius: 8px;
   background: var(--color-surface);
 `;
 
@@ -169,7 +171,7 @@ export function PromptPreviewModal({
         <Header>
           <Heading>
             <h2
-              className="type-small-body"
+              className="type-small-head"
               id="prompt-preview-title"
             >
               최종 생성 프롬프트
@@ -188,7 +190,12 @@ export function PromptPreviewModal({
             aria-label="프롬프트 모달 닫기"
             onClick={onClose}
           >
-            <X size={18} />
+            <Image
+              src="/assets/project-overlay-close.svg"
+              alt=""
+              width={12}
+              height={12}
+            />
           </Close>
         </Header>
         <Content>
