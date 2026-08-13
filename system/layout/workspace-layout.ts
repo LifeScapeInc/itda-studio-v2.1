@@ -8,6 +8,10 @@ export const SETTINGS_PANEL_MIN_WIDTH = 300;
 export const SETTINGS_PANEL_MAX_WIDTH = 480;
 export const SETTINGS_PANEL_DEFAULT_WIDTH = 354;
 
+export const FURNITURE_GALLERY_PANEL_MIN_WIDTH = 260;
+export const FURNITURE_GALLERY_PANEL_MAX_WIDTH = 520;
+export const FURNITURE_GALLERY_PANEL_DEFAULT_WIDTH = 336;
+
 export function clampPanelWidth(
   width: number,
   minimum: number,

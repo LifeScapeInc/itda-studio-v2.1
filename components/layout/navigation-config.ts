@@ -43,14 +43,14 @@ export const NAVIGATION_GROUPS: Array<{
         icon: LayoutGrid,
       },
       {
-        label: "북마크",
-        href: "#",
-        icon: Bookmark,
-      },
-      {
         label: "가구",
         href: "/furniture",
         icon: Armchair,
+      },
+      {
+        label: "북마크",
+        href: "#",
+        icon: Bookmark,
       },
     ],
   },

@@ -1,12 +1,9 @@
 import { notFound } from "next/navigation";
-import { FurnitureViewer } from "@/components/furniture/furniture-viewer";
-import { NavigationLeft } from "@/components/layout/navigation-left";
-import { NavigationTop } from "@/components/layout/navigation-top";
+import { FurnitureCategoryWorkspace } from "@/components/furniture/furniture-category-workspace";
 import {
   FURNITURE_CATEGORIES,
   getFurnitureCategory,
 } from "@/system/furniture/furniture-catalog";
-import { StudioShell, WorkspaceContent } from "@/system/styles/layout";
 
 export function generateStaticParams() {
   return FURNITURE_CATEGORIES.map((category) => ({
@@ -26,13 +23,5 @@ export default async function FurnitureCategoryPage({
     notFound();
   }
 
-  return (
-    <StudioShell>
-      <NavigationTop />
-      <NavigationLeft />
-      <WorkspaceContent>
-        <FurnitureViewer category={category} />
-      </WorkspaceContent>
-    </StudioShell>
-  );
+  return <FurnitureCategoryWorkspace category={category} />;
 }

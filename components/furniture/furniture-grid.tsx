@@ -44,11 +44,7 @@ export function FurnitureGrid({
           {categories.map((category) => (
             <ItemReferences
               title={category.name}
-              description={
-                category.images.length
-                  ? `${category.description} · ${category.images.length}장`
-                  : `${category.description} · 준비 중`
-              }
+              description={`${category.images.length}장의 이미지`}
               previewImages={category.previewImages}
               ariaLabel={`${category.name} 레퍼런스 보기`}
               onClick={() => router.push(`/furniture/${category.slug}`)}
