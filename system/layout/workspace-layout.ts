@@ -12,6 +12,10 @@ export const FURNITURE_GALLERY_PANEL_MIN_WIDTH = 260;
 export const FURNITURE_GALLERY_PANEL_MAX_WIDTH = 520;
 export const FURNITURE_GALLERY_PANEL_DEFAULT_WIDTH = 336;
 
+export const BOOKMARK_DETAILS_PANEL_MIN_WIDTH = 520;
+export const BOOKMARK_DETAILS_PANEL_MAX_WIDTH = 960;
+export const BOOKMARK_DETAILS_PANEL_DEFAULT_WIDTH = 680;
+
 export function clampPanelWidth(
   width: number,
   minimum: number,
