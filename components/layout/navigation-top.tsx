@@ -8,6 +8,7 @@ import styled from "styled-components";
 import { useWorkspaceLayoutStore } from "@/stores/useWorkspaceLayoutStore";
 import { useAppSettingsStore } from "@/stores/useAppSettingsStore";
 import { Account } from "./account";
+import { TabProject } from "./tab-project";
 
 const Header = styled.header`
   position: fixed;
@@ -21,10 +22,12 @@ const Header = styled.header`
   justify-content: space-between;
   padding: 0 var(--space-lg);
   border-bottom: 1px solid var(--color-border);
-  background: var(--color-surface);
+  background: var(--color-main-neutral);
 `;
 
 const Brand = styled.div`
+  position: relative;
+  z-index: 2;
   display: flex;
   align-items: center;
   gap: var(--space-sm);
@@ -70,6 +73,8 @@ const StudioLogo = styled(Image)`
 `;
 
 const AccountArea = styled.div`
+  position: relative;
+  z-index: 2;
   display: flex;
   align-items: center;
   gap: var(--space-xs);
@@ -149,6 +154,7 @@ export function NavigationTop() {
           priority
         />
       </Brand>
+      <TabProject />
       <AccountArea>
         {status?.hasOpenAiApiKey ? (
           <TokenBalance title="앱 내부 사용량 기준 예상 잔여 토큰">

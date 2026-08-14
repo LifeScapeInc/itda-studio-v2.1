@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import styled from "styled-components";
 import { NavigationLeft } from "@/components/layout/navigation-left";
 import { NavigationTop } from "@/components/layout/navigation-top";
 import { LabelTitle } from "@/components/ui/label-title";
 import { StudioShell, WorkspaceContent, HiddenScrollbar } from "@/system/styles/layout";
+import { useCreateStore } from "@/stores/useCreateStore";
 import {
   useProjectStore,
   type StudioProject,
@@ -19,10 +21,18 @@ const Grid = styled.section`display:grid;grid-template-columns:repeat(auto-fill,
 export function ProjectsWorkspace() {
   const [open, setOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<StudioProject | null>(null);
+  const router = useRouter();
   const projects = useProjectStore((state) => state.projects);
   const active = useProjectStore((state) => state.activeProjectId);
-  const select = useProjectStore((state) => state.selectProject);
+  const openProject = useProjectStore((state) => state.openProject);
   const deleteProject = useProjectStore((state) => state.deleteProject);
+  const generationHistory = useCreateStore((state) => state.generationHistory);
+  const hydrateLibrary = useCreateStore((state) => state.hydrateLibrary);
+  const setProjectContext = useCreateStore((state) => state.setProjectContext);
+
+  useEffect(() => {
+    void hydrateLibrary();
+  }, [hydrateLibrary]);
 
   const confirmDelete = () => {
     if (!deleteTarget) {
@@ -47,8 +57,18 @@ export function ProjectsWorkspace() {
             {projects.map(p => (
               <ItemProject
                 project={p}
+                previewImages={generationHistory
+                  .filter(history => history.projectId === p.id)
+                  .flatMap(history => history.shots)
+                  .filter(shot => shot.status === "done" && shot.imageUrl)
+                  .map(shot => shot.imageUrl!)
+                  .slice(0, 3)}
                 active={p.id === active}
-                onOpen={() => select(p.id)}
+                onOpen={() => {
+                  setProjectContext(p.id);
+                  openProject(p.id);
+                  router.push(`/create?projectId=${encodeURIComponent(p.id)}`);
+                }}
                 onDelete={() => setDeleteTarget(p)}
                 key={p.id}
               />

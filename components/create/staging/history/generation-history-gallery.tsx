@@ -26,6 +26,8 @@ const Header = styled.div`
 
   h3 {
     display: flex;
+    min-width: 0;
+    flex: 1;
     align-items: center;
     gap: 6px;
     color: var(--color-label-studio-black);
@@ -34,8 +36,18 @@ const Header = styled.div`
 
 const HeaderActions = styled.div`
   display: flex;
+  flex: 0 0 auto;
   align-items: center;
   gap: var(--space-xs);
+`;
+
+const ProjectName = styled.span`
+  max-width: 220px;
+  color: var(--color-label-studio-comment);
+  font-weight: 400;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 `;
 
 const ActionButton = styled.button`
@@ -85,6 +97,7 @@ const Empty = styled.div`
 
 export function GenerationHistoryGallery({
   history,
+  projectName,
   activeHistoryId,
   deleteDisabled,
   onRestore,
@@ -92,6 +105,7 @@ export function GenerationHistoryGallery({
   onClear,
 }: {
   history: GenerationHistorySet[];
+  projectName?: string;
   activeHistoryId: string | null;
   deleteDisabled?: boolean;
   onRestore: (historyId: string) => void;
@@ -115,6 +129,11 @@ export function GenerationHistoryGallery({
         <h3 className="type-xsmall-body">
           <History size={15} />
           히스토리
+          {projectName ? (
+            <ProjectName className="type-xsmall-thin" title={projectName}>
+              · {projectName}
+            </ProjectName>
+          ) : null}
         </h3>
         <HeaderActions>
           <span className="type-xsmall-thin">이미지셋 {history.length}개</span>

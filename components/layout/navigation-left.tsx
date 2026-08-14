@@ -6,7 +6,9 @@ import { usePathname } from "next/navigation";
 import { Moon, Settings, Sun, User } from "lucide-react";
 import styled from "styled-components";
 import { useWorkspaceLayoutStore } from "@/stores/useWorkspaceLayoutStore";
+import { useCreateStore } from "@/stores/useCreateStore";
 import { useThemeStore } from "@/stores/useThemeStore";
+import { useProjectStore } from "@/stores/useProjectStore";
 import {
   isNavigationItemActive,
   NAVIGATION_GROUPS,
@@ -186,6 +188,12 @@ export function NavigationLeft() {
   const theme = useThemeStore((state) => state.theme);
   const hydrateTheme = useThemeStore((state) => state.hydrate);
   const toggleTheme = useThemeStore((state) => state.toggleTheme);
+  const openUnscopedWorkspace = useProjectStore(
+    (state) => state.openUnscopedWorkspace,
+  );
+  const setProjectContext = useCreateStore(
+    (state) => state.setProjectContext,
+  );
 
   useEffect(() => {
     hydrateTheme();
@@ -210,6 +218,10 @@ export function NavigationLeft() {
                     href={item.href}
                     $active={active}
                     aria-current={active ? "page" : undefined}
+                    onClick={item.href === "/create" ? () => {
+                      setProjectContext(null);
+                      openUnscopedWorkspace();
+                    } : undefined}
                     key={item.label}
                   >
                     {active ? <Indicator aria-hidden="true" /> : null}

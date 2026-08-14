@@ -39,9 +39,15 @@ export type ManualProjectInput = {
 type ProjectStore = {
   projects: StudioProject[];
   activeProjectId: string | null;
+  openProjectIds: string[];
+  hydrated: boolean;
   createProjectFromCase: (item: IntegrationCase) => StudioProject;
   createManualProject: (input: ManualProjectInput) => StudioProject;
-  selectProject: (projectId: string) => void;
+  openProject: (projectId: string) => void;
+  openUnscopedWorkspace: () => void;
+  closeProjectTab: (projectId: string) => void;
+  recordGenerationSet: (projectId: string, historyId: string, createdAt: string) => void;
+  markHydrated: () => void;
   deleteProject: (projectId: string) => void;
 };
 const FINAL_STATUSES = new Set(["completed", "delivered", "done", "final"]);
@@ -104,11 +110,13 @@ export function getProjectWorkTypeLabel(workType: ProjectWorkType): string {
 export const useProjectStore = create<ProjectStore>()(persist((set, get) => ({
   projects: [seedProject],
   activeProjectId: null,
+  openProjectIds: [],
+  hydrated: false,
   createProjectFromCase: item => {
     const existing = get().projects.find(project => sameCase(project, item));
     if (existing) {
       set({
-        activeProjectId: existing.id
+        activeProjectId: null,
       });
       return existing;
     }
@@ -133,7 +141,7 @@ export const useProjectStore = create<ProjectStore>()(persist((set, get) => ({
     };
     set(state => ({
       projects: [project, ...state.projects],
-      activeProjectId: project.id
+      activeProjectId: null,
     }));
     return project;
   },
@@ -157,21 +165,73 @@ export const useProjectStore = create<ProjectStore>()(persist((set, get) => ({
     };
     set(state => ({
       projects: [project, ...state.projects],
-      activeProjectId: project.id
+      activeProjectId: null,
     }));
     return project;
   },
-  selectProject: projectId => set({
-    activeProjectId: projectId
+  openProject: projectId => set(state => {
+    if (!state.projects.some(project => project.id === projectId)) {
+      return state;
+    }
+    return {
+      activeProjectId: projectId,
+      openProjectIds: state.openProjectIds.includes(projectId)
+        ? state.openProjectIds
+        : [...state.openProjectIds, projectId],
+    };
   }),
+  openUnscopedWorkspace: () => set({ activeProjectId: null }),
+  closeProjectTab: projectId => set(state => ({
+    openProjectIds: state.openProjectIds.filter(id => id !== projectId),
+    activeProjectId: state.activeProjectId === projectId
+      ? null
+      : state.activeProjectId,
+  })),
+  recordGenerationSet: (projectId, historyId, createdAt) => set(state => ({
+    projects: state.projects.map(project => {
+      if (project.id !== projectId) return project;
+      if (project.workHistory.some(record => record.id === historyId)) {
+        return project;
+      }
+      return {
+        ...project,
+        workHistory: [
+          {
+            id: historyId,
+            kind: "generated_image" as const,
+            createdAt,
+          },
+          ...project.workHistory,
+        ],
+        updatedAt: createdAt,
+      };
+    }),
+  })),
+  markHydrated: () => set({ hydrated: true }),
   deleteProject: projectId => set(state => ({
     projects: state.projects.filter(project => project.id !== projectId),
+    openProjectIds: state.openProjectIds.filter(id => id !== projectId),
     activeProjectId: state.activeProjectId === projectId
       ? null
       : state.activeProjectId
   }))
 }), {
   name: "itda-studio-v2.1-projects",
-  version: 1,
-  skipHydration: true
+  version: 2,
+  skipHydration: true,
+  partialize: state => ({
+    projects: state.projects,
+    openProjectIds: state.openProjectIds,
+  }),
+  migrate: persistedState => {
+    const state = persistedState as Partial<ProjectStore>;
+    return {
+      ...state,
+      activeProjectId: null,
+      openProjectIds: Array.isArray(state.openProjectIds)
+        ? state.openProjectIds
+        : [],
+      hydrated: false,
+    } as ProjectStore;
+  },
 }));

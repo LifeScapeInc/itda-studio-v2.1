@@ -4,7 +4,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import { useCreateStore } from "@/stores/useCreateStore";
 import { getCutCount } from "@/system/create/generation-options";
-import type { LibraryGenerationShot } from "@/system/create/generation-library";
+import {
+  belongsToProject,
+  type LibraryGenerationShot,
+} from "@/system/create/generation-library";
 import { GenerationHistoryGallery } from "./history/generation-history-gallery";
 import { GeneratedImageLightbox } from "./generated/generated-image-lightbox";
 import { GeneratedMetadataModal } from "./generated/generated-metadata-modal";
@@ -67,7 +70,13 @@ const HISTORY_MIN_HEIGHT = 142;
 const CURRENT_MIN_HEIGHT = 180;
 const RESIZE_HANDLE_HEIGHT = 9;
 
-export function StagingCanvas() {
+export function StagingCanvas({
+  projectId,
+  projectName,
+}: {
+  projectId: string | null;
+  projectName?: string;
+}) {
   const state = useCreateStore();
   const hydrateLibrary = state.hydrateLibrary;
   const splitStageRef = useRef<HTMLDivElement>(null);
@@ -124,7 +133,10 @@ export function StagingCanvas() {
   const selectedShot = state.generationShots.find(
     (shot) => shot.id === state.selectedShotId && shot.status === "done",
   ) as LibraryGenerationShot | undefined;
-  const activeSet = state.generationHistory.find(
+  const scopedHistory = state.generationHistory.filter(history => (
+    belongsToProject(history, projectId)
+  ));
+  const activeSet = scopedHistory.find(
     (history) => history.id === state.activeHistoryId,
   );
 
@@ -185,7 +197,8 @@ export function StagingCanvas() {
           onResize={resizeHistory}
         />
         <GenerationHistoryGallery
-          history={state.generationHistory}
+          history={scopedHistory}
+          projectName={projectName}
           activeHistoryId={state.activeHistoryId}
           deleteDisabled={state.isGenerating}
           onRestore={state.restoreHistory}

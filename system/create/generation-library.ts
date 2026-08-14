@@ -46,10 +46,18 @@ export type LibraryGenerationShot = GenerationShot & {
 
 export type GenerationHistorySet = {
   id: string;
+  projectId?: string | null;
   createdAt: string;
   title: string;
   shots: LibraryGenerationShot[];
 };
+
+export function belongsToProject(
+  history: GenerationHistorySet,
+  projectId: string | null,
+): boolean {
+  return (history.projectId ?? null) === projectId;
+}
 
 const DATABASE_NAME = "itda-studio-generation-library";
 const STORE_NAME = "library";

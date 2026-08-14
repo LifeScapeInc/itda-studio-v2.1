@@ -136,12 +136,14 @@ const Copy = styled.span`
 `;
 type ItemProjectProps = {
   project: StudioProject;
+  previewImages?: string[];
   active: boolean;
   onOpen: () => void;
   onDelete: () => void;
 };
 export function ItemProject({
   project,
+  previewImages = project.previewImages,
   active,
   onOpen,
   onDelete,
@@ -158,6 +160,7 @@ export function ItemProject({
           <MainPreview>
             <ProjectPreview
               project={project}
+              imageUrl={previewImages[0]}
               index={0}
             />
           </MainPreview>
@@ -165,12 +168,14 @@ export function ItemProject({
             <Preview>
               <ProjectPreview
                 project={project}
+                imageUrl={previewImages[1]}
                 index={1}
               />
             </Preview>
             <Preview>
               <ProjectPreview
                 project={project}
+                imageUrl={previewImages[2]}
                 index={2}
               />
             </Preview>

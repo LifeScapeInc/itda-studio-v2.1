@@ -23,11 +23,13 @@ import type {
   GenerationApiResponse,
 } from "@/system/create/generation-api";
 import {
+  belongsToProject,
   loadGenerationHistory,
   saveGenerationHistory,
   type GenerationHistorySet,
   type LibraryGenerationShot,
 } from "@/system/create/generation-library";
+import { useProjectStore } from "@/stores/useProjectStore";
 import {
   ANGLE_VARIATION_OPTIONS,
   CONTENT_SET_OPTIONS,
@@ -43,7 +45,29 @@ export type GenerationRunResult = {
   failed: number;
 };
 
+type CreateWorkspaceSnapshot = {
+  productImage: string | null;
+  referenceImage: string | null;
+  contentSet: ContentSetId | null;
+  angleVariationIds: AngleVariationId[];
+  freeCount: number;
+  quality: GenerationQuality;
+  editMode: string;
+  light: string;
+  mood: string;
+  props: string[];
+  prompt: string;
+  generationRequested: boolean;
+  generationMessage: string;
+  lastGenerationPrompts: GenerationPrompt[];
+  generationShots: GenerationShot[];
+  activeHistoryId: string | null;
+  selectedShotId: string | null;
+};
+
 type CreateStore = {
+  workspaceProjectId: string | null;
+  workspaceSnapshots: Record<string, CreateWorkspaceSnapshot>;
   productImage: string | null;
   referenceImage: string | null;
   contentSet: ContentSetId | null;
@@ -64,6 +88,7 @@ type CreateStore = {
   activeHistoryId: string | null;
   selectedShotId: string | null;
   libraryHydrated: boolean;
+  setProjectContext: (projectId: string | null) => void;
   setProductImage: (image: string | null) => void;
   setReferenceImage: (image: string | null) => void;
   setContentSet: (contentSet: ContentSetId) => void;
@@ -85,7 +110,86 @@ type CreateStore = {
   requestGeneration: (mockMode: boolean) => Promise<GenerationRunResult>;
 };
 
+const UNSCOPED_WORKSPACE_KEY = "__unscoped__";
+
+function getWorkspaceKey(projectId: string | null): string {
+  return projectId ?? UNSCOPED_WORKSPACE_KEY;
+}
+
+function createEmptyWorkspace(): CreateWorkspaceSnapshot {
+  return {
+    productImage: null,
+    referenceImage: null,
+    contentSet: null,
+    angleVariationIds: [],
+    freeCount: 1,
+    quality: "medium",
+    editMode: "swap",
+    light: "아침 햇살",
+    mood: "모던 미니멀",
+    props: [],
+    prompt: "",
+    generationRequested: false,
+    generationMessage: "",
+    lastGenerationPrompts: [],
+    generationShots: [],
+    activeHistoryId: null,
+    selectedShotId: null,
+  };
+}
+
+function captureWorkspace(state: CreateStore): CreateWorkspaceSnapshot {
+  return {
+    productImage: state.productImage,
+    referenceImage: state.referenceImage,
+    contentSet: state.contentSet,
+    angleVariationIds: [...state.angleVariationIds],
+    freeCount: state.freeCount,
+    quality: state.quality,
+    editMode: state.editMode,
+    light: state.light,
+    mood: state.mood,
+    props: [...state.props],
+    prompt: state.prompt,
+    generationRequested: state.generationRequested,
+    generationMessage: state.generationMessage,
+    lastGenerationPrompts: [...state.lastGenerationPrompts],
+    generationShots: state.generationShots,
+    activeHistoryId: state.activeHistoryId,
+    selectedShotId: state.selectedShotId,
+  };
+}
+
+function restoreLatestHistory(
+  workspace: CreateWorkspaceSnapshot,
+  history: GenerationHistorySet[],
+  projectId: string | null,
+  restoreProjectLatest = false,
+): CreateWorkspaceSnapshot {
+  const scopedHistory = history.filter(item => belongsToProject(item, projectId));
+  const activeHistory = scopedHistory.find(
+    item => item.id === workspace.activeHistoryId,
+  ) ?? (workspace.generationRequested || restoreProjectLatest
+    ? scopedHistory[0]
+    : undefined);
+
+  if (!activeHistory) return workspace;
+
+  return {
+    ...workspace,
+    generationRequested: true,
+    generationShots: activeHistory.shots,
+    activeHistoryId: activeHistory.id,
+    selectedShotId: activeHistory.shots.find(
+      shot => shot.id === workspace.selectedShotId && shot.status === "done",
+    )?.id ?? activeHistory.shots.find(shot => shot.status === "done")?.id ?? null,
+    generationMessage: `${new Date(activeHistory.createdAt).toLocaleString("ko-KR")} 생성 결과`,
+  };
+}
+
 export const useCreateStore = create<CreateStore>((set, get) => ({
+  workspaceProjectId: null,
+  workspaceSnapshots: {},
   productImage: null,
   referenceImage: null,
   contentSet: null,
@@ -106,6 +210,28 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
   activeHistoryId: null,
   selectedShotId: null,
   libraryHydrated: false,
+  setProjectContext: (workspaceProjectId) => {
+    const current = get();
+    if (current.workspaceProjectId === workspaceProjectId) return;
+
+    const workspaceSnapshots = {
+      ...current.workspaceSnapshots,
+      [getWorkspaceKey(current.workspaceProjectId)]: captureWorkspace(current),
+    };
+    const storedWorkspace = workspaceSnapshots[getWorkspaceKey(workspaceProjectId)];
+    const nextWorkspace = restoreLatestHistory(
+      storedWorkspace ?? createEmptyWorkspace(),
+      current.generationHistory,
+      workspaceProjectId,
+      !storedWorkspace && Boolean(workspaceProjectId),
+    );
+
+    set({
+      ...nextWorkspace,
+      workspaceProjectId,
+      workspaceSnapshots,
+    });
+  },
   setProductImage: (productImage) => {
     set({ productImage, generationRequested: false });
   },
@@ -157,7 +283,16 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
     if (get().libraryHydrated) return;
     try {
       const generationHistory = await loadGenerationHistory();
-      set({ generationHistory, libraryHydrated: true });
+      set(state => ({
+        ...restoreLatestHistory(
+          captureWorkspace(state),
+          generationHistory,
+          state.workspaceProjectId,
+          Boolean(state.workspaceProjectId),
+        ),
+        generationHistory,
+        libraryHydrated: true,
+      }));
     } catch {
       set({ libraryHydrated: true });
     }
@@ -244,9 +379,12 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
       (history) => history.id !== historyId,
     );
     const deletedActiveHistory = current.activeHistoryId === historyId;
+    const scopedHistory = generationHistory.filter(history => (
+      belongsToProject(history, current.workspaceProjectId)
+    ));
     const nextActiveHistory = deletedActiveHistory
-      ? generationHistory[0]
-      : generationHistory.find(
+      ? scopedHistory[0]
+      : scopedHistory.find(
           (history) => history.id === current.activeHistoryId,
         );
 
@@ -286,6 +424,7 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
   },
   requestGeneration: async (mockMode) => {
     const current = get();
+    const runProjectId = current.workspaceProjectId;
     const lastGenerationPrompts = buildGenerationPrompts(current);
     const runCreatedAt = new Date().toISOString();
     const runId = `generation-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -372,6 +511,7 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
       generationHistory: [
         {
           id: runId,
+          projectId: runProjectId,
           createdAt: runCreatedAt,
           title: variationType,
           shots: generationShots,
@@ -380,6 +520,14 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
       ],
       generationMessage: "생성 작업을 준비하고 있습니다.",
     });
+
+    if (runProjectId) {
+      useProjectStore.getState().recordGenerationSet(
+        runProjectId,
+        runId,
+        runCreatedAt,
+      );
+    }
 
     let usedActualGeneration = false;
     let actualCompleted = 0;
@@ -396,20 +544,31 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
       const prompt = { prompt: shot.metadata.finalPrompt };
 
       set((state) => {
-        const nextShots = state.generationShots.map((item) => ({
+        const runHistory = state.generationHistory.find(
+          history => history.id === runId,
+        );
+        const nextShots = (runHistory?.shots ?? generationShots).map((item) => ({
           ...item,
           status: item.id === shot.id ? "generating" : item.status,
           error: item.id === shot.id ? undefined : item.error,
         })) as LibraryGenerationShot[];
+        const generationHistory = state.generationHistory.map(history => (
+          history.id === runId ? { ...history, shots: nextShots } : history
+        ));
         const generatingCount = nextShots.filter(
           (item) => item.status === "generating",
         ).length;
+        const showingRun = state.workspaceProjectId === runProjectId
+          && state.activeHistoryId === runId;
 
         return {
-          generationShots: nextShots,
-          generationMessage: generatingCount > 1
-            ? `${generatingCount}개 이미지를 동시에 생성하고 있습니다.`
-            : `${shot.label} 이미지를 생성하고 있습니다.`,
+          generationHistory,
+          ...(showingRun ? {
+            generationShots: nextShots,
+            generationMessage: generatingCount > 1
+              ? `${generatingCount}개 이미지를 동시에 생성하고 있습니다.`
+              : `${shot.label} 이미지를 생성하고 있습니다.`,
+          } : {}),
         };
       });
 
@@ -446,21 +605,30 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
         completed += 1;
 
         set((state) => {
-          const generationShots = state.generationShots.map((item) => item.id === shot.id
+          const runHistory = state.generationHistory.find(
+            history => history.id === runId,
+          );
+          const runShots = (runHistory?.shots ?? generationShots).map(
+            (item) => item.id === shot.id
             ? {
                 ...item,
                 status: "done",
                 imageUrl: result.images[0],
               }
-            : item) as LibraryGenerationShot[];
+            : item,
+          ) as LibraryGenerationShot[];
           const generationHistory = state.generationHistory.map((history) => history.id === runId
-            ? { ...history, shots: generationShots }
+            ? { ...history, shots: runShots }
             : history);
+          const showingRun = state.workspaceProjectId === runProjectId
+            && state.activeHistoryId === runId;
           return {
-            generationShots,
             generationHistory,
-            selectedShotId: state.selectedShotId ?? shot.id,
-            generationMessage: result.note,
+            ...(showingRun ? {
+              generationShots: runShots,
+              selectedShotId: state.selectedShotId ?? shot.id,
+              generationMessage: result.note,
+            } : {}),
           };
         });
       } catch (error) {
@@ -470,27 +638,43 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
           : "이미지를 생성하지 못했습니다.";
 
         set((state) => {
-          const generationShots = state.generationShots.map((item) => item.id === shot.id
+          const runHistory = state.generationHistory.find(
+            history => history.id === runId,
+          );
+          const runShots = (runHistory?.shots ?? generationShots).map(
+            (item) => item.id === shot.id
             ? {
                 ...item,
                 status: "error",
                 error: message,
               }
-            : item) as LibraryGenerationShot[];
+            : item,
+          ) as LibraryGenerationShot[];
           const generationHistory = state.generationHistory.map((history) => history.id === runId
-            ? { ...history, shots: generationShots }
+            ? { ...history, shots: runShots }
             : history);
-          return { generationShots, generationHistory, generationMessage: message };
+          const showingRun = state.workspaceProjectId === runProjectId
+            && state.activeHistoryId === runId;
+          return {
+            generationHistory,
+            ...(showingRun ? {
+              generationShots: runShots,
+              generationMessage: message,
+            } : {}),
+          };
         });
       }
     });
 
-    set({
+    set(state => ({
       isGenerating: false,
-      generationMessage: failed > 0
-        ? `${completed}개 완료, ${failed}개 실패했습니다.`
-        : `${completed}개 이미지 생성을 완료했습니다.`,
-    });
+      ...(state.workspaceProjectId === runProjectId
+        && state.activeHistoryId === runId ? {
+          generationMessage: failed > 0
+            ? `${completed}개 완료, ${failed}개 실패했습니다.`
+            : `${completed}개 이미지 생성을 완료했습니다.`,
+        } : {}),
+    }));
 
     await saveGenerationHistory(get().generationHistory);
 
