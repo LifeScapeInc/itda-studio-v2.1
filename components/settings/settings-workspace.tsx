@@ -68,16 +68,64 @@ const Priority = styled.div`
   }
 `;
 
-const Order = styled.span`
+const SourceGrid = styled.div`
   display: grid;
-  width: 24px;
-  height: 24px;
-  place-items: center;
-  border-radius: 50%;
-  background: var(--color-main-primary);
-  color: var(--color-surface);
-  font-size: 11px;
-  font-weight: 700;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-xs);
+`;
+
+const SourceOption = styled.label<{ $selected: boolean }>`
+  display: flex;
+  min-width: 0;
+  min-height: 112px;
+  align-items: flex-start;
+  gap: var(--space-xs);
+  padding: var(--space-sm);
+  border: 1px solid ${({ $selected }) => $selected
+    ? "var(--color-main-primary)"
+    : "var(--color-border)"};
+  border-radius: 8px;
+  background: ${({ $selected }) => $selected
+    ? "var(--color-main-neutral-light)"
+    : "var(--color-surface)"};
+  cursor: pointer;
+
+  input {
+    width: 16px;
+    height: 16px;
+    flex: 0 0 auto;
+    margin: 2px 0 0;
+    accent-color: var(--color-main-primary);
+  }
+`;
+
+const SourceCopy = styled.span`
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--space-3xs);
+
+  small {
+    color: var(--color-label-studio-comment);
+    line-height: 1.45;
+  }
+
+  code {
+    overflow: hidden;
+    color: var(--color-main-primary);
+    font-family: "Inter", monospace;
+    font-size: 11px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+`;
+
+const DirectKey = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  padding-top: var(--space-2xs);
+  border-top: 1px solid var(--color-border);
 `;
 
 const StatusBox = styled.div<{ $connected: boolean }>`
@@ -244,6 +292,7 @@ export function SettingsWorkspace() {
   const saving = useAppSettingsStore((state) => state.saving);
   const message = useAppSettingsStore((state) => state.message);
   const loadStatus = useAppSettingsStore((state) => state.loadStatus);
+  const setApiKeyMode = useAppSettingsStore((state) => state.setApiKeyMode);
   const saveApiKey = useAppSettingsStore((state) => state.saveApiKey);
   const resetApiKey = useAppSettingsStore((state) => state.resetApiKey);
   const setMockMode = useAppSettingsStore((state) => state.setMockMode);
@@ -267,7 +316,9 @@ export function SettingsWorkspace() {
     ? `환경변수 ${status.environmentVariable}를 사용 중입니다.`
     : status?.openAiApiKeySource === "workspace"
       ? "설정 화면에서 등록한 로컬 키를 사용 중입니다."
-      : "현재 API 키가 없어 목업 모드로 동작합니다.";
+      : status?.openAiApiKeyMode === "env"
+        ? `환경변수 ${status.environmentVariable}가 없어 목업 모드로 동작합니다.`
+        : "직접 입력한 API 키가 없어 목업 모드로 동작합니다.";
 
   return (
     <StudioShell>
@@ -286,18 +337,48 @@ export function SettingsWorkspace() {
                 <h2 className="type-xsmall-body">OpenAI API 설정</h2>
               </CardHeader>
               <CardBody>
-                <Priority>
-                  <Order>1</Order>
-                  <p className="type-xsmall-thin">
-                    먼저 로컬 환경변수 <code>OPENAI_API_KEY</code>를 확인합니다.
-                  </p>
-                </Priority>
-                <Priority>
-                  <Order>2</Order>
-                  <p className="type-xsmall-thin">
-                    환경변수가 없다면 아래에서 직접 등록한 키를 사용합니다.
-                  </p>
-                </Priority>
+                <SourceGrid role="radiogroup" aria-label="API 키 사용 방식">
+                  <SourceOption $selected={status?.openAiApiKeyMode === "env"}>
+                    <input
+                      type="radio"
+                      name="openai-api-key-mode"
+                      value="env"
+                      checked={status?.openAiApiKeyMode === "env"}
+                      disabled={loading || saving}
+                      onChange={() => void setApiKeyMode("env")}
+                    />
+                    <SourceCopy>
+                      <strong className="type-xsmall-body">환경변수 사용</strong>
+                      <small className="type-xsmall-thin">
+                        실행 환경의 {status?.environmentVariable ?? "OPENAI_API_KEY"} 값을 사용합니다.
+                      </small>
+                      <code>
+                        {status?.environmentOpenAiApiKeyPreview
+                          ?? "환경변수가 설정되지 않음"}
+                      </code>
+                    </SourceCopy>
+                  </SourceOption>
+                  <SourceOption $selected={status?.openAiApiKeyMode === "workspace"}>
+                    <input
+                      type="radio"
+                      name="openai-api-key-mode"
+                      value="workspace"
+                      checked={status?.openAiApiKeyMode === "workspace"}
+                      disabled={loading || saving}
+                      onChange={() => void setApiKeyMode("workspace")}
+                    />
+                    <SourceCopy>
+                      <strong className="type-xsmall-body">직접 입력</strong>
+                      <small className="type-xsmall-thin">
+                        이 workspace에 저장한 API 키를 사용합니다.
+                      </small>
+                      <code>
+                        {status?.storedOpenAiApiKeyPreview
+                          ?? "저장된 키가 없음"}
+                      </code>
+                    </SourceCopy>
+                  </SourceOption>
+                </SourceGrid>
                 <StatusBox $connected={Boolean(status?.hasOpenAiApiKey)}>
                   {status?.hasOpenAiApiKey ? (
                     <ShieldCheck size={20} />
@@ -318,41 +399,49 @@ export function SettingsWorkspace() {
                     ) : null}
                   </StatusCopy>
                 </StatusBox>
-                <Form onSubmit={submit}>
-                  <Input
-                    type="password"
-                    value={apiKey}
-                    autoComplete="off"
-                    aria-label="OpenAI API 키"
-                    placeholder="sk-... 또는 sk-proj-..."
-                    onChange={(event) => setApiKey(event.target.value)}
-                  />
-                  <PrimaryButton
-                    className="type-small-head"
-                    type="submit"
-                    disabled={saving || !apiKey.trim()}
-                  >
-                    {status?.hasStoredOpenAiApiKey ? "키 교체" : "키 등록"}
-                  </PrimaryButton>
-                </Form>
-                <ResetButton
-                  type="button"
-                  disabled={saving || !status?.hasStoredOpenAiApiKey}
-                  onClick={() => void resetApiKey()}
-                >
-                  <RotateCcw size={13} />
-                  직접 등록한 키 초기화
-                </ResetButton>
+                {status?.openAiApiKeyMode === "workspace" ? (
+                  <DirectKey>
+                    <Form onSubmit={submit}>
+                      <Input
+                        type="password"
+                        value={apiKey}
+                        autoComplete="off"
+                        aria-label="OpenAI API 키"
+                        placeholder="sk-... 또는 sk-proj-..."
+                        onChange={(event) => setApiKey(event.target.value)}
+                      />
+                      <PrimaryButton
+                        className="type-small-head"
+                        type="submit"
+                        disabled={saving || !apiKey.trim()}
+                      >
+                        {status?.hasStoredOpenAiApiKey ? "키 교체" : "키 등록"}
+                      </PrimaryButton>
+                    </Form>
+                    <ResetButton
+                      type="button"
+                      disabled={saving || !status?.hasStoredOpenAiApiKey}
+                      onClick={() => void resetApiKey()}
+                    >
+                      <RotateCcw size={13} />
+                      직접 등록한 키 초기화
+                    </ResetButton>
+                    <Note className="type-xsmall-thin">
+                      직접 입력한 키는 git에서 제외된 로컬 경로
+                      {" "}<code>workspace/metadata/settings.json</code>에 저장됩니다.
+                    </Note>
+                  </DirectKey>
+                ) : (
+                  <Note className="type-xsmall-thin">
+                    환경변수는 앱에서 수정하거나 삭제할 수 없습니다.
+                    실행 환경에서 {status?.environmentVariable ?? "OPENAI_API_KEY"}를 관리해 주세요.
+                  </Note>
+                )}
                 {message ? (
                   <Message className="type-xsmall-thin" role="status">
                     {message}
                   </Message>
                 ) : null}
-                <Note className="type-xsmall-thin">
-                  직접 입력한 키는 git에서 제외된 로컬 경로
-                  {" "}<code>workspace/metadata/settings.json</code>에 저장됩니다.
-                  환경변수 키는 화면에서 삭제할 수 없습니다.
-                </Note>
               </CardBody>
             </Card>
             <Card>

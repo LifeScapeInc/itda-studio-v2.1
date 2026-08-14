@@ -4,14 +4,20 @@ import path from "node:path";
 export const OPENAI_API_KEY_ENV_NAME = "OPENAI_API_KEY";
 
 type StoredAppSettings = {
-  schemaVersion: 1;
+  schemaVersion: 2;
   openAiApiKey?: string;
+  openAiApiKeyMode?: OpenAiApiKeyMode;
 };
+
+export type OpenAiApiKeyMode = "env" | "workspace";
 
 export type AppSettingsStatus = {
   hasOpenAiApiKey: boolean;
   openAiApiKeyPreview?: string;
   openAiApiKeySource: "env" | "workspace" | "none";
+  openAiApiKeyMode: OpenAiApiKeyMode;
+  hasEnvironmentOpenAiApiKey: boolean;
+  environmentOpenAiApiKeyPreview?: string;
   hasStoredOpenAiApiKey: boolean;
   storedOpenAiApiKeyPreview?: string;
   environmentVariable: typeof OPENAI_API_KEY_ENV_NAME;
@@ -42,18 +48,22 @@ async function readStoredSettings(): Promise<StoredAppSettings> {
       : "";
 
     return {
-      schemaVersion: 1,
+      schemaVersion: 2,
       openAiApiKey: openAiApiKey || undefined,
+      openAiApiKeyMode: parsed.openAiApiKeyMode === "env"
+        || parsed.openAiApiKeyMode === "workspace"
+        ? parsed.openAiApiKeyMode
+        : undefined,
     };
   } catch {
-    return { schemaVersion: 1 };
+    return { schemaVersion: 2 };
   }
 }
 
 async function writeStoredSettings(
   settings: StoredAppSettings,
 ): Promise<void> {
-  if (!settings.openAiApiKey) {
+  if (!settings.openAiApiKey && !settings.openAiApiKeyMode) {
     await rm(settingsPath(), { force: true });
     return;
   }
@@ -70,18 +80,28 @@ export async function readAppSettingsStatus(): Promise<AppSettingsStatus> {
   const stored = await readStoredSettings();
   const environmentKey = process.env[OPENAI_API_KEY_ENV_NAME]?.trim() ?? "";
   const storedKey = stored.openAiApiKey ?? "";
+  const openAiApiKeyMode = stored.openAiApiKeyMode
+    ?? (environmentKey ? "env" : "workspace");
   const common: Pick<
     AppSettingsStatus,
     | "hasStoredOpenAiApiKey"
     | "storedOpenAiApiKeyPreview"
     | "environmentVariable"
+    | "openAiApiKeyMode"
+    | "hasEnvironmentOpenAiApiKey"
+    | "environmentOpenAiApiKeyPreview"
   > = {
     hasStoredOpenAiApiKey: Boolean(storedKey),
     storedOpenAiApiKeyPreview: storedKey ? maskApiKey(storedKey) : undefined,
     environmentVariable: OPENAI_API_KEY_ENV_NAME,
+    openAiApiKeyMode,
+    hasEnvironmentOpenAiApiKey: Boolean(environmentKey),
+    environmentOpenAiApiKeyPreview: environmentKey
+      ? maskApiKey(environmentKey)
+      : undefined,
   };
 
-  if (environmentKey) {
+  if (openAiApiKeyMode === "env" && environmentKey) {
     return {
       ...common,
       hasOpenAiApiKey: true,
@@ -90,7 +110,7 @@ export async function readAppSettingsStatus(): Promise<AppSettingsStatus> {
     };
   }
 
-  if (storedKey) {
+  if (openAiApiKeyMode === "workspace" && storedKey) {
     return {
       ...common,
       hasOpenAiApiKey: true,
@@ -107,13 +127,24 @@ export async function readAppSettingsStatus(): Promise<AppSettingsStatus> {
 }
 
 export async function getOpenAIApiKey(): Promise<string> {
-  const environmentKey = process.env[OPENAI_API_KEY_ENV_NAME]?.trim();
-  if (environmentKey) {
-    return environmentKey;
-  }
-
   const stored = await readStoredSettings();
-  return stored.openAiApiKey ?? "";
+  const environmentKey = process.env[OPENAI_API_KEY_ENV_NAME]?.trim() ?? "";
+  const mode = stored.openAiApiKeyMode
+    ?? (environmentKey ? "env" : "workspace");
+
+  return mode === "env" ? environmentKey : stored.openAiApiKey ?? "";
+}
+
+export async function setOpenAIApiKeyMode(
+  openAiApiKeyMode: OpenAiApiKeyMode,
+): Promise<AppSettingsStatus> {
+  const stored = await readStoredSettings();
+  await writeStoredSettings({
+    ...stored,
+    schemaVersion: 2,
+    openAiApiKeyMode,
+  });
+  return readAppSettingsStatus();
 }
 
 export async function saveOpenAIApiKey(
@@ -125,13 +156,18 @@ export async function saveOpenAIApiKey(
   }
 
   await writeStoredSettings({
-    schemaVersion: 1,
+    schemaVersion: 2,
     openAiApiKey: cleaned,
+    openAiApiKeyMode: "workspace",
   });
   return readAppSettingsStatus();
 }
 
 export async function deleteStoredOpenAIApiKey(): Promise<AppSettingsStatus> {
-  await writeStoredSettings({ schemaVersion: 1 });
+  const stored = await readStoredSettings();
+  await writeStoredSettings({
+    schemaVersion: 2,
+    openAiApiKeyMode: stored.openAiApiKeyMode ?? "workspace",
+  });
   return readAppSettingsStatus();
 }
