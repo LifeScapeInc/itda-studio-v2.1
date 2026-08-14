@@ -28,7 +28,7 @@ const Option = styled.button<{ $selected: boolean }>`
   border: 1px solid ${({ $selected }) => (
     $selected ? "var(--color-main-primary)" : "var(--color-border)"
   )};
-  border-radius: 10px;
+  border-radius: 8px;
   background: ${({ $selected }) => (
     $selected ? "var(--color-main-neutral)" : "var(--color-surface)"
   )};

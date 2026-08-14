@@ -21,7 +21,7 @@ const Card = styled.button<{
     if ($state === "disabled") return "var(--color-label-assistive)";
     return "var(--color-border)";
   }};
-  border-radius: 16px;
+  border-radius: 12px;
   background: ${({ $state }) => (
     $state === "disabled"
       ? "var(--color-label-disabled)"
@@ -52,7 +52,7 @@ const Placeholder = styled.span<{
   width: 72px;
   height: 72px;
   flex: 0 0 72px;
-  border-radius: 10px;
+  border-radius: 8px;
   background: ${({ $disabled }) => (
     $disabled ? "#dbdbdb" : "var(--color-main-neutral)"
   )};

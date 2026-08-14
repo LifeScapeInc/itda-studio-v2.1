@@ -148,7 +148,7 @@ const Actions = styled.div`
     place-items: center;
     padding: 0;
     border: 0;
-    border-radius: 10px;
+    border-radius: 8px;
     color: var(--color-surface);
     cursor: pointer;
   }

@@ -12,7 +12,7 @@ const Card = styled.button`
   gap: var(--space-md);
   padding: var(--space-md);
   border: 1px solid var(--color-border);
-  border-radius: 16px;
+  border-radius: 12px;
   background: var(--color-surface);
   text-align: left;
   cursor: pointer;

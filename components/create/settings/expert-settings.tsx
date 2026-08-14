@@ -74,7 +74,7 @@ const Prompt = styled.textarea`
   resize: none;
   padding: var(--space-xs);
   border: 1px solid var(--color-border);
-  border-radius: 10px;
+  border-radius: 8px;
   background: var(--color-surface);
   font-size: 12px;
   line-height: 1.5;

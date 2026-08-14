@@ -23,7 +23,7 @@ const Card = styled.button<{
   border: 1px solid ${({
   $active
 }) => $active ? "var(--color-main-primary)" : "var(--color-border)"};
-  border-radius: 16px;
+  border-radius: 12px;
   background: var(--color-surface);
   text-align: left;
   cursor: pointer;
@@ -93,7 +93,7 @@ const Preview = styled.span`
   min-height: 0;
   flex: 1;
   overflow: hidden;
-  border-radius: 10px;
+  border-radius: 8px;
   background: var(--color-main-neutral);
 `;
 const MainPreview = styled(Preview)`

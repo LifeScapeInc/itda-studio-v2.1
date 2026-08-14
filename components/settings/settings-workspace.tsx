@@ -88,7 +88,7 @@ const StatusBox = styled.div<{ $connected: boolean }>`
   border: 1px solid ${({ $connected }) => (
     $connected ? "var(--color-main-primary)" : "var(--color-border)"
   )};
-  border-radius: 10px;
+  border-radius: 8px;
   background: var(--color-main-neutral-light);
 
   svg {
@@ -209,7 +209,7 @@ const MockModeRow = styled.label`
   gap: var(--space-md);
   padding: var(--space-sm);
   border: 1px solid var(--color-border);
-  border-radius: 10px;
+  border-radius: 8px;
   background: var(--color-main-neutral-light);
   cursor: pointer;
 `;
