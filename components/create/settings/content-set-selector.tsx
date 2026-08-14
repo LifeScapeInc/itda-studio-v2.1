@@ -142,7 +142,6 @@ export function ContentSetSelector() {
                     id="free-cut-count"
                     type="number"
                     min={1}
-                    max={8}
                     value={freeCount}
                     onChange={(event) => (
                       setFreeCount(Number(event.target.value) || 1)

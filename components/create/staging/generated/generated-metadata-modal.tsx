@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import Image from "next/image";
 import styled from "styled-components";
+import { GenerationInputImages } from "@/components/ui/generation-input-images";
 import type { LibraryGenerationShot } from "@/system/create/generation-library";
 
 const Backdrop = styled.div`
@@ -88,7 +89,7 @@ const Metadata = styled.dl`
   }
 `;
 
-export function GenerationMetadataModal({
+export function GeneratedMetadataModal({
   shot,
   onClose,
 }: {
@@ -138,6 +139,14 @@ export function GenerationMetadataModal({
         </Header>
         <Content>
           <Metadata>
+            {metadata.inputImages?.length ? (
+              <div style={{ display: "contents" }}>
+                <dt>입력 이미지</dt>
+                <dd>
+                  <GenerationInputImages images={metadata.inputImages} />
+                </dd>
+              </div>
+            ) : null}
             {entries.map(([label, value]) => (
               <div style={{ display: "contents" }} key={label}>
                 <dt>{label}</dt>

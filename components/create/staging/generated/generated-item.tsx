@@ -189,14 +189,16 @@ function ShotStatus({
   );
 }
 
-export function ItemGeneration({
+export function GeneratedItem({
   shot,
   selected,
   onSelect,
+  onOpenImage,
 }: {
   shot: GenerationShot;
   selected: boolean;
   onSelect?: (shotId: string) => void;
+  onOpenImage?: (shot: GenerationShot) => void;
 }) {
   return (
     <Card
@@ -205,6 +207,9 @@ export function ItemGeneration({
       aria-pressed={selected}
       aria-label={`${shot.label}${shot.status === "done" ? " 선택" : ""}`}
       onClick={() => onSelect?.(shot.id)}
+      onDoubleClick={() => {
+        if (shot.status === "done" && shot.imageUrl) onOpenImage?.(shot);
+      }}
     >
       <Preview
         $ratio={getAspectRatio(shot.ratio)}

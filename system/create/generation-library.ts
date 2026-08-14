@@ -1,4 +1,27 @@
 import type { GenerationShot } from "@/system/create/generation-shots";
+import type {
+  AngleVariationId,
+  ContentSetId,
+  GenerationQuality,
+} from "@/system/create/generation-options";
+
+export type GenerationInputImage = {
+  kind: "product" | "reference";
+  label: string;
+  imageUrl: string;
+};
+
+export type GenerationSettingsSnapshot = {
+  contentSet: ContentSetId | null;
+  angleVariationIds: AngleVariationId[];
+  freeCount: number;
+  quality: GenerationQuality;
+  editMode?: string;
+  light: string;
+  mood: string;
+  props: string[];
+  prompt: string;
+};
 
 export type GenerationImageMetadata = {
   finalPrompt: string;
@@ -12,6 +35,8 @@ export type GenerationImageMetadata = {
   props: string[];
   additionalDirection: string;
   imageSize: string;
+  inputImages?: GenerationInputImage[];
+  generationSettings?: GenerationSettingsSnapshot;
 };
 
 export type LibraryGenerationShot = GenerationShot & {

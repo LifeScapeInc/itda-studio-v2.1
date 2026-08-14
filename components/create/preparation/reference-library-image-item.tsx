@@ -4,13 +4,15 @@ import Image from "next/image";
 import { CheckCircle2 } from "lucide-react";
 import styled from "styled-components";
 
-const Item = styled.button`
+const Item = styled.button<{ $selected: boolean }>`
   position: relative;
   display: block;
   width: 100%;
   aspect-ratio: 4 / 5;
   padding: 0;
-  border: 1px solid var(--color-border);
+  border: 1px solid ${({ $selected }) => $selected
+    ? "var(--color-main-primary)"
+    : "var(--color-border)"};
   border-radius: 12px;
   background: var(--color-surface);
   overflow: hidden;
@@ -51,7 +53,7 @@ const Shade = styled.span`
   }
 `;
 
-const SelectLabel = styled.span`
+const SelectLabel = styled.span<{ $selected: boolean }>`
   position: absolute;
   top: 50%;
   left: 50%;
@@ -64,8 +66,10 @@ const SelectLabel = styled.span`
   color: var(--color-surface);
   font-size: 12px;
   font-weight: 600;
-  opacity: 0;
-  transform: translate(-50%, calc(-50% + 4px));
+  opacity: ${({ $selected }) => $selected ? 1 : 0};
+  transform: ${({ $selected }) => $selected
+    ? "translate(-50%, -50%)"
+    : "translate(-50%, calc(-50% + 4px))"};
   transition:
     opacity 200ms ease,
     transform 200ms ease;
@@ -80,15 +84,19 @@ const SelectLabel = styled.span`
 export function ReferenceLibraryImageItem({
   src,
   index,
+  selected,
   onSelect,
 }: {
   src: string;
   index: number;
+  selected: boolean;
   onSelect: () => void;
 }) {
   return (
     <Item
       type="button"
+      $selected={selected}
+      aria-pressed={selected}
       aria-label={`${index + 1}번 레퍼런스 선택`}
       onClick={onSelect}
     >
@@ -100,9 +108,9 @@ export function ReferenceLibraryImageItem({
         sizes="220px"
       />
       <Shade aria-hidden="true" />
-      <SelectLabel aria-hidden="true">
+      <SelectLabel $selected={selected} aria-hidden="true">
         <CheckCircle2 size={15} />
-        선택하기
+        {selected ? "선택됨" : "선택하기"}
       </SelectLabel>
     </Item>
   );

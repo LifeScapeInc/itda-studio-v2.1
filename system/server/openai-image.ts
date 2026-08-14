@@ -10,6 +10,8 @@ import {
   mapSize,
 } from "@/system/server/image-settings";
 
+const OPENAI_MAX_RETRIES = 5;
+
 function parseDataUrl(
   source: string,
 ): {
@@ -118,7 +120,10 @@ export async function runOpenAIImageEdit(
 
   const quality = mapQuality(request.quality);
   const size = mapSize(request.ratio);
-  const client = new OpenAI({ apiKey });
+  const client = new OpenAI({
+    apiKey,
+    maxRetries: OPENAI_MAX_RETRIES,
+  });
   const response = await client.images.edit({
     model: IMAGE_MODEL,
     image: imageFiles,

@@ -209,6 +209,7 @@ export function MaterialPreparationPanel({
       {libraryOpen ? (
         <ReferenceLibraryModal
           library={library}
+          selectedImage={referenceImage}
           onClose={() => setLibraryOpen(false)}
           onSelect={setReferenceImage}
         />

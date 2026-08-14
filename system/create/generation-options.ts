@@ -154,6 +154,11 @@ export const EDIT_MODE_OPTIONS = [
   { id: "material", label: "재질/색상 변경" },
 ] as const;
 
+export function normalizeFreeCount(freeCount: number): number {
+  if (!Number.isFinite(freeCount)) return 1;
+  return Math.max(1, Math.floor(freeCount));
+}
+
 export const LIGHT_OPTIONS = [
   "아침 햇살",
   "노을빛",
@@ -189,7 +194,7 @@ export function getCutCount(
   }
 
   if (contentSet === "free") {
-    return Math.min(8, Math.max(1, freeCount));
+    return normalizeFreeCount(freeCount);
   }
 
   return CONTENT_SET_OPTIONS.find(

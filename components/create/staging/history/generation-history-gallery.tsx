@@ -1,6 +1,6 @@
 "use client";
 
-import { History, Trash2 } from "lucide-react";
+import { History, Trash2, X } from "lucide-react";
 import styled from "styled-components";
 import type { GenerationHistorySet } from "@/system/create/generation-library";
 import { ItemHistory } from "./item-history";
@@ -38,7 +38,7 @@ const HeaderActions = styled.div`
   gap: var(--space-xs);
 `;
 
-const DeleteButton = styled.button`
+const ActionButton = styled.button`
   display: inline-flex;
   height: 28px;
   align-items: center;
@@ -89,12 +89,14 @@ export function GenerationHistoryGallery({
   deleteDisabled,
   onRestore,
   onDelete,
+  onClear,
 }: {
   history: GenerationHistorySet[];
   activeHistoryId: string | null;
   deleteDisabled?: boolean;
   onRestore: (historyId: string) => void;
   onDelete: (historyId: string) => void;
+  onClear: () => void;
 }) {
   const activeHistory = history.find(
     (historySet) => historySet.id === activeHistoryId,
@@ -116,14 +118,24 @@ export function GenerationHistoryGallery({
         </h3>
         <HeaderActions>
           <span className="type-xsmall-thin">이미지셋 {history.length}개</span>
-          <DeleteButton
+          {activeHistory ? (
+            <ActionButton
+              type="button"
+              disabled={deleteDisabled}
+              onClick={onClear}
+            >
+              <X size={13} />
+              보기 닫기
+            </ActionButton>
+          ) : null}
+          <ActionButton
             type="button"
             disabled={!activeHistory || deleteDisabled}
             onClick={deleteActiveHistory}
           >
             <Trash2 size={13} />
             선택 삭제
-          </DeleteButton>
+          </ActionButton>
         </HeaderActions>
       </Header>
       <Scroll>

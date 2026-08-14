@@ -1,6 +1,7 @@
 import {
   ANGLE_VARIATION_OPTIONS,
   CONTENT_SET_OPTIONS,
+  normalizeFreeCount,
   type AngleVariationId,
   type ContentSetId,
   type GenerationQuality,
@@ -229,7 +230,7 @@ function composePrompt(
 }
 
 function getFreePrompt(input: GenerationPromptInput): GenerationPrompt[] {
-  const count = Math.min(8, Math.max(1, input.freeCount));
+  const count = normalizeFreeCount(input.freeCount);
   const template: PromptTemplate = {
     role: DEFAULT_ROLE,
     shots: [],

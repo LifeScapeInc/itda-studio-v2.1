@@ -1,23 +1,29 @@
 "use client";
 
-import { Bookmark, Download, Images, Info } from "lucide-react";
+import { Bookmark, Download, Images, Info, SlidersHorizontal } from "lucide-react";
 import styled from "styled-components";
 import {
   downloadGenerationImage,
   downloadGenerationSet,
 } from "@/system/create/download-images";
 import type { LibraryGenerationShot } from "@/system/create/generation-library";
+import { useCreateStore } from "@/stores/useCreateStore";
 
 const Actions = styled.div`
   display: flex;
-  flex: 0 0 auto;
+  min-width: 0;
+  max-width: 100%;
+  flex: 0 1 auto;
   align-items: center;
   gap: var(--space-2xs);
+  overflow-x: auto;
+  scrollbar-width: none;
 `;
 
 const ActionButton = styled.button<{ $active?: boolean }>`
   display: inline-flex;
   height: 34px;
+  flex: 0 0 auto;
   align-items: center;
   gap: 6px;
   padding: 0 var(--space-xs);
@@ -39,7 +45,7 @@ const ActionButton = styled.button<{ $active?: boolean }>`
   }
 `;
 
-export function GenerationResultActions({
+export function GeneratedNavigation({
   selectedShot,
   shots,
   setTitle,
@@ -52,6 +58,9 @@ export function GenerationResultActions({
   onToggleBookmark: (shotId: string) => void;
   onShowInfo: (shot: LibraryGenerationShot) => void;
 }) {
+  const reuseGenerationSettings = useCreateStore(
+    (state) => state.reuseGenerationSettings,
+  );
   const downloadableShots = shots.filter(
     (shot) => shot.status === "done" && shot.imageUrl,
   );
@@ -60,6 +69,15 @@ export function GenerationResultActions({
 
   return (
     <Actions>
+      {selectedShot ? (
+        <ActionButton
+          type="button"
+          onClick={() => reuseGenerationSettings(selectedShot)}
+        >
+          <SlidersHorizontal size={14} />
+          해당 정보로 생성 설정
+        </ActionButton>
+      ) : null}
       <ActionButton
         type="button"
         title="현재 이미지셋의 완료된 이미지를 모두 다운로드"

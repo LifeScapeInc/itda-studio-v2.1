@@ -242,17 +242,40 @@ const Empty = styled.div`
   }
 `;
 
+function findSelectedImage(
+  library: ReferenceLibraryData,
+  selectedImage?: string | null,
+): { tab: ReferenceLibraryTab; groupId: string } | null {
+  if (!selectedImage) return null;
+
+  for (const tab of TABS) {
+    const group = library[tab.id].find(
+      (item) => item.images.includes(selectedImage),
+    );
+    if (group) return { tab: tab.id, groupId: group.id };
+  }
+
+  return null;
+}
+
 export function ReferenceLibraryModal({
   library,
+  selectedImage,
   onClose,
   onSelect,
 }: {
   library: ReferenceLibraryData;
+  selectedImage?: string | null;
   onClose: () => void;
   onSelect: (image: string) => void;
 }) {
-  const [activeTab, setActiveTab] = useState<ReferenceLibraryTab>("furniture");
-  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
+  const selectedLocation = findSelectedImage(library, selectedImage);
+  const [activeTab, setActiveTab] = useState<ReferenceLibraryTab>(
+    selectedLocation?.tab ?? "furniture",
+  );
+  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(
+    selectedLocation?.groupId ?? null,
+  );
   const [searchQuery, setSearchQuery] = useState("");
   const groups = library[activeTab];
   const filteredGroups = useMemo(() => {
@@ -387,6 +410,7 @@ export function ReferenceLibraryModal({
                       <ReferenceLibraryImageItem
                         src={image}
                         index={index}
+                        selected={image === selectedImage}
                         onSelect={() => {
                           onSelect(image);
                           onClose();

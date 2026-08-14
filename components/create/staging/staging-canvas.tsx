@@ -5,10 +5,11 @@ import styled from "styled-components";
 import { useCreateStore } from "@/stores/useCreateStore";
 import { getCutCount } from "@/system/create/generation-options";
 import type { LibraryGenerationShot } from "@/system/create/generation-library";
-import { GenerationHistoryGallery } from "./generation-history-gallery";
-import { GenerationMetadataModal } from "./generation-metadata-modal";
-import { GenerationProgressGrid } from "./generation-progress-grid";
-import { GenerationResultActions } from "./generation-result-actions";
+import { GenerationHistoryGallery } from "./history/generation-history-gallery";
+import { GeneratedImageLightbox } from "./generated/generated-image-lightbox";
+import { GeneratedMetadataModal } from "./generated/generated-metadata-modal";
+import { GeneratedNavigation } from "./generated/generated-navigation";
+import { GeneratedProgressGrid } from "./generated/generated-progress-grid";
 import { StagingAreaResizeHandle } from "./staging-area-resize-handle";
 import { StagingEmptyState } from "./staging-empty-state";
 
@@ -35,6 +36,7 @@ const Header = styled.header`
 const HeaderText = styled.div`
   display: flex;
   min-width: 0;
+  flex: 1 1 auto;
   flex-direction: column;
   gap: var(--space-3xs);
 
@@ -76,6 +78,10 @@ export function StagingCanvas() {
   const [metadataShot, setMetadataShot] = useState<LibraryGenerationShot | null>(
     null,
   );
+  const [lightboxImage, setLightboxImage] = useState<{
+    imageUrl: string;
+    alt: string;
+  } | null>(null);
 
   const resizeHistory = useCallback((delta: number) => {
     setHistoryHeight((current) => Math.min(
@@ -136,7 +142,7 @@ export function StagingCanvas() {
           </p>
         </HeaderText>
         {state.generationRequested ? (
-          <GenerationResultActions
+          <GeneratedNavigation
             selectedShot={selectedShot}
             shots={state.generationShots as LibraryGenerationShot[]}
             setTitle={activeSet?.title ?? "itda-image-set"}
@@ -150,15 +156,25 @@ export function StagingCanvas() {
       <SplitStage ref={splitStageRef} $historyHeight={historyHeight}>
         <CurrentArea>
           {state.generationRequested ? (
-            <GenerationProgressGrid
+            <GeneratedProgressGrid
               shots={state.generationShots}
               selectedShotId={state.selectedShotId}
               onSelect={state.selectShot}
+              onOpenImage={(shot) => {
+                if (!shot.imageUrl) return;
+                setLightboxImage({
+                  imageUrl: shot.imageUrl,
+                  alt: `${shot.label} 생성 결과`,
+                });
+              }}
             />
           ) : (
             <StagingEmptyState
               productImage={state.productImage}
               referenceImage={state.referenceImage}
+              onOpenImage={(imageUrl, alt) => {
+                setLightboxImage({ imageUrl, alt });
+              }}
             />
           )}
         </CurrentArea>
@@ -174,12 +190,20 @@ export function StagingCanvas() {
           deleteDisabled={state.isGenerating}
           onRestore={state.restoreHistory}
           onDelete={state.deleteHistory}
+          onClear={state.clearStaging}
         />
       </SplitStage>
       {metadataShot ? (
-        <GenerationMetadataModal
+        <GeneratedMetadataModal
           shot={metadataShot}
           onClose={() => setMetadataShot(null)}
+        />
+      ) : null}
+      {lightboxImage ? (
+        <GeneratedImageLightbox
+          imageUrl={lightboxImage.imageUrl}
+          alt={lightboxImage.alt}
+          onClose={() => setLightboxImage(null)}
         />
       ) : null}
     </Canvas>

@@ -1,8 +1,12 @@
 "use client";
 
+import { Fullscreen, Scroll } from "lucide-react";
 import styled from "styled-components";
 import { LabelDraft } from "@/components/ui/label-draft";
-import { getDeadlineLabel, getDraftVariant } from "@/system/import/case-presentation";
+import {
+  getDeadlineLabel,
+  getDraftVariant,
+} from "@/system/import/case-presentation";
 import type { IntegrationCase } from "@/system/integrations/cases";
 type State = "idle" | "focused" | "disabled";
 
@@ -52,10 +56,19 @@ const Placeholder = styled.span<{
   width: 72px;
   height: 72px;
   flex: 0 0 72px;
+  display: grid;
+  place-items: center;
   border-radius: 8px;
   background: ${({ $disabled }) => (
     $disabled ? "#dbdbdb" : "var(--color-main-neutral)"
   )};
+
+  svg {
+    width: 44px;
+    height: 44px;
+    color: var(--color-main-primary);
+    opacity: ${({ $disabled }) => $disabled ? 0.48 : 1};
+  }
 `;
 
 const Copy = styled.span`
@@ -89,6 +102,7 @@ export function ItemCase({
   onClick?: () => void;
 }) {
   const state: State = disabled ? "disabled" : selected ? "focused" : "idle";
+  const isDetailPage = item.service_label?.trim().includes("상세") ?? false;
   return (
     <Card
       $state={state}
@@ -100,7 +114,13 @@ export function ItemCase({
       <Placeholder
         $disabled={disabled}
         aria-hidden="true"
-      />
+      >
+        {isDetailPage ? (
+          <Scroll strokeWidth={1.5} />
+        ) : (
+          <Fullscreen strokeWidth={1.5} />
+        )}
+      </Placeholder>
       <Copy>
         <span className="type-xsmall-body">
           {item.case_name?.trim() || "케이스 이름 미정"}

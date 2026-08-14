@@ -44,9 +44,11 @@ const MaterialPreview = styled.span`
 export function StagingEmptyState({
   productImage,
   referenceImage,
+  onOpenImage,
 }: {
   productImage: string | null;
   referenceImage: string | null;
+  onOpenImage?: (imageUrl: string, label: string) => void;
 }) {
   if (!productImage && !referenceImage) {
     return (
@@ -63,7 +65,11 @@ export function StagingEmptyState({
   return (
     <Empty>
       <Materials>
-        <MaterialPreview>
+        <MaterialPreview
+          onDoubleClick={() => {
+            if (productImage) onOpenImage?.(productImage, "내 제품");
+          }}
+        >
           {productImage ? (
             <Image
               src={productImage}
@@ -77,7 +83,11 @@ export function StagingEmptyState({
           )}
         </MaterialPreview>
         <span>+</span>
-        <MaterialPreview>
+        <MaterialPreview
+          onDoubleClick={() => {
+            if (referenceImage) onOpenImage?.(referenceImage, "레퍼런스");
+          }}
+        >
           {referenceImage ? (
             <Image
               src={referenceImage}

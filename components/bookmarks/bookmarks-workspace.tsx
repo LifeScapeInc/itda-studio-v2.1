@@ -8,6 +8,7 @@ import { PanelResizeHandle } from "@/components/layout/panel-resize-handle";
 import { NavigationLeft } from "@/components/layout/navigation-left";
 import { NavigationTop } from "@/components/layout/navigation-top";
 import { LabelTitle } from "@/components/ui/label-title";
+import { GenerationInputImages } from "@/components/ui/generation-input-images";
 import { useCreateStore } from "@/stores/useCreateStore";
 import { useWorkspaceLayoutStore } from "@/stores/useWorkspaceLayoutStore";
 import {
@@ -171,6 +172,14 @@ function MetadataList({ shot }: { shot: LibraryGenerationShot }) {
 
   return (
     <Metadata>
+      {metadata.inputImages?.length ? (
+        <div style={{ display: "contents" }}>
+          <dt>입력 이미지</dt>
+          <dd>
+            <GenerationInputImages images={metadata.inputImages} />
+          </dd>
+        </div>
+      ) : null}
       {entries.map(([label, value]) => (
         <div style={{ display: "contents" }} key={label}>
           <dt>{label}</dt>
@@ -250,15 +259,15 @@ export function BookmarksWorkspace() {
                 </button>
               </DetailHeader>
               <DetailBody>
-              <DetailPreview>
-                <Image
-                  src={selected.imageUrl!}
-                  alt={selected.label}
-                  fill
-                  unoptimized
-                  sizes={`${Math.round(detailsPanelWidth / 2)}px`}
-                />
-              </DetailPreview>
+                <DetailPreview>
+                  <Image
+                    src={selected.imageUrl!}
+                    alt={selected.label}
+                    fill
+                    unoptimized
+                    sizes={`${Math.round(detailsPanelWidth / 2)}px`}
+                  />
+                </DetailPreview>
                 <MetadataColumn>
                   <MetadataList shot={selected} />
                   <Remove

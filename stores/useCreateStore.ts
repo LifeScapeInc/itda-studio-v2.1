@@ -14,6 +14,10 @@ import {
   createGenerationShots,
   type GenerationShot,
 } from "@/system/create/generation-shots";
+import {
+  FREE_GENERATION_CONCURRENCY,
+  runGenerationQueue,
+} from "@/system/create/generation-runner";
 import type {
   GenerationApiError,
   GenerationApiResponse,
@@ -25,6 +29,8 @@ import {
   type LibraryGenerationShot,
 } from "@/system/create/generation-library";
 import {
+  ANGLE_VARIATION_OPTIONS,
+  CONTENT_SET_OPTIONS,
   EDIT_MODE_OPTIONS,
   QUALITY_OPTIONS,
 } from "@/system/create/generation-options";
@@ -71,6 +77,8 @@ type CreateStore = {
   setPrompt: (prompt: string) => void;
   hydrateLibrary: () => Promise<void>;
   selectShot: (shotId: string) => void;
+  clearStaging: () => void;
+  reuseGenerationSettings: (shot: LibraryGenerationShot) => void;
   restoreHistory: (historyId: string) => void;
   deleteHistory: (historyId: string) => void;
   toggleBookmark: (shotId: string) => void;
@@ -155,6 +163,68 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
     }
   },
   selectShot: (selectedShotId) => set({ selectedShotId }),
+  clearStaging: () => {
+    if (get().isGenerating) return;
+    set({
+      activeHistoryId: null,
+      generationRequested: false,
+      generationShots: [],
+      selectedShotId: null,
+      generationMessage: "",
+    });
+  },
+  reuseGenerationSettings: (shot) => {
+    if (get().isGenerating) return;
+
+    const metadata = shot.metadata;
+    const snapshot = metadata.generationSettings;
+    const productImage = metadata.inputImages?.find(
+      (image) => image.kind === "product",
+    )?.imageUrl ?? null;
+    const referenceImage = metadata.inputImages?.find(
+      (image) => image.kind === "reference",
+    )?.imageUrl ?? null;
+    const variationLabel = metadata.variationType.split(" · ")[0];
+    const fallbackContentSet = CONTENT_SET_OPTIONS.find(
+      (option) => option.label === variationLabel,
+    )?.id ?? null;
+    const fallbackAngle = variationLabel === "앵글 변주"
+      ? ANGLE_VARIATION_OPTIONS.find(
+          (option) => metadata.variationType.includes(option.label),
+        )?.id
+      : undefined;
+    const fallbackQuality = QUALITY_OPTIONS.find(
+      (option) => option.id === metadata.quality || option.label === metadata.quality,
+    )?.id ?? "medium";
+    const fallbackEditMode = EDIT_MODE_OPTIONS.find(
+      (option) => option.id === metadata.editMode || option.label === metadata.editMode,
+    )?.id;
+
+    set((state) => ({
+      productImage: productImage ?? state.productImage,
+      referenceImage,
+      contentSet: snapshot?.contentSet ?? fallbackContentSet,
+      angleVariationIds: snapshot?.angleVariationIds
+        ?? (fallbackAngle ? [fallbackAngle] : []),
+      freeCount: snapshot?.freeCount ?? 1,
+      quality: snapshot?.quality ?? fallbackQuality,
+      ...(referenceImage && (snapshot?.editMode || fallbackEditMode) ? {
+        editMode: snapshot?.editMode ?? fallbackEditMode,
+      } : {}),
+      light: snapshot?.light ?? metadata.light,
+      mood: snapshot?.mood ?? metadata.mood,
+      props: [...(snapshot?.props ?? metadata.props)],
+      prompt: snapshot?.prompt
+        ?? (metadata.additionalDirection === "없음"
+          ? ""
+          : metadata.additionalDirection),
+      activeHistoryId: null,
+      generationRequested: false,
+      generationShots: [],
+      selectedShotId: null,
+      generationMessage: "",
+    }));
+  },
   restoreHistory: (historyId) => {
     const history = get().generationHistory.find((item) => item.id === historyId);
     if (!history) return;
@@ -229,7 +299,23 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
       current.contentSet,
       current.angleVariationIds,
     );
-    const generationShots: LibraryGenerationShot[] = createGenerationShots(current)
+    const shotDrafts = createGenerationShots(current);
+
+    if (
+      shotDrafts.length === 0
+      || !current.productImage
+      || lastGenerationPrompts.length === 0
+    ) {
+      return {
+        usedActualGeneration: false,
+        actualCompleted: 0,
+        completed: 0,
+        failed: 0,
+      };
+    }
+
+    const productImage = current.productImage;
+    const generationShots: LibraryGenerationShot[] = shotDrafts
       .map((shot) => {
         const shotPrompt = lastGenerationPrompts.find((item) => item.id === shot.id)
           ?? lastGenerationPrompts[0];
@@ -249,22 +335,32 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
             props: current.props,
             additionalDirection: current.prompt.trim() || "없음",
             imageSize: shot.resolution,
+            inputImages: [
+              {
+                kind: "product",
+                label: "내 제품 이미지",
+                imageUrl: productImage,
+              },
+              ...(current.referenceImage ? [{
+                kind: "reference" as const,
+                label: "레퍼런스 이미지",
+                imageUrl: current.referenceImage,
+              }] : []),
+            ],
+            generationSettings: {
+              contentSet: current.contentSet,
+              angleVariationIds: [...current.angleVariationIds],
+              freeCount: current.freeCount,
+              quality: current.quality,
+              ...(current.referenceImage ? { editMode: current.editMode } : {}),
+              light: current.light,
+              mood: current.mood,
+              props: [...current.props],
+              prompt: current.prompt,
+            },
           },
         };
       });
-
-    if (
-      generationShots.length === 0
-      || !current.productImage
-      || lastGenerationPrompts.length === 0
-    ) {
-      return {
-        usedActualGeneration: false,
-        actualCompleted: 0,
-        completed: 0,
-        failed: 0,
-      };
-    }
 
     set({
       isGenerating: true,
@@ -290,19 +386,32 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
     let completed = 0;
     let failed = 0;
 
-    void saveGenerationHistory(get().generationHistory);
+    await saveGenerationHistory(get().generationHistory);
 
-    for (const shot of generationShots) {
+    const concurrency = current.contentSet === "free"
+      ? FREE_GENERATION_CONCURRENCY
+      : generationShots.length;
+
+    await runGenerationQueue(generationShots, concurrency, async (shot) => {
       const prompt = { prompt: shot.metadata.finalPrompt };
 
-      set((state) => ({
-        generationShots: state.generationShots.map((item) => ({
+      set((state) => {
+        const nextShots = state.generationShots.map((item) => ({
           ...item,
           status: item.id === shot.id ? "generating" : item.status,
           error: item.id === shot.id ? undefined : item.error,
-        })),
-        generationMessage: `${shot.label} 이미지를 생성하고 있습니다.`,
-      }));
+        })) as LibraryGenerationShot[];
+        const generatingCount = nextShots.filter(
+          (item) => item.status === "generating",
+        ).length;
+
+        return {
+          generationShots: nextShots,
+          generationMessage: generatingCount > 1
+            ? `${generatingCount}개 이미지를 동시에 생성하고 있습니다.`
+            : `${shot.label} 이미지를 생성하고 있습니다.`,
+        };
+      });
 
       try {
         const response = await fetch("/api/generate", {
@@ -347,7 +456,6 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
           const generationHistory = state.generationHistory.map((history) => history.id === runId
             ? { ...history, shots: generationShots }
             : history);
-          void saveGenerationHistory(generationHistory);
           return {
             generationShots,
             generationHistory,
@@ -372,11 +480,10 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
           const generationHistory = state.generationHistory.map((history) => history.id === runId
             ? { ...history, shots: generationShots }
             : history);
-          void saveGenerationHistory(generationHistory);
           return { generationShots, generationHistory, generationMessage: message };
         });
       }
-    }
+    });
 
     set({
       isGenerating: false,
@@ -384,6 +491,8 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
         ? `${completed}개 완료, ${failed}개 실패했습니다.`
         : `${completed}개 이미지 생성을 완료했습니다.`,
     });
+
+    await saveGenerationHistory(get().generationHistory);
 
     return {
       usedActualGeneration,

@@ -2,7 +2,7 @@
 
 import styled from "styled-components";
 import type { GenerationShot } from "@/system/create/generation-shots";
-import { ItemGeneration } from "./item-generation";
+import { GeneratedItem } from "./generated-item";
 
 const Grid = styled.div`
   display: grid;
@@ -16,22 +16,25 @@ const Grid = styled.div`
   gap: var(--space-sm);
 `;
 
-export function GenerationProgressGrid({
+export function GeneratedProgressGrid({
   shots,
   selectedShotId,
   onSelect,
+  onOpenImage,
 }: {
   shots: GenerationShot[];
   selectedShotId?: string | null;
   onSelect?: (shotId: string) => void;
+  onOpenImage?: (shot: GenerationShot) => void;
 }) {
   return (
     <Grid>
       {shots.map((shot) => (
-        <ItemGeneration
+        <GeneratedItem
           shot={shot}
           selected={shot.id === selectedShotId}
           onSelect={onSelect}
+          onOpenImage={onOpenImage}
           key={shot.id}
         />
       ))}

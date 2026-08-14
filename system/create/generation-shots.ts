@@ -1,5 +1,6 @@
 import {
   ANGLE_VARIATION_OPTIONS,
+  normalizeFreeCount,
   type AngleVariationId,
   type ContentSetId,
 } from "@/system/create/generation-options";
@@ -72,7 +73,7 @@ function getAngleShots(
 }
 
 function getFreeShots(freeCount: number): ShotDefinition[] {
-  const count = Math.min(8, Math.max(1, freeCount));
+  const count = normalizeFreeCount(freeCount);
 
   return Array.from({ length: count }, (_, index) => ({
     id: `free-${index + 1}`,
