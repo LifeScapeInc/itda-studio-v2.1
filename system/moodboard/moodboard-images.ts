@@ -24,7 +24,7 @@ export function getMoodboardDetailImages(style: string): string[] {
 
   const escapedStyle = style.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const numberedImage = new RegExp(
-    `^${escapedStyle} \\(\\d+\\)${IMAGE_EXTENSION.source}`,
+    `^${escapedStyle}_\\d+${IMAGE_EXTENSION.source}`,
     "i",
   );
 

@@ -132,8 +132,8 @@
 
 - `public/references/mood/<style>/`를 데이터 원본으로 사용한다.
 - 목록은 `ItemReferences` grid로 표시한다.
-- 상세 화면은 `<style>_render.jpg`를 workspace에 맞춰 표시한다.
-- 상세보기는 `<style> (n).png` 이미지들을 workspace 범위의 overlay album으로 표시한다.
+- 상세 화면은 `<style>_render.png`를 workspace에 맞춰 표시한다.
+- 상세보기는 `<style>_<n>.<ext>` 이미지들을 workspace 범위의 overlay album으로 표시한다.
 
 ### 가구
 
