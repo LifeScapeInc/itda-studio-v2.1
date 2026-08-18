@@ -158,6 +158,13 @@
 - key 원문을 클라이언트 상태나 로그에 노출하지 않는다.
 - mock mode에서는 실제 OpenAI 요청을 보내지 않는다.
 
+### Studio 로그인
+
+- `STUDIO_LOGIN_PASSWORD_HASH`: `npm run auth:setup`으로 생성한 `scrypt:<salt>:<hash>` 형식의 salted password hash. Next.js 환경변수 치환과 충돌하는 `$`를 구분자로 사용하지 않는다.
+- `STUDIO_AUTH_SECRET`: 같은 명령으로 생성한 세션 쿠키 HMAC 서명 secret
+
+비밀번호 원문이나 hash를 클라이언트 코드에 넣지 않는다. 두 값은 Git에서 제외되는 `.env.local` 또는 배포 환경의 secret manager에만 저장한다. 인증 성공 시 서버가 `HttpOnly`, `SameSite=Lax` 세션 쿠키를 발급하며, `proxy.ts`가 로그인 페이지와 공개 정적 파일을 제외한 화면 및 API 접근을 확인한다. 쿠키에는 `Max-Age`나 `Expires`를 지정하지 않아 브라우저 종료 시 폐기하고, 다음 실행에서는 다시 로그인하게 한다. 서명 토큰 자체의 최대 유효시간은 12시간이다.
+
 ## 9. 검증과 Git
 
 - 변경 범위에 맞춰 ESLint와 `tsc --noEmit --incremental false`를 실행한다.
