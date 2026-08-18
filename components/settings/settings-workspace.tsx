@@ -317,7 +317,9 @@ export function SettingsWorkspace() {
     : status?.openAiApiKeySource === "workspace"
       ? "이 브라우저에서 직접 등록한 키를 사용 중입니다."
       : status?.openAiApiKeyMode === "env"
-        ? `환경변수 ${status.environmentVariable}가 없어 목업 모드로 동작합니다.`
+        ? status?.netlifyAiGatewayDetected
+          ? "Netlify AI Gateway 자동 키는 GPT Image 2를 지원하지 않습니다. 직접 입력하거나 Netlify에 본인의 OPENAI_API_KEY를 등록해 주세요."
+          : `환경변수 ${status.environmentVariable}가 없어 목업 모드로 동작합니다.`
         : "직접 입력한 API 키가 없어 목업 모드로 동작합니다.";
 
   return (
@@ -350,11 +352,15 @@ export function SettingsWorkspace() {
                     <SourceCopy>
                       <strong className="type-xsmall-body">환경변수 사용</strong>
                       <small className="type-xsmall-thin">
-                        실행 환경의 {status?.environmentVariable ?? "OPENAI_API_KEY"} 값을 사용합니다.
+                        {status?.netlifyAiGatewayDetected
+                          ? "Netlify가 자동 주입한 AI Gateway 키가 감지되었습니다."
+                          : `실행 환경의 ${status?.environmentVariable ?? "OPENAI_API_KEY"} 값을 사용합니다.`}
                       </small>
                       <code>
-                        {status?.environmentOpenAiApiKeyPreview
-                          ?? "환경변수가 설정되지 않음"}
+                        {status?.netlifyAiGatewayDetected
+                          ? "자동 키 감지됨 · GPT Image 2 미지원"
+                          : status?.environmentOpenAiApiKeyPreview
+                            ?? "환경변수가 설정되지 않음"}
                       </code>
                     </SourceCopy>
                   </SourceOption>

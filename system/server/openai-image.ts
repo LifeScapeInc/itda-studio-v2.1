@@ -3,7 +3,10 @@ import path from "node:path";
 import OpenAI, { toFile } from "openai";
 import sharp from "sharp";
 import type { GenerationApiRequest } from "@/system/create/generation-api";
-import { getOpenAIApiKey } from "@/system/server/app-settings";
+import {
+  getOpenAIApiKey,
+  OPENAI_API_BASE_URL,
+} from "@/system/server/app-settings";
 import {
   IMAGE_MODEL,
   mapQuality,
@@ -123,6 +126,7 @@ export async function runOpenAIImageEdit(
   const size = mapSize(request.ratio);
   const client = new OpenAI({
     apiKey,
+    baseURL: OPENAI_API_BASE_URL,
     maxRetries: OPENAI_MAX_RETRIES,
   });
   const response = await client.images.edit({

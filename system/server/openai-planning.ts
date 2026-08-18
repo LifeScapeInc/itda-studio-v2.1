@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import { OPENAI_API_BASE_URL } from "@/system/server/app-settings";
 import { zodTextFormat } from "openai/helpers/zod";
 import type { ResponseInputContent } from "openai/resources/responses/responses";
 import { z } from "zod";
@@ -204,7 +205,11 @@ export async function runOpenAIPlanning({
     text: "첨부 자료를 분석하여 고객이 제공한 정보를 입력 스키마에 맞게 구조화해 주세요.",
   });
 
-  const client = new OpenAI({ apiKey, maxRetries: 3 });
+  const client = new OpenAI({
+    apiKey,
+    baseURL: OPENAI_API_BASE_URL,
+    maxRetries: 3,
+  });
   onProgress?.("input");
   const inputResponse = await client.responses.parse({
     model: PLANNING_MODEL,
