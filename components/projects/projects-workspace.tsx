@@ -8,6 +8,7 @@ import { NavigationTop } from "@/components/layout/navigation-top";
 import { LabelTitle } from "@/components/ui/label-title";
 import { StudioShell, WorkspaceContent, HiddenScrollbar } from "@/system/styles/layout";
 import { useCreateStore } from "@/stores/useCreateStore";
+import { useDetailPageStore } from "@/stores/useDetailPageStore";
 import {
   useProjectStore,
   type StudioProject,
@@ -29,6 +30,9 @@ export function ProjectsWorkspace() {
   const generationHistory = useCreateStore((state) => state.generationHistory);
   const hydrateLibrary = useCreateStore((state) => state.hydrateLibrary);
   const setProjectContext = useCreateStore((state) => state.setProjectContext);
+  const setDetailProjectContext = useDetailPageStore(
+    (state) => state.setProjectContext,
+  );
 
   useEffect(() => {
     void hydrateLibrary();
@@ -65,9 +69,16 @@ export function ProjectsWorkspace() {
                   .slice(0, 3)}
                 active={p.id === active}
                 onOpen={() => {
-                  setProjectContext(p.id);
+                  if (p.workType === "detail_page") {
+                    setDetailProjectContext(p.id);
+                  } else {
+                    setProjectContext(p.id);
+                  }
                   openProject(p.id);
-                  router.push(`/create?projectId=${encodeURIComponent(p.id)}`);
+                  const path = p.workType === "detail_page"
+                    ? "/detail-page"
+                    : "/create";
+                  router.push(`${path}?projectId=${encodeURIComponent(p.id)}`);
                 }}
                 onDelete={() => setDeleteTarget(p)}
                 key={p.id}

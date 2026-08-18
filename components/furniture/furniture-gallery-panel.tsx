@@ -25,8 +25,9 @@ const Panel = styled.aside<{ $width: number }>`
 
 const Header = styled.div`
   display: flex;
-  flex: 0 0 auto;
-  padding: var(--space-sm);
+  height: 48px;
+  flex: 0 0 48px;
+  padding: var(--space-3xs) var(--space-sm);
   border-bottom: 1px solid var(--color-border);
 `;
 

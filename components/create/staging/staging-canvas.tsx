@@ -26,8 +26,8 @@ const Canvas = styled.section`
 
 const Header = styled.header`
   display: flex;
-  height: 58px;
-  flex: 0 0 58px;
+  height: 48px;
+  flex: 0 0 48px;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-sm);
@@ -40,12 +40,7 @@ const HeaderText = styled.div`
   display: flex;
   min-width: 0;
   flex: 1 1 auto;
-  flex-direction: column;
-  gap: var(--space-3xs);
-
-  p {
-    color: var(--color-label-studio-comment);
-  }
+  align-items: center;
 `;
 
 const SplitStage = styled.div<{ $historyHeight: number }>`
@@ -147,11 +142,6 @@ export function StagingCanvas({
           <h2 className="type-xsmall-body">
             {state.generationRequested ? "생성 결과" : "스테이징 캔버스"}
           </h2>
-          <p className="type-xsmall-thin">
-            {state.generationRequested
-              ? state.generationMessage
-              : "좌측에서 재료를 준비하고 우측에서 생성을 실행하세요."}
-          </p>
         </HeaderText>
         {state.generationRequested ? (
           <GeneratedNavigation

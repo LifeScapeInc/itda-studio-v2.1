@@ -75,22 +75,24 @@ const ActionButton = styled.button`
 `;
 
 const Scroll = styled.div`
-  display: flex;
+  display: grid;
   min-width: 0;
   min-height: 0;
   flex: 1;
-  align-items: flex-start;
+  grid-template-columns: repeat(auto-fill, 176px);
+  align-content: start;
   gap: var(--space-2xs);
   padding: 0 var(--space-md) var(--space-xs);
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
   scrollbar-width: thin;
 `;
 
 const Empty = styled.div`
   display: grid;
-  min-width: 240px;
+  width: 100%;
   min-height: 100%;
-  flex: 1;
+  grid-column: 1 / -1;
   place-items: center;
   color: var(--color-label-studio-comment);
 `;

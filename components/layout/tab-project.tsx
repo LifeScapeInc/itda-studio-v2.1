@@ -5,7 +5,9 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import styled from "styled-components";
 import { useCreateStore } from "@/stores/useCreateStore";
+import { useDetailPageStore } from "@/stores/useDetailPageStore";
 import { useProjectStore } from "@/stores/useProjectStore";
+import type { StudioProject } from "@/stores/useProjectStore";
 
 const Tabs = styled.nav`
   position: absolute;
@@ -95,6 +97,11 @@ const Close = styled.button`
   }
 `;
 
+function getProjectHref(project: StudioProject): string {
+  const path = project.workType === "detail_page" ? "/detail-page" : "/create";
+  return `${path}?projectId=${encodeURIComponent(project.id)}`;
+}
+
 export function TabProject() {
   const pathname = usePathname();
   const router = useRouter();
@@ -106,8 +113,13 @@ export function TabProject() {
   );
   const closeProjectTab = useProjectStore(state => state.closeProjectTab);
   const setProjectContext = useCreateStore(state => state.setProjectContext);
+  const setDetailProjectContext = useDetailPageStore(
+    state => state.setProjectContext,
+  );
   const storedActiveProjectId = useProjectStore(state => state.activeProjectId);
-  const activeProjectId = pathname === "/create" ? storedActiveProjectId : null;
+  const activeProjectId = pathname === "/create" || pathname === "/detail-page"
+    ? storedActiveProjectId
+    : null;
   const openProjects = openProjectIds
     .map(id => projects.find(project => project.id === id))
     .filter(project => project !== undefined);
@@ -124,15 +136,23 @@ export function TabProject() {
     if (!closingCurrentProject) return;
 
     if (fallback) {
-      setProjectContext(fallback.id);
+      if (fallback.workType === "detail_page") {
+        setDetailProjectContext(fallback.id);
+      } else {
+        setProjectContext(fallback.id);
+      }
       openProject(fallback.id);
-      router.replace(`/create?projectId=${encodeURIComponent(fallback.id)}`);
+      router.replace(getProjectHref(fallback));
       return;
     }
 
-    setProjectContext(null);
+    if (pathname === "/detail-page") {
+      setDetailProjectContext(null);
+    } else {
+      setProjectContext(null);
+    }
     openUnscopedWorkspace();
-    router.replace("/create");
+    router.replace(pathname === "/detail-page" ? "/detail-page" : "/create");
   };
 
   return (
@@ -142,10 +162,14 @@ export function TabProject() {
         return (
           <Tab $active={active} key={project.id}>
             <OpenLink
-              href={`/create?projectId=${encodeURIComponent(project.id)}`}
+              href={getProjectHref(project)}
               aria-current={active ? "page" : undefined}
               onClick={() => {
-                setProjectContext(project.id);
+                if (project.workType === "detail_page") {
+                  setDetailProjectContext(project.id);
+                } else {
+                  setProjectContext(project.id);
+                }
                 openProject(project.id);
               }}
             >

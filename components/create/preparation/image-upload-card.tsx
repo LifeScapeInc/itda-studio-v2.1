@@ -1,117 +1,14 @@
 "use client";
 
-import type { KeyboardEvent, MouseEvent } from "react";
 import Image from "next/image";
-import { ImagePlus, X } from "lucide-react";
-import styled from "styled-components";
+import { ImagePlus } from "lucide-react";
 import { readImageFile } from "@/system/create/image-files";
-
-const Root = styled.div`
-  display: flex;
-  min-height: 0;
-  flex: 1;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-`;
-
-const Preview = styled.label<{ $hasImage: boolean }>`
-  position: relative;
-  display: grid;
-  width: 100%;
-  aspect-ratio: 1;
-  flex: 0 0 auto;
-  place-items: center;
-  border: ${({ $hasImage }) => ($hasImage ? "1px solid" : "2px dashed")}
-    var(--color-border);
-  border-radius: 12px;
-  background: var(--color-main-neutral-light);
-  overflow: hidden;
-  cursor: pointer;
-  transition:
-    border-color 200ms ease,
-    background 200ms ease,
-    box-shadow 200ms ease,
-    transform 200ms ease;
-
-  img {
-    object-fit: cover;
-  }
-
-  &:hover {
-    border-color: var(--color-main-primary);
-    background: color-mix(
-      in srgb,
-      var(--color-main-primary) 8%,
-      var(--color-surface)
-    );
-    box-shadow: 0 8px 20px rgb(32 29 23 / 8%);
-    transform: translateY(-1px);
-  }
-
-  &:focus-within {
-    border-color: var(--color-main-primary);
-    box-shadow: 0 0 0 3px color-mix(
-      in srgb,
-      var(--color-main-primary) 14%,
-      transparent
-    );
-  }
-`;
-
-const EmptyCopy = styled.span`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-2xs);
-  color: var(--color-label-studio-comment);
-  font-size: 12px;
-
-  svg {
-    transition:
-      color 200ms ease,
-      transform 200ms ease;
-  }
-
-  ${Preview}:hover & {
-    color: var(--color-label-studio-black);
-  }
-
-  ${Preview}:hover & svg {
-    color: var(--color-main-primary);
-    transform: scale(1.08);
-  }
-`;
-
-const Remove = styled.button`
-  position: absolute;
-  z-index: 2;
-  top: var(--space-2xs);
-  right: var(--space-2xs);
-  display: grid;
-  width: 26px;
-  height: 26px;
-  place-items: center;
-  padding: 0;
-  border: 0;
-  border-radius: 50%;
-  background: rgb(32 29 23 / 70%);
-  color: var(--color-surface);
-  cursor: pointer;
-  transition: background 160ms ease;
-
-  &:hover {
-    background: var(--color-label-studio-black);
-  }
-`;
-
-const HiddenInput = styled.input`
-  display: none;
-`;
+import { UploadCard } from "./upload-card";
 
 type ImageUploadCardProps = {
   image: string | null;
   emptyLabel: string;
+  emptyDescription?: string;
   onChange: (image: string | null) => void;
   onPreviewClick?: () => void;
 };
@@ -119,74 +16,33 @@ type ImageUploadCardProps = {
 export function ImageUploadCard({
   image,
   emptyLabel,
+  emptyDescription,
   onChange,
   onPreviewClick,
 }: ImageUploadCardProps) {
-  const openAlternateSource = (
-    event: MouseEvent<HTMLLabelElement> | KeyboardEvent<HTMLLabelElement>,
-  ) => {
-    if (!onPreviewClick) {
-      return;
-    }
-
-    event.preventDefault();
-    onPreviewClick();
-  };
-
   return (
-    <Root>
-      <Preview
-        $hasImage={Boolean(image)}
-        tabIndex={onPreviewClick ? 0 : undefined}
-        role={onPreviewClick ? "button" : undefined}
-        onClick={openAlternateSource}
-        onKeyDown={(event) => {
-          if (event.key === "Enter" || event.key === " ") {
-            openAlternateSource(event);
-          }
-        }}
-      >
-        {image ? (
-          <Image
-            src={image}
-            alt="업로드 이미지"
-            fill
-            unoptimized
-            sizes="(max-width: 1024px) 208px, 388px"
-          />
-        ) : (
-          <EmptyCopy>
-            <ImagePlus size={34} strokeWidth={1.5} />
-            <span>{emptyLabel}</span>
-          </EmptyCopy>
-        )}
-        {!onPreviewClick ? (
-          <HiddenInput
-            type="file"
-            accept="image/*"
-            onChange={async (event) => {
-              const file = event.target.files?.[0];
-              if (file) {
-                onChange(await readImageFile(file));
-              }
-              event.target.value = "";
-            }}
-          />
-        ) : null}
-        {image ? (
-          <Remove
-            type="button"
-            aria-label="이미지 제거"
-            onClick={(event) => {
-              event.preventDefault();
-              event.stopPropagation();
-              onChange(null);
-            }}
-          >
-            <X size={14} />
-          </Remove>
-        ) : null}
-      </Preview>
-    </Root>
+    <UploadCard
+      hasValue={Boolean(image)}
+      icon={<ImagePlus size={34} strokeWidth={1.5} />}
+      label={emptyLabel}
+      description={emptyDescription}
+      accept="image/*"
+      removeLabel="이미지 제거"
+      onFile={onPreviewClick ? undefined : async file => {
+        onChange(await readImageFile(file));
+      }}
+      onRemove={() => onChange(null)}
+      onPreviewClick={onPreviewClick}
+    >
+      {image ? (
+        <Image
+          src={image}
+          alt="업로드 이미지"
+          fill
+          unoptimized
+          sizes="(max-width: 1024px) 208px, 388px"
+        />
+      ) : undefined}
+    </UploadCard>
   );
 }

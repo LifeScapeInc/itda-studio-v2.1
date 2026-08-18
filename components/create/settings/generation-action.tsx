@@ -2,6 +2,7 @@
 
 import { LoaderCircle, Sparkles } from "lucide-react";
 import styled from "styled-components";
+import { PrimaryIconButton } from "@/components/ui/primary-icon-button";
 import { useCreateStore } from "@/stores/useCreateStore";
 import { useAppSettingsStore } from "@/stores/useAppSettingsStore";
 import {
@@ -26,29 +27,6 @@ const Cost = styled.div`
 
   strong {
     color: var(--color-label-studio-black);
-  }
-`;
-
-const Generate = styled.button`
-  display: flex;
-  width: 100%;
-  height: 48px;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2xs);
-  border: 0;
-  border-radius: 8px;
-  background: var(--color-main-primary);
-  color: var(--color-surface);
-  cursor: pointer;
-
-  &:hover:not(:disabled) {
-    background: var(--color-main-secondary);
-  }
-
-  &:disabled {
-    background: var(--color-label-disabled);
-    cursor: default;
   }
 `;
 
@@ -81,8 +59,14 @@ export function GenerationAction() {
           {" "}크레딧 · {cutCount}컷
         </span>
       </Cost>
-      <Generate
+      <PrimaryIconButton
         type="button"
+        icon={state.isGenerating ? LoaderCircle : Sparkles}
+        iconSize={17}
+        iconClassName={state.isGenerating ? "animate-spin" : undefined}
+        fullWidth
+        height={48}
+        labelClassName="type-xsmall-body"
         disabled={!canGenerate || state.isGenerating}
         onClick={() => {
           void state.requestGeneration(mockMode).then((result) => {
@@ -94,15 +78,8 @@ export function GenerationAction() {
           });
         }}
       >
-        {state.isGenerating ? (
-          <LoaderCircle size={17} className="animate-spin" />
-        ) : (
-          <Sparkles size={17} />
-        )}
-        <span className="type-xsmall-body">
-          {state.isGenerating ? "생성 중..." : "생성하기"}
-        </span>
-      </Generate>
+        {state.isGenerating ? "생성 중..." : "생성하기"}
+      </PrimaryIconButton>
     </Footer>
   );
 }

@@ -1,7 +1,8 @@
 "use client";
 
-import styled from "styled-components";
-export const CreateProjectButton = styled.button`display:grid;width:180px;height:52px;flex:0 0 180px;place-items:center;border:0;border-radius:10px;background:var(--color-main-primary);color:var(--color-surface);cursor:pointer;&:hover,&:focus-visible{outline:2px solid var(--color-main-secondary);outline-offset:2px}&:disabled{background:var(--color-label-disabled);cursor:default;outline:none}`;
+import { FolderPlus } from "lucide-react";
+import { PrimaryIconButton } from "@/components/ui/primary-icon-button";
+
 export function ButtonCreateProject({
   disabled = false,
   onClick
@@ -10,13 +11,16 @@ export function ButtonCreateProject({
   onClick?: () => void;
 }) {
   return (
-    <CreateProjectButton
+    <PrimaryIconButton
       className="type-small-body"
       type="button"
+      icon={FolderPlus}
+      iconSize={17}
+      height={52}
       disabled={disabled}
       onClick={onClick}
     >
       프로젝트 생성
-    </CreateProjectButton>
+    </PrimaryIconButton>
   );
 }

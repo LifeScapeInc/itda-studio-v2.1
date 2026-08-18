@@ -7,6 +7,7 @@ import { Moon, Settings, Sun, User } from "lucide-react";
 import styled from "styled-components";
 import { useWorkspaceLayoutStore } from "@/stores/useWorkspaceLayoutStore";
 import { useCreateStore } from "@/stores/useCreateStore";
+import { useDetailPageStore } from "@/stores/useDetailPageStore";
 import { useThemeStore } from "@/stores/useThemeStore";
 import { useProjectStore } from "@/stores/useProjectStore";
 import {
@@ -194,6 +195,9 @@ export function NavigationLeft() {
   const setProjectContext = useCreateStore(
     (state) => state.setProjectContext,
   );
+  const setDetailProjectContext = useDetailPageStore(
+    (state) => state.setProjectContext,
+  );
 
   useEffect(() => {
     hydrateTheme();
@@ -220,6 +224,9 @@ export function NavigationLeft() {
                     aria-current={active ? "page" : undefined}
                     onClick={item.href === "/create" ? () => {
                       setProjectContext(null);
+                      openUnscopedWorkspace();
+                    } : item.href === "/detail-page" ? () => {
+                      setDetailProjectContext(null);
                       openUnscopedWorkspace();
                     } : undefined}
                     key={item.label}

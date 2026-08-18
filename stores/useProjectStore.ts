@@ -47,6 +47,7 @@ type ProjectStore = {
   openUnscopedWorkspace: () => void;
   closeProjectTab: (projectId: string) => void;
   recordGenerationSet: (projectId: string, historyId: string, createdAt: string) => void;
+  recordDetailPageDraft: (projectId: string, workId: string, createdAt: string) => void;
   markHydrated: () => void;
   deleteProject: (projectId: string) => void;
 };
@@ -201,6 +202,20 @@ export const useProjectStore = create<ProjectStore>()(persist((set, get) => ({
             kind: "generated_image" as const,
             createdAt,
           },
+          ...project.workHistory,
+        ],
+        updatedAt: createdAt,
+      };
+    }),
+  })),
+  recordDetailPageDraft: (projectId, workId, createdAt) => set(state => ({
+    projects: state.projects.map(project => {
+      if (project.id !== projectId) return project;
+      if (project.workHistory.some(record => record.id === workId)) return project;
+      return {
+        ...project,
+        workHistory: [
+          { id: workId, kind: "detail_page" as const, createdAt },
           ...project.workHistory,
         ],
         updatedAt: createdAt,

@@ -3,88 +3,15 @@
 import { useRef, useState } from "react";
 import { Database, Upload } from "lucide-react";
 import styled from "styled-components";
-import { PanelResizeHandle } from "@/components/layout/panel-resize-handle";
 import { useCreateStore } from "@/stores/useCreateStore";
-import { useWorkspaceLayoutStore } from "@/stores/useWorkspaceLayoutStore";
-import {
-  MATERIAL_PANEL_MAX_WIDTH,
-  MATERIAL_PANEL_MIN_WIDTH,
-} from "@/system/layout/workspace-layout";
 import { readImageFile } from "@/system/create/image-files";
 import type { ReferenceLibraryData } from "@/system/create/reference-library";
 import { ImageUploadCard } from "./image-upload-card";
+import {
+  MaterialPreparationLayout,
+  MaterialPreparationSection,
+} from "./material-preparation-layout";
 import { ReferenceLibraryModal } from "./reference-library-modal";
-
-const Panel = styled.aside`
-  position: relative;
-  display: flex;
-  min-width: ${MATERIAL_PANEL_MIN_WIDTH}px;
-  min-height: 0;
-  flex-direction: column;
-  border-right: 1px solid var(--color-border);
-  background: var(--color-surface);
-`;
-
-const Header = styled.header`
-  display: flex;
-  height: 58px;
-  flex: 0 0 58px;
-  align-items: center;
-  padding: 0 var(--space-md);
-  border-bottom: 1px solid var(--color-border);
-`;
-
-const Body = styled.div`
-  display: flex;
-  min-height: 0;
-  flex: 1;
-  flex-direction: column;
-  align-items: stretch;
-  justify-content: flex-start;
-  gap: var(--space-sm);
-  padding: var(--space-sm);
-  overflow-x: hidden;
-  overflow-y: auto;
-  scrollbar-width: none;
-
-  &::-webkit-scrollbar {
-    display: none;
-  }
-`;
-
-const MaterialSection = styled.section`
-  display: flex;
-  min-height: 0;
-  flex: 0 0 auto;
-  flex-direction: column;
-  justify-content: flex-start;
-  gap: var(--space-2xs);
-  padding-bottom: var(--space-sm);
-  border: 0;
-  border-bottom: 1px solid var(--color-border);
-  border-radius: 0;
-  background: var(--color-surface);
-`;
-
-const SectionTitle = styled.div`
-  display: flex;
-  flex: 0 0 auto;
-  align-items: center;
-  gap: var(--space-2xs);
-`;
-
-const Step = styled.span`
-  display: grid;
-  width: 22px;
-  height: 22px;
-  flex: 0 0 22px;
-  place-items: center;
-  border-radius: 50%;
-  background: var(--color-main-primary);
-  color: var(--color-surface);
-  font-size: 11px;
-  font-weight: 700;
-`;
 
 const Actions = styled.div`
   display: flex;
@@ -131,44 +58,17 @@ export function MaterialPreparationPanel({
   const referenceImage = useCreateStore((state) => state.referenceImage);
   const setProductImage = useCreateStore((state) => state.setProductImage);
   const setReferenceImage = useCreateStore((state) => state.setReferenceImage);
-  const materialPanelWidth = useWorkspaceLayoutStore(
-    (state) => state.materialPanelWidth,
-  );
-  const resizeMaterialPanel = useWorkspaceLayoutStore(
-    (state) => state.resizeMaterialPanel,
-  );
-
   return (
-    <Panel>
-      <PanelResizeHandle
-        edge="right"
-        label="재료 준비 너비 조절"
-        value={materialPanelWidth}
-        minimum={MATERIAL_PANEL_MIN_WIDTH}
-        maximum={MATERIAL_PANEL_MAX_WIDTH}
-        onResize={resizeMaterialPanel}
-      />
-      <Header>
-        <h1 className="type-xsmall-body">재료 준비</h1>
-      </Header>
-      <Body>
-        <MaterialSection>
-          <SectionTitle>
-            <Step>1</Step>
-            <span className="type-small-head">내 제품</span>
-          </SectionTitle>
+    <MaterialPreparationLayout title="재료 준비">
+        <MaterialPreparationSection index={1} title="내 제품">
           <ImageUploadCard
             image={productImage}
             emptyLabel="가구 이미지 업로드"
             onChange={setProductImage}
           />
-        </MaterialSection>
+        </MaterialPreparationSection>
 
-        <MaterialSection>
-          <SectionTitle>
-            <Step>2</Step>
-            <span className="type-small-head">레퍼런스</span>
-          </SectionTitle>
+        <MaterialPreparationSection index={2} title="레퍼런스">
           <ImageUploadCard
             image={referenceImage}
             emptyLabel="레퍼런스 DB 열기"
@@ -204,8 +104,7 @@ export function MaterialPreparationPanel({
               }}
             />
           </Actions>
-        </MaterialSection>
-      </Body>
+        </MaterialPreparationSection>
       {libraryOpen ? (
         <ReferenceLibraryModal
           library={library}
@@ -214,6 +113,6 @@ export function MaterialPreparationPanel({
           onSelect={setReferenceImage}
         />
       ) : null}
-    </Panel>
+    </MaterialPreparationLayout>
   );
 }

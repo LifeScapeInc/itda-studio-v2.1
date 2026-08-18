@@ -39,10 +39,15 @@ function saveEstimatedTokens(value: number): void {
   window.localStorage.setItem(TOKEN_STORAGE_KEY, String(value));
 }
 
+function readMockMode(): boolean {
+  return typeof window !== "undefined"
+    && window.localStorage.getItem(MOCK_MODE_STORAGE_KEY) === "true";
+}
+
 export const useAppSettingsStore = create<AppSettingsStore>((set, get) => ({
   status: null,
   estimatedTokens: STARTING_TOKENS,
-  mockMode: false,
+  mockMode: readMockMode(),
   loading: false,
   saving: false,
   message: "",
@@ -62,7 +67,7 @@ export const useAppSettingsStore = create<AppSettingsStore>((set, get) => ({
       set({
         status,
         estimatedTokens: readEstimatedTokens(),
-        mockMode: window.localStorage.getItem(MOCK_MODE_STORAGE_KEY) === "true",
+        mockMode: readMockMode(),
         loading: false,
       });
     } catch {

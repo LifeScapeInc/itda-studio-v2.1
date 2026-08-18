@@ -70,8 +70,8 @@ const Details = styled.aside<{ $width: number }>`
 
 const DetailHeader = styled.div`
   display: flex;
-  height: 58px;
-  flex: 0 0 58px;
+  height: 48px;
+  flex: 0 0 48px;
   align-items: center;
   justify-content: space-between;
   padding: 0 var(--space-sm);

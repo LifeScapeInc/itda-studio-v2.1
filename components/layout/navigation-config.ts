@@ -64,7 +64,7 @@ export const NAVIGATION_GROUPS: Array<{
       },
       {
         label: "상세 페이지",
-        href: "#",
+        href: "/detail-page",
         icon: FileText,
       },
     ],

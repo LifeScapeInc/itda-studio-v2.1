@@ -64,6 +64,7 @@
 - `useImportStore`: case 조회, 이메일별 고객 그룹, 고객/case 선택
 - `useProjectStore`: 프로젝트 생성·조회·삭제와 선택 상태
 - `useCreateStore`: 생성 설정, 업로드 이미지, 생성 상태
+- `useDetailPageStore`: 상세페이지 단계, 업로드 재료, 기획안 후보, 템플릿 타일과 프로젝트별 snapshot
 - `useWorkspaceLayoutStore`: navigation 접힘과 resizable panel 너비
 - `useAppSettingsStore`: API key 연결, mock mode 등 앱 설정
 - `useThemeStore`: light/dark theme
@@ -75,6 +76,7 @@
 - `ReferenceDetailTitle`: 무드보드와 가구 상세의 제목·설명 조합에서 공유한다.
 - `ImageAlbum`: 가구 viewer와 무드보드 상세 overlay에서 공유한다.
 - `PanelResizeHandle`: create 양쪽 panel과 furniture gallery처럼 너비 조절이 필요한 영역에서 공유한다.
+- `UploadCard`: create 재료 준비의 이미지 업로드와 상세페이지의 이미지·요청서 업로드가 공유하는 정사각형 업로드 frame이다.
 
 공유 컴포넌트의 변경은 모든 소비 페이지에 미치는 영향을 확인한다. 페이지별 특수 동작은 무리하게 공용 컴포넌트 안에 넣지 말고 props 또는 페이지 전용 wrapper로 분리한다.
 
@@ -92,7 +94,10 @@
 
 - case 기반 또는 사용자 입력 기반 프로젝트를 생성할 수 있다.
 - 프로젝트 목록은 Zustand store를 사용하며 삭제 overlay를 제공한다.
-- 프로젝트 썸네일은 이후 생성 결과를 저장할 수 있는 구조를 유지한다.
+- 프로젝트를 더블클릭하면 프로젝트의 생성 종류에 맞는 작업 화면을 연다. 상세페이지 프로젝트는 `/detail-page`, 컷 생성 프로젝트는 `/create`를 사용한다.
+- 프로젝트가 열리면 `NavigationTop`에 프로젝트 이름의 탭이 추가된다. 탭 전환 시 각 프로젝트의 진행 상태가 복원되고, 닫기 버튼은 탭만 닫으며 프로젝트 데이터는 삭제하지 않는다.
+- 프로젝트 탭 영역은 왼쪽 navigation의 접힘 여부와 무관하게 고정된 시작 offset을 사용하며, 탭이 많아지면 가로 overflow로 처리한다.
+- 프로젝트 썸네일과 최근 작업 시각은 생성 결과 또는 상세페이지 초안 기록을 반영할 수 있는 구조다.
 
 ### 컷 연출(Create)
 
@@ -102,6 +107,26 @@
 - 레퍼런스 이미지가 있을 때만 AI 편집 방식 설정을 노출한다.
 - 설정값은 `system/create/generation-prompt.ts`를 통해 최종 프롬프트로 조합한다.
 - API key가 없거나 mock mode이면 mock 생성 흐름을 사용하고, 그 외에는 `/api/generate`를 호출한다.
+- 프로젝트 탭에서 연 create workspace와 프로젝트에 속하지 않은 일반 create workspace의 상태를 각각 보관한다.
+- 생성 히스토리는 프로젝트 ID로 분리되며 현재 프로젝트의 항목만 표시한다. 프로젝트가 없는 workspace에서는 unscoped 히스토리만 표시한다.
+- 콘텐츠 세트와 앵글 변주는 자유 생성을 제외하고 요청을 동시에 실행한다. 자유 생성은 최대 네 요청씩 병렬 실행하며, 429와 5xx 응답은 지수 backoff 후 재시도한다.
+- 생성 결과는 요청 순서와 무관하게 원래 shot 위치에 결합한다.
+
+### 상세 페이지
+
+- route는 `/detail-page`이며 `app/detail-page/page.tsx`와 `components/detail-page/`에서 조립한다.
+- 작업은 `재료 준비 → 기획안 → 템플릿 제작 → 템플릿 편집`의 네 단계로 진행하며 `DetailStepNavigation`으로 이동한다.
+- 단계 navigation 높이는 create panel header와 같은 58px이고, 제목과 보조 문구는 staging canvas의 `type-xsmall-body`, `type-xsmall-thin` 조합을 사용한다.
+- 재료 준비는 대상 가구 이미지와 의뢰 요청서를 받는다. 두 업로드 영역은 같은 `UploadCard`와 최대 420px 정사각형 크기를 사용한다.
+- 가구 이미지는 1:1 crop 형태로 표시한다. 요청서는 PDF, DOC, DOCX, XLSX, TXT를 허용한다.
+- `기획 생성`은 현재 mock 동작이다. 약 900ms 뒤 세 개의 `MOCK_PLANNING_CANDIDATES`를 제공하며, 이전/다음 navigator로 후보를 넘기고 하나를 확정한다.
+- 기획안 단계에는 템플릿 미리보기를 표시하지 않고 콘셉트, 제목, 설명, 키워드만 표시한다.
+- 기획안을 확정하면 `createDetailTiles`가 선택한 `tileTypes` 순서대로 템플릿 초안을 만든다.
+- 템플릿 제작 단계에서는 각 타일의 설명을 textarea로 수정할 수 있다. 이미지 타일은 `shotCount`를 가지며 1~12컷 범위로 수정한다. 기본값은 히어로 1컷, 클로즈업 3컷, 소재 2컷, 공간 연출 2컷이다.
+- 템플릿 편집 단계는 왼쪽 타일 library, 가운데 wireframe, 오른쪽 inspector로 구성된다. 타일 추가·삭제·선택·순서 변경과 PNG/WebP 내보내기를 지원한다.
+- 타일 drag 중에는 반투명 drag image가 pointer를 따라가며 전체 cursor를 `grabbing`으로 통일한다. drag enter 시 로컬 preview 배열을 먼저 재배치하고 drop 시 Zustand 상태에 확정해 Figma auto-layout과 유사한 순서 미리보기를 제공한다.
+- 이미지 타일을 선택하면 inspector에서 이미지 생성 prompt를 확인한다. 현재 실제 상세페이지 이미지 생성과 기획 생성 API는 연결하지 않은 mockup 단계다.
+- `useDetailPageStore`는 프로젝트별 workspace snapshot과 프로젝트에 속하지 않은 snapshot을 분리한다. 프로젝트 탭 전환 시 재료, 단계, 기획안, 타일 편집 상태가 복원된다.
 
 ### 무드보드
 
@@ -140,3 +165,12 @@
 - shared component 변경은 최소 두 개 이상의 소비 화면에서 회귀 여부를 확인한다.
 - 무드보드 전용, 가구 전용, shared reference UI, 공용 navigation/UI 변경은 가능한 별도 커밋으로 나눈다.
 - 사용자의 기존 변경을 덮어쓰거나 관련 없는 파일을 정리하지 않는다.
+
+### 현재 작업 트리와 최근 검증
+
+- 상세페이지 구현과 프로젝트 탭 관련 파일은 현재 아직 커밋되지 않은 상태다. `app/detail-page/`, `components/detail-page/`, `stores/useDetailPageStore.ts`, `system/detail-page/`는 untracked이므로 누락하지 않는다.
+- `components/create/preparation/upload-card.tsx`도 새 공용 컴포넌트로 untracked 상태다.
+- 기존 사용자 변경과 상세페이지 변경이 같은 작업 트리에 있으므로 reset, checkout 또는 일괄 정리를 하지 않는다.
+- 최근 검증에서 `npx tsc --noEmit`, `npm run lint`, `npm run build`가 모두 통과했다.
+- 브라우저에서 `/detail-page` 초기 화면의 58px 단계 header, typography class, 이미지 및 문서 accept 형식을 확인했다.
+- Git 명령은 sandbox ownership 때문에 필요할 경우 `git -c safe.directory="C:/Users/jusmi/Desktop/+/LifeScape/workspace/itda-studio-v2.1" ...` 형식으로 실행한다. 전역 Git 설정은 변경하지 않는다.

@@ -29,8 +29,8 @@ const Panel = styled.aside`
 
 const Header = styled.header`
   display: flex;
-  height: 58px;
-  flex: 0 0 58px;
+  height: 48px;
+  flex: 0 0 48px;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-xs);
