@@ -22,6 +22,7 @@ import type {
   GenerationApiError,
   GenerationApiResponse,
 } from "@/system/create/generation-api";
+import { optimizeImageDataUrl } from "@/system/create/image-files";
 import {
   belongsToProject,
   loadGenerationHistory,
@@ -454,6 +455,12 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
     }
 
     const productImage = current.productImage;
+    const [requestProductImage, requestReferenceImage] = await Promise.all([
+      optimizeImageDataUrl(productImage),
+      current.referenceImage
+        ? optimizeImageDataUrl(current.referenceImage)
+        : Promise.resolve(null),
+    ]);
     const generationShots: LibraryGenerationShot[] = shotDrafts
       .map((shot) => {
         const shotPrompt = lastGenerationPrompts.find((item) => item.id === shot.id)
@@ -577,9 +584,9 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            productImage: current.productImage,
-            referenceImages: current.referenceImage
-              ? [current.referenceImage]
+            productImage: requestProductImage,
+            referenceImages: requestReferenceImage
+              ? [requestReferenceImage]
               : [],
             prompt: prompt.prompt,
             quality: current.quality,
@@ -587,7 +594,11 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
             mockMode,
           }),
         });
-        const result = await response.json() as GenerationApiResponse | GenerationApiError;
+        const result = await response.json().catch(() => ({
+          error: response.status === 500
+            ? "Netlify Function이 요청을 처리하지 못했습니다. 이미지 용량 또는 실행 시간 제한을 확인해 주세요."
+            : `서버가 올바르지 않은 응답을 반환했습니다. (${response.status})`,
+        })) as GenerationApiResponse | GenerationApiError;
 
         if (!response.ok || !("images" in result) || !result.images[0]) {
           if (response.status === 401 && "code" in result && result.code === "AUTH_REQUIRED") {

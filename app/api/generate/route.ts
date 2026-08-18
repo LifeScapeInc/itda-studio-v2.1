@@ -5,6 +5,8 @@ import type {
 import { getOpenAIApiKey } from "@/system/server/app-settings";
 import { runOpenAIImageEdit } from "@/system/server/openai-image";
 
+export const maxDuration = 60;
+
 function isGenerationRequest(value: unknown): value is GenerationApiRequest {
   if (!value || typeof value !== "object") {
     return false;
@@ -81,6 +83,13 @@ function getErrorMessage(error: unknown): string {
   if (message.includes("model_not_found")) {
     return "현재 API 프로젝트에서 GPT Image 2 모델을 사용할 수 없습니다.";
   }
+  if (
+    message.toLowerCase().includes("timeout")
+    || message.toLowerCase().includes("timed out")
+    || message.toLowerCase().includes("aborted")
+  ) {
+    return "이미지 생성이 Netlify 실행 시간 제한을 초과했습니다. 잠시 후 다시 시도해 주세요.";
+  }
   if (message.includes("Invalid image file or mode")) {
     return "입력 이미지 형식을 처리하지 못했습니다. PNG, JPG 또는 WebP 파일로 다시 시도해 주세요.";
   }
@@ -92,6 +101,10 @@ function getErrorMessage(error: unknown): string {
 }
 
 function getErrorStatus(error: unknown, message: string): number {
+  if (message.startsWith("이미지 생성이 Netlify 실행 시간 제한")) {
+    return 504;
+  }
+
   if (message.startsWith("API 키가 유효하지 않습니다")) {
     return 400;
   }
@@ -157,6 +170,16 @@ export async function POST(request: Request): Promise<Response> {
     };
     return Response.json(response);
   } catch (error) {
+    console.error("OpenAI image generation failed", {
+      name: error instanceof Error ? error.name : "UnknownError",
+      message: error instanceof Error ? error.message : String(error),
+      status: error && typeof error === "object"
+        ? (error as { status?: unknown }).status
+        : undefined,
+      requestId: error && typeof error === "object"
+        ? (error as { request_id?: unknown }).request_id
+        : undefined,
+    });
     const message = getErrorMessage(error);
     const status = getErrorStatus(error, message);
 

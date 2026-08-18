@@ -13,7 +13,9 @@ import {
   mapSize,
 } from "@/system/server/image-settings";
 
-const OPENAI_MAX_RETRIES = 5;
+const OPENAI_MAX_RETRIES = 0;
+const OPENAI_TIMEOUT_MS = 52_000;
+const MAX_RESPONSE_IMAGE_BYTES = 3_500_000;
 
 function parseDataUrl(
   source: string,
@@ -106,6 +108,35 @@ export type OpenAIImageResult = {
   size: string;
 };
 
+async function optimizeGeneratedImage(base64Image: string): Promise<string> {
+  const source = Buffer.from(base64Image, "base64");
+  const attempts = [
+    { dimension: 2048, quality: 86 },
+    { dimension: 1792, quality: 80 },
+    { dimension: 1536, quality: 74 },
+    { dimension: 1280, quality: 70 },
+  ];
+
+  for (const [index, options] of attempts.entries()) {
+    const optimized = await sharp(source, { animated: false })
+      .rotate()
+      .resize({
+        width: options.dimension,
+        height: options.dimension,
+        fit: "inside",
+        withoutEnlargement: true,
+      })
+      .webp({ quality: options.quality, effort: 4 })
+      .toBuffer();
+
+    if (optimized.length <= MAX_RESPONSE_IMAGE_BYTES || index === attempts.length - 1) {
+      return `data:image/webp;base64,${optimized.toString("base64")}`;
+    }
+  }
+
+  throw new Error("생성 이미지를 전송 가능한 크기로 압축하지 못했습니다.");
+}
+
 export async function runOpenAIImageEdit(
   request: GenerationApiRequest,
   providedApiKey?: string,
@@ -128,6 +159,7 @@ export async function runOpenAIImageEdit(
     apiKey,
     baseURL: OPENAI_API_BASE_URL,
     maxRetries: OPENAI_MAX_RETRIES,
+    timeout: OPENAI_TIMEOUT_MS,
   });
   const response = await client.images.edit({
     model: IMAGE_MODEL,
@@ -137,10 +169,11 @@ export async function runOpenAIImageEdit(
     size,
     n: 1,
   });
-  const images = (response.data ?? [])
+  const encodedImages = (response.data ?? [])
     .map((image) => image.b64_json)
-    .filter((image): image is string => Boolean(image))
-    .map((image) => `data:image/png;base64,${image}`);
+    .filter((image): image is string => Boolean(image));
+
+  const images = await Promise.all(encodedImages.map(optimizeGeneratedImage));
 
   if (images.length === 0) {
     throw new Error("OpenAI에서 생성 이미지를 반환하지 않았습니다.");
