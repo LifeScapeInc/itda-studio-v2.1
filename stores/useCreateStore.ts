@@ -590,6 +590,9 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
         const result = await response.json() as GenerationApiResponse | GenerationApiError;
 
         if (!response.ok || !("images" in result) || !result.images[0]) {
+          if (response.status === 401 && "code" in result && result.code === "AUTH_REQUIRED") {
+            window.location.assign("/login");
+          }
           const message = "error" in result
             ? result.error
             : "이미지를 생성하지 못했습니다.";

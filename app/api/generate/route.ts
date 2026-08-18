@@ -92,6 +92,10 @@ function getErrorMessage(error: unknown): string {
 }
 
 function getErrorStatus(error: unknown, message: string): number {
+  if (message.startsWith("API 키가 유효하지 않습니다")) {
+    return 400;
+  }
+
   if (
     message.startsWith("이미지 파일")
     || message.startsWith("입력 이미지")
@@ -143,7 +147,7 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   try {
-    const result = await runOpenAIImageEdit(body);
+    const result = await runOpenAIImageEdit(body, apiKey);
     const response: GenerationApiResponse = {
       mock: false,
       prompt: body.prompt,

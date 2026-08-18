@@ -105,8 +105,9 @@ export type OpenAIImageResult = {
 
 export async function runOpenAIImageEdit(
   request: GenerationApiRequest,
+  providedApiKey?: string,
 ): Promise<OpenAIImageResult> {
-  const apiKey = await getOpenAIApiKey();
+  const apiKey = providedApiKey?.trim() || await getOpenAIApiKey();
   if (!apiKey) {
     throw new Error("OpenAI API 키가 연결되지 않았습니다.");
   }

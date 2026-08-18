@@ -266,7 +266,7 @@ export async function runOpenAIDetailPage({
       prompt: `${job.image.prompt}\n이 이미지는 ${job.tile.label} 타일의 ${job.imageIndex + 1}번째 독립 이미지다. 원본 제품의 정체성을 유지하고 상세페이지 카피나 글자를 이미지 내부에 넣지 않는다.`,
       quality: "medium",
       ratio: job.image.aspectRatio,
-    });
+    }, apiKey);
     return {
       tileIndex: job.tileIndex,
       image: {

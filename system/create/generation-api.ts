@@ -20,4 +20,5 @@ export type GenerationApiResponse = {
 
 export type GenerationApiError = {
   error: string;
+  code?: "AUTH_REQUIRED";
 };

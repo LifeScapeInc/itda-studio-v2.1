@@ -33,7 +33,7 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 
   if (pathname.startsWith("/api/")) {
     return NextResponse.json(
-      { error: "로그인이 필요합니다." },
+      { error: "로그인이 필요합니다.", code: "AUTH_REQUIRED" },
       { status: 401 },
     );
   }
