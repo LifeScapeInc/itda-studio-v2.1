@@ -315,7 +315,7 @@ export function SettingsWorkspace() {
   const sourceCopy = status?.openAiApiKeySource === "env"
     ? `환경변수 ${status.environmentVariable}를 사용 중입니다.`
     : status?.openAiApiKeySource === "workspace"
-      ? "설정 화면에서 등록한 로컬 키를 사용 중입니다."
+      ? "이 브라우저에서 직접 등록한 키를 사용 중입니다."
       : status?.openAiApiKeyMode === "env"
         ? `환경변수 ${status.environmentVariable}가 없어 목업 모드로 동작합니다.`
         : "직접 입력한 API 키가 없어 목업 모드로 동작합니다.";
@@ -370,7 +370,7 @@ export function SettingsWorkspace() {
                     <SourceCopy>
                       <strong className="type-xsmall-body">직접 입력</strong>
                       <small className="type-xsmall-thin">
-                        이 workspace에 저장한 API 키를 사용합니다.
+                        이 브라우저에 암호화해 저장한 API 키를 사용합니다.
                       </small>
                       <code>
                         {status?.storedOpenAiApiKeyPreview
@@ -427,8 +427,8 @@ export function SettingsWorkspace() {
                       직접 등록한 키 초기화
                     </ResetButton>
                     <Note className="type-xsmall-thin">
-                      직접 입력한 키는 git에서 제외된 로컬 경로
-                      {" "}<code>workspace/metadata/settings.json</code>에 저장됩니다.
+                      직접 입력한 키는 암호화된 HttpOnly 쿠키로 저장되며,
+                      서버에서만 복호화됩니다.
                     </Note>
                   </DirectKey>
                 ) : (

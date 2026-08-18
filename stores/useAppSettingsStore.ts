@@ -44,6 +44,22 @@ function readMockMode(): boolean {
     && window.localStorage.getItem(MOCK_MODE_STORAGE_KEY) === "true";
 }
 
+async function responseError(
+  response: Response,
+  fallback: string,
+): Promise<Error> {
+  try {
+    const body = await response.json() as { error?: unknown };
+    if (typeof body.error === "string" && body.error.trim()) {
+      return new Error(body.error);
+    }
+  } catch {
+    // Use the user-facing fallback when the server did not return JSON.
+  }
+
+  return new Error(fallback);
+}
+
 export const useAppSettingsStore = create<AppSettingsStore>((set, get) => ({
   status: null,
   estimatedTokens: STARTING_TOKENS,
@@ -85,7 +101,12 @@ export const useAppSettingsStore = create<AppSettingsStore>((set, get) => ({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ openAiApiKeyMode }),
       });
-      if (!response.ok) throw new Error();
+      if (!response.ok) {
+        throw await responseError(
+          response,
+          "API 키 사용 방식을 변경하지 못했습니다.",
+        );
+      }
 
       const status = (await response.json()) as AppSettingsStatus;
       set({
@@ -96,8 +117,13 @@ export const useAppSettingsStore = create<AppSettingsStore>((set, get) => ({
           : "직접 입력 API 키 사용을 선택했습니다.",
       });
       return true;
-    } catch {
-      set({ saving: false, message: "API 키 사용 방식을 변경하지 못했습니다." });
+    } catch (error) {
+      set({
+        saving: false,
+        message: error instanceof Error
+          ? error.message
+          : "API 키 사용 방식을 변경하지 못했습니다.",
+      });
       return false;
     }
   },
@@ -110,7 +136,7 @@ export const useAppSettingsStore = create<AppSettingsStore>((set, get) => ({
         body: JSON.stringify({ openAiApiKey: apiKey }),
       });
       if (!response.ok) {
-        throw new Error();
+        throw await responseError(response, "API 키를 저장하지 못했습니다.");
       }
 
       const status = (await response.json()) as AppSettingsStatus;
@@ -120,8 +146,11 @@ export const useAppSettingsStore = create<AppSettingsStore>((set, get) => ({
         message: "직접 입력한 API 키를 저장하고 사용 방식으로 선택했습니다.",
       });
       return true;
-    } catch {
-      set({ saving: false, message: "API 키를 저장하지 못했습니다." });
+    } catch (error) {
+      set({
+        saving: false,
+        message: error instanceof Error ? error.message : "API 키를 저장하지 못했습니다.",
+      });
       return false;
     }
   },
@@ -130,7 +159,7 @@ export const useAppSettingsStore = create<AppSettingsStore>((set, get) => ({
     try {
       const response = await fetch("/api/settings", { method: "DELETE" });
       if (!response.ok) {
-        throw new Error();
+        throw await responseError(response, "API 키를 초기화하지 못했습니다.");
       }
 
       const status = (await response.json()) as AppSettingsStatus;
@@ -140,8 +169,13 @@ export const useAppSettingsStore = create<AppSettingsStore>((set, get) => ({
         message: "직접 입력한 API 키를 초기화했습니다.",
       });
       return true;
-    } catch {
-      set({ saving: false, message: "API 키를 초기화하지 못했습니다." });
+    } catch (error) {
+      set({
+        saving: false,
+        message: error instanceof Error
+          ? error.message
+          : "API 키를 초기화하지 못했습니다.",
+      });
       return false;
     }
   },

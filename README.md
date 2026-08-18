@@ -37,6 +37,7 @@ npm run dev
 이미지 생성 API 키는 다음 순서로 확인합니다.
 
 1. 로컬 환경변수 `OPENAI_API_KEY`
-2. 설정 화면에서 직접 등록한 로컬 키
+2. 설정 화면에서 직접 등록한 키
 
-직접 등록한 키는 git에서 제외된 `workspace/metadata/settings.json`에 저장됩니다.
+직접 등록한 키는 `STUDIO_AUTH_SECRET`으로 암호화된 HttpOnly 쿠키에
+브라우저별로 저장되며 서버에서만 복호화됩니다.
