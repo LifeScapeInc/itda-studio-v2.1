@@ -18,6 +18,27 @@ export type CustomerCaseGroup = {
   caseCount: number;
   cases: IntegrationCase[];
 };
+
+export async function readCasesApiResponse(
+  response: Response,
+): Promise<unknown> {
+  const contentType = response.headers.get("content-type") ?? "";
+
+  if (!contentType.toLowerCase().includes("json")) {
+    if (response.status === 404) {
+      throw new Error(
+        "case API 경로를 찾지 못했습니다. 개발 서버를 재시작해주세요.",
+      );
+    }
+
+    throw new Error(
+      `case API가 JSON이 아닌 응답을 반환했습니다. (${response.status})`,
+    );
+  }
+
+  return response.json();
+}
+
 export function isCasesResponse(value: unknown): value is CasesResponse {
   return Boolean(value && typeof value === "object" && "cases" in value && Array.isArray((value as {
     cases?: unknown;

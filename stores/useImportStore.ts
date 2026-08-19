@@ -1,7 +1,12 @@
 "use client";
 
 import { create } from "zustand";
-import { groupCasesByEmail, isCasesResponse, type CustomerCaseGroup } from "@/system/integrations/cases";
+import {
+  groupCasesByEmail,
+  isCasesResponse,
+  readCasesApiResponse,
+  type CustomerCaseGroup,
+} from "@/system/integrations/cases";
 type ImportStatus = "idle" | "loading" | "success" | "error";
 type ImportStore = {
   customers: CustomerCaseGroup[];
@@ -44,7 +49,7 @@ export const useImportStore = create<ImportStore>((set, get) => ({
         method: "GET",
         cache: "no-store"
       });
-      const data: unknown = await response.json();
+      const data = await readCasesApiResponse(response);
       if (!response.ok) {
         const message = data && typeof data === "object" && "error" in data && typeof data.error === "string" ? data.error : "case 정보를 가져오지 못했습니다.";
         throw new Error(message);
