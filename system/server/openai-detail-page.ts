@@ -1,5 +1,4 @@
 import OpenAI from "openai";
-import { OPENAI_API_BASE_URL } from "@/system/server/app-settings";
 import { zodTextFormat } from "openai/helpers/zod";
 import type { ResponseInputContent } from "openai/resources/responses/responses";
 import { z } from "zod";
@@ -239,11 +238,7 @@ export async function runOpenAIDetailPage({
       image_url: request.furnitureImage,
     },
   ];
-  const client = new OpenAI({
-    apiKey,
-    baseURL: OPENAI_API_BASE_URL,
-    maxRetries: 3,
-  });
+  const client = new OpenAI({ apiKey, maxRetries: 3 });
   const response = await client.responses.parse({
     model: PAGE_LAYOUT_MODEL,
     instructions: PAGE_LAYOUT_INSTRUCTIONS,

@@ -3,7 +3,6 @@ import "server-only";
 import { cookies } from "next/headers";
 
 export const OPENAI_API_KEY_ENV_NAME = "OPENAI_API_KEY";
-export const OPENAI_API_BASE_URL = "https://api.openai.com/v1";
 
 const SETTINGS_COOKIE_NAME = "itda-studio-openai-settings";
 const SETTINGS_COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
@@ -28,32 +27,7 @@ export type AppSettingsStatus = {
   hasStoredOpenAiApiKey: boolean;
   storedOpenAiApiKeyPreview?: string;
   environmentVariable: typeof OPENAI_API_KEY_ENV_NAME;
-  netlifyAiGatewayDetected: boolean;
 };
-
-type EnvironmentOpenAiConfig = {
-  apiKey: string;
-  netlifyAiGatewayDetected: boolean;
-};
-
-function readEnvironmentOpenAiConfig(): EnvironmentOpenAiConfig {
-  const apiKey = process.env[OPENAI_API_KEY_ENV_NAME]?.trim() ?? "";
-  const openAiBaseUrl = process.env.OPENAI_BASE_URL?.trim().replace(/\/$/, "") ?? "";
-  const gatewayBaseUrl = process.env.NETLIFY_AI_GATEWAY_BASE_URL
-    ?.trim()
-    .replace(/\/$/, "") ?? "";
-  const netlifyAiGatewayDetected = Boolean(
-    apiKey
-      && openAiBaseUrl
-      && gatewayBaseUrl
-      && openAiBaseUrl === gatewayBaseUrl,
-  );
-
-  return {
-    apiKey: netlifyAiGatewayDetected ? "" : apiKey,
-    netlifyAiGatewayDetected,
-  };
-}
 
 function maskApiKey(apiKey: string): string {
   if (apiKey.length <= 10) {
@@ -163,8 +137,7 @@ async function writeStoredSettings(settings: StoredAppSettings): Promise<void> {
 }
 
 function buildAppSettingsStatus(stored: StoredAppSettings): AppSettingsStatus {
-  const environment = readEnvironmentOpenAiConfig();
-  const environmentKey = environment.apiKey;
+  const environmentKey = process.env[OPENAI_API_KEY_ENV_NAME]?.trim() ?? "";
   const storedKey = stored.openAiApiKey ?? "";
   const openAiApiKeyMode = stored.openAiApiKeyMode
     ?? (environmentKey ? "env" : "workspace");
@@ -176,12 +149,10 @@ function buildAppSettingsStatus(stored: StoredAppSettings): AppSettingsStatus {
     | "openAiApiKeyMode"
     | "hasEnvironmentOpenAiApiKey"
     | "environmentOpenAiApiKeyPreview"
-    | "netlifyAiGatewayDetected"
   > = {
     hasStoredOpenAiApiKey: Boolean(storedKey),
     storedOpenAiApiKeyPreview: storedKey ? maskApiKey(storedKey) : undefined,
     environmentVariable: OPENAI_API_KEY_ENV_NAME,
-    netlifyAiGatewayDetected: environment.netlifyAiGatewayDetected,
     openAiApiKeyMode,
     hasEnvironmentOpenAiApiKey: Boolean(environmentKey),
     environmentOpenAiApiKeyPreview: environmentKey
@@ -220,7 +191,7 @@ export async function readAppSettingsStatus(): Promise<AppSettingsStatus> {
 
 export async function getOpenAIApiKey(): Promise<string> {
   const stored = await readStoredSettings();
-  const environmentKey = readEnvironmentOpenAiConfig().apiKey;
+  const environmentKey = process.env[OPENAI_API_KEY_ENV_NAME]?.trim() ?? "";
   const mode = stored.openAiApiKeyMode
     ?? (environmentKey ? "env" : "workspace");
 
