@@ -5,7 +5,7 @@ import {
   runOpenAIDetailPage,
 } from "@/system/server/openai-detail-page";
 
-export const maxDuration = 300;
+export const maxDuration = 300;  // static configuration of Next.js Route Handler
 
 function isRequest(value: unknown): value is PageGenerationRequest {
   if (!value || typeof value !== "object") return false;

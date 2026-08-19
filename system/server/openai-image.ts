@@ -11,7 +11,7 @@ import {
 } from "@/system/server/image-settings";
 
 const OPENAI_MAX_RETRIES = 0;
-const OPENAI_TIMEOUT_MS = 52_000;
+const OPENAI_TIMEOUT_MS = 270_000;
 const MAX_RESPONSE_IMAGE_BYTES = 3_500_000;
 
 function parseDataUrl(

@@ -5,7 +5,7 @@ import type {
 import { getOpenAIApiKey } from "@/system/server/app-settings";
 import { runOpenAIImageEdit } from "@/system/server/openai-image";
 
-export const maxDuration = 60;
+export const maxDuration = 300;  // static configuration of Next.js Route Handler
 
 function isGenerationRequest(value: unknown): value is GenerationApiRequest {
   if (!value || typeof value !== "object") {
@@ -88,7 +88,7 @@ function getErrorMessage(error: unknown): string {
     || message.toLowerCase().includes("timed out")
     || message.toLowerCase().includes("aborted")
   ) {
-    return "이미지 생성이 Netlify 실행 시간 제한을 초과했습니다. 잠시 후 다시 시도해 주세요.";
+    return "이미지 생성이 배포 환경의 실행 시간 제한을 초과했습니다. 잠시 후 다시 시도해 주세요.";
   }
   if (message.includes("Invalid image file or mode")) {
     return "입력 이미지 형식을 처리하지 못했습니다. PNG, JPG 또는 WebP 파일로 다시 시도해 주세요.";
@@ -101,7 +101,7 @@ function getErrorMessage(error: unknown): string {
 }
 
 function getErrorStatus(error: unknown, message: string): number {
-  if (message.startsWith("이미지 생성이 Netlify 실행 시간 제한")) {
+  if (message.startsWith("이미지 생성이 배포 환경의 실행 시간 제한")) {
     return 504;
   }
 
