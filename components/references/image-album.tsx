@@ -1,9 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import Image from "next/image";
 import { ChevronLeft, ChevronRight, Images } from "lucide-react";
 import styled from "styled-components";
+import { LoadingImage } from "@/components/ui/loading-image";
 import { HiddenScrollbar } from "@/system/styles/layout";
 
 const Album = styled.section<{ $overlay: boolean }>`
@@ -255,7 +255,7 @@ export function ImageAlbum({
               $overlay={overlay}
               aria-hidden={imageIndex !== index}
             >
-              <Image
+              <LoadingImage
                 src={src}
                 alt={`${name} 레퍼런스 ${imageIndex + 1}`}
                 fill
@@ -303,7 +303,7 @@ export function ImageAlbum({
               onClick={() => setIndex(imageIndex)}
               key={src}
             >
-              <Image
+              <LoadingImage
                 src={src}
                 alt=""
                 fill

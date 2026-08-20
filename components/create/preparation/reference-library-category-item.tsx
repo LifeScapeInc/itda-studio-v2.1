@@ -1,8 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import { Images } from "lucide-react";
 import styled from "styled-components";
+import { LoadingImage } from "@/components/ui/loading-image";
 import type { ReferenceLibraryGroup } from "@/system/create/reference-library";
 
 const Card = styled.button`
@@ -87,7 +87,7 @@ function FrameImage({ src }: { src?: string }) {
   return (
     <Frame>
       {src ? (
-        <Image
+        <LoadingImage
           src={src}
           alt=""
           fill

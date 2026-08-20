@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
 import { Bookmark, ImageIcon, X } from "lucide-react";
 import styled from "styled-components";
 import { PanelResizeHandle } from "@/components/layout/panel-resize-handle";
 import { NavigationLeft } from "@/components/layout/navigation-left";
 import { NavigationTop } from "@/components/layout/navigation-top";
 import { LabelTitle } from "@/components/ui/label-title";
+import { LoadingImage } from "@/components/ui/loading-image";
 import { GenerationInputImages } from "@/components/ui/generation-input-images";
 import { useCreateStore } from "@/stores/useCreateStore";
 import { useWorkspaceLayoutStore } from "@/stores/useWorkspaceLayoutStore";
@@ -260,7 +260,7 @@ export function BookmarksWorkspace() {
               </DetailHeader>
               <DetailBody>
                 <DetailPreview>
-                  <Image
+                  <LoadingImage
                     src={selected.imageUrl!}
                     alt={selected.label}
                     fill

@@ -4,6 +4,7 @@ import { Download, LoaderCircle, PanelsTopLeft } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import { PrimaryIconButton } from "@/components/ui/primary-icon-button";
+import { LoadingImage } from "@/components/ui/loading-image";
 import { useDetailPageStore } from "@/stores/useDetailPageStore";
 import {
   exportGeneratedDetailPage,
@@ -199,6 +200,7 @@ const Media = styled.div<{ $layout: GeneratedMediaLayout; $count: number; $gap: 
 `;
 
 const ImageFrame = styled.figure<{ $ratio: string }>`
+  position: relative;
   display: grid;
   width: 100%;
   min-width: 0;
@@ -262,8 +264,14 @@ function GeneratedTile({ tile }: { tile: GeneratedPageTile }) {
         <Media $layout={tile.mediaLayout} $count={tile.images.length} $gap={tile.gap}>
           {tile.images.map(image => (
             <ImageFrame $ratio={image.aspectRatio} key={image.id}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={image.url} alt={image.alt} />
+              <LoadingImage
+                src={image.url}
+                alt={image.alt}
+                fill
+                unoptimized
+                sizes="min(960px, 80vw)"
+                style={{ objectFit: "contain" }}
+              />
             </ImageFrame>
           ))}
         </Media>

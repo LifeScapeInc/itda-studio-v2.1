@@ -1,8 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import { ArrowUpRight, ImageIcon } from "lucide-react";
 import styled from "styled-components";
+import { LoadingImage } from "@/components/ui/loading-image";
 
 const Card = styled.button`
   display: flex;
@@ -112,7 +112,7 @@ function PreviewFrame({
   return (
     <Frame>
       {src ? (
-        <Image src={src} alt="" fill sizes={sizes} />
+        <LoadingImage src={src} alt="" fill sizes={sizes} />
       ) : (
         <ImageIcon size={24} strokeWidth={1.4} />
       )}

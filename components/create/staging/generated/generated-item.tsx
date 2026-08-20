@@ -1,8 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import { Bookmark, CircleAlert, LoaderCircle, Sparkles } from "lucide-react";
 import styled, { keyframes } from "styled-components";
+import { LoadingImage } from "@/components/ui/loading-image";
 import type { GenerationShot } from "@/system/create/generation-shots";
 import { getRatioLabel } from "@/system/create/generation-shots";
 
@@ -102,10 +102,6 @@ const Status = styled.div`
   gap: var(--space-2xs);
   color: var(--color-label-studio-comment);
   font-size: 12px;
-`;
-
-const ResultImage = styled(Image)`
-  object-fit: contain;
 `;
 
 const Meta = styled.div`
@@ -217,12 +213,13 @@ export function GeneratedItem({
         $status={shot.status}
       >
         {shot.status === "done" && shot.imageUrl ? (
-          <ResultImage
+          <LoadingImage
             src={shot.imageUrl}
             alt={`${shot.label} 생성 결과`}
             fill
             unoptimized
             sizes="(max-width: 900px) 50vw, 240px"
+            style={{ objectFit: "contain" }}
           />
         ) : (
           <ShotStatus status={shot.status} error={shot.error} />

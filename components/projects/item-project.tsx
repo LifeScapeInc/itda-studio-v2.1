@@ -89,6 +89,7 @@ const Previews = styled.span`
   gap: var(--space-sm);
 `;
 const Preview = styled.span`
+  position: relative;
   display: block;
   min-height: 0;
   flex: 1;

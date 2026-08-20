@@ -1,8 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import { ImageIcon } from "lucide-react";
 import styled from "styled-components";
+import { LoadingImage } from "@/components/ui/loading-image";
 
 const Empty = styled.div`
   display: flex;
@@ -71,7 +71,7 @@ export function StagingEmptyState({
           }}
         >
           {productImage ? (
-            <Image
+            <LoadingImage
               src={productImage}
               alt="내 제품"
               fill
@@ -89,7 +89,7 @@ export function StagingEmptyState({
           }}
         >
           {referenceImage ? (
-            <Image
+            <LoadingImage
               src={referenceImage}
               alt="레퍼런스"
               fill

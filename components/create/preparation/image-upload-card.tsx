@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import { ImagePlus } from "lucide-react";
+import { LoadingImage } from "@/components/ui/loading-image";
 import { readImageFile } from "@/system/create/image-files";
 import { UploadCard } from "./upload-card";
 
@@ -35,7 +35,7 @@ export function ImageUploadCard({
       onPreviewClick={onPreviewClick}
     >
       {image ? (
-        <Image
+        <LoadingImage
           src={image}
           alt="업로드 이미지"
           fill

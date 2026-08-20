@@ -1,9 +1,9 @@
 "use client";
 
-import Image from "next/image";
 import { Search } from "lucide-react";
 import styled from "styled-components";
 import { PanelResizeHandle } from "@/components/layout/panel-resize-handle";
+import { LoadingImage } from "@/components/ui/loading-image";
 import { useWorkspaceLayoutStore } from "@/stores/useWorkspaceLayoutStore";
 import {
   FURNITURE_GALLERY_PANEL_MAX_WIDTH,
@@ -155,7 +155,7 @@ export function FurnitureGalleryPanel({
               onClick={() => onSelect(index)}
               key={src}
             >
-              <Image
+              <LoadingImage
                 src={src}
                 alt=""
                 fill

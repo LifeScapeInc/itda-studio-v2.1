@@ -1,10 +1,10 @@
 "use client";
 
-import Image from "next/image";
 import styled from "styled-components";
 import { MoodboardDetailViewer } from "@/components/moodboard/moodboard-detail-viewer";
 import { ReferenceDetailTitle } from "@/components/references/reference-detail-title";
 import { ButtonBack } from "@/components/ui/button-back";
+import { LoadingImage } from "@/components/ui/loading-image";
 import type { Moodboard } from "@/system/moodboard/moodboards";
 
 const Root = styled.div`
@@ -24,6 +24,7 @@ const Area = styled.div`
 `;
 
 const Figure = styled.figure`
+  position: relative;
   display: flex;
   width: 100%;
   height: 100%;
@@ -32,13 +33,6 @@ const Figure = styled.figure`
   margin: 0;
   background: white;
   overflow: hidden;
-`;
-
-const Render = styled(Image)`
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  background: white;
 `;
 
 export function MoodboardDetail({
@@ -57,13 +51,13 @@ export function MoodboardDetail({
       />
       <Area>
         <Figure>
-          <Render
+          <LoadingImage
             src={moodboard.renderImage}
             alt={`${moodboard.name} 스타일 무드보드`}
-            width={moodboard.renderWidth}
-            height={moodboard.renderHeight}
+            fill
             priority
             sizes="calc(100vw - 275px)"
+            style={{ objectFit: "contain", background: "white" }}
           />
         </Figure>
         <MoodboardDetailViewer

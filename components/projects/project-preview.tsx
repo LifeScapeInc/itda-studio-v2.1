@@ -1,7 +1,7 @@
-import styled from "styled-components";
+import { LoadingImage } from "@/components/ui/loading-image";
 import { ProjectPlaceholderImage } from "./project-placeholder-image";
 import type { StudioProject } from "@/stores/useProjectStore";
-const Img = styled.img`width:100%;height:100%;object-fit:cover`;
+
 export function ProjectPreview({
   project,
   imageUrl,
@@ -13,9 +13,13 @@ export function ProjectPreview({
 }) {
   const url = imageUrl ?? project.previewImages[index];
   return url ? (
-    <Img
+    <LoadingImage
       src={url}
       alt=""
+      fill
+      unoptimized
+      sizes={index === 0 ? "180px" : "104px"}
+      style={{ objectFit: "cover" }}
     />
   ) : <ProjectPlaceholderImage seed={`${project.id}-${index}`} />;
 }

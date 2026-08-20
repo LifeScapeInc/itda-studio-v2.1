@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import styled from "styled-components";
+import { LoadingImage } from "@/components/ui/loading-image";
 import type { GenerationHistorySet } from "@/system/create/generation-library";
 
 const Card = styled.button<{ $active: boolean }>`
@@ -92,7 +92,7 @@ export function ItemHistory({
       <Preview>
         {previewShots.length ? previewShots.map((shot) => (
           <PreviewImage key={shot.id}>
-            <Image
+            <LoadingImage
               src={shot.imageUrl!}
               alt=""
               fill

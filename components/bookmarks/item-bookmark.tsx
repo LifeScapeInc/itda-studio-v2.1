@@ -1,8 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import { ArrowUpRight } from "lucide-react";
 import styled from "styled-components";
+import { LoadingImage } from "@/components/ui/loading-image";
 import type { LibraryGenerationShot } from "@/system/create/generation-library";
 
 const Card = styled.button<{ $active: boolean }>`
@@ -108,7 +108,7 @@ export function ItemBookmark({
       onClick={onClick}
     >
       <Thumbnail>
-        <Image
+        <LoadingImage
           src={shot.imageUrl!}
           alt={`${shot.metadata.variationType} 북마크`}
           fill

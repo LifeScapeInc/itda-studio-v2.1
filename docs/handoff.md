@@ -27,6 +27,7 @@
 - 내부 scroll 영역은 `min-height: 0`, flex sizing, `overflow`를 함께 설정하여 문서 전체가 scroll되지 않게 한다.
 - workspace에서 남는 영역을 채우는 패널은 기존 가져오기, 프로젝트, create 및 furniture 화면의 sizing 방식을 참고한다.
 - hover, focus, shadow 효과는 기존 공용 효과나 유사 컴포넌트의 interaction을 재사용한다.
+- 사용자 업로드, 라이브러리, 프로젝트 미리보기 및 생성 결과처럼 로딩 시간이 발생할 수 있는 content image는 `LoadingImage`를 사용한다. 이미지가 로드되기 전에는 neutral placeholder 중앙에 loading spinner를 표시하고, 로드 완료 후 fade-in한다. 로고·아이콘처럼 즉시 표시되는 정적 SVG에는 적용하지 않는다.
 
 ### Border radius 규칙
 
@@ -76,6 +77,7 @@
 - `ReferenceDetailTitle`: 무드보드와 가구 상세의 제목·설명 조합에서 공유한다.
 - `ImageAlbum`: 가구 viewer와 무드보드 상세 overlay에서 공유한다.
 - `PanelResizeHandle`: create 양쪽 panel과 furniture gallery처럼 너비 조절이 필요한 영역에서 공유한다.
+- `LoadingImage`: 프로젝트, 라이브러리와 상세 depth, create 및 상세페이지의 content image loading placeholder에서 공유한다.
 - `UploadCard`: create 재료 준비의 이미지 업로드와 상세페이지의 이미지·요청서 업로드가 공유하는 정사각형 업로드 frame이다.
 
 공유 컴포넌트의 변경은 모든 소비 페이지에 미치는 영향을 확인한다. 페이지별 특수 동작은 무리하게 공용 컴포넌트 안에 넣지 말고 props 또는 페이지 전용 wrapper로 분리한다.

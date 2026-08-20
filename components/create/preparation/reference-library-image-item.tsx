@@ -1,8 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import { CheckCircle2 } from "lucide-react";
 import styled from "styled-components";
+import { LoadingImage } from "@/components/ui/loading-image";
 
 const Item = styled.button<{ $selected: boolean }>`
   position: relative;
@@ -100,7 +100,7 @@ export function ReferenceLibraryImageItem({
       aria-label={`${index + 1}번 레퍼런스 선택`}
       onClick={onSelect}
     >
-      <Image
+      <LoadingImage
         src={src}
         alt=""
         fill

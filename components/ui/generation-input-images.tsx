@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import styled from "styled-components";
+import { LoadingImage } from "@/components/ui/loading-image";
 import type { GenerationInputImage } from "@/system/create/generation-library";
 
 const List = styled.div`
@@ -52,7 +52,7 @@ export function GenerationInputImages({
       {images.map((image, index) => (
         <Item key={`${image.kind}-${index}`}>
           <Thumbnail>
-            <Image
+            <LoadingImage
               src={image.imageUrl}
               alt={image.label}
               fill
