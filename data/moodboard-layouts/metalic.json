@@ -1,0 +1,307 @@
+{
+  "version": 1,
+  "style": "metalic",
+  "generatedAt": "2026-08-20T08:14:38.099Z",
+  "seed": 2050575972,
+  "canvas": {
+    "width": 1600,
+    "height": 900,
+    "gap": 8
+  },
+  "items": [
+    {
+      "src": "/references/mood/metalic/metalic_4.png",
+      "fileName": "metalic_4.png",
+      "width": 736,
+      "height": 1308,
+      "colorEmbedding": [
+        0.563268,
+        -0.003456,
+        0.005452,
+        0.199806,
+        0.009614
+      ],
+      "colorDistance": 0.013844,
+      "weight": 1,
+      "rect": {
+        "x": 0.42815,
+        "y": 0.274787,
+        "width": 0.145132,
+        "height": 0.458534
+      }
+    },
+    {
+      "src": "/references/mood/metalic/metalic_7.png",
+      "fileName": "metalic_7.png",
+      "width": 736,
+      "height": 981,
+      "colorEmbedding": [
+        0.549972,
+        -0.007825,
+        0.005204,
+        0.185974,
+        0.014015
+      ],
+      "colorDistance": 0.027782,
+      "weight": 0.758362,
+      "rect": {
+        "x": 0.254788,
+        "y": 0.274787,
+        "width": 0.167904,
+        "height": 0.397859
+      }
+    },
+    {
+      "src": "/references/mood/metalic/metalic_9.png",
+      "fileName": "metalic_9.png",
+      "width": 1170,
+      "height": 1107,
+      "colorEmbedding": [
+        0.524146,
+        -0.002597,
+        0.003671,
+        0.22832,
+        0.006936
+      ],
+      "colorDistance": 0.050734,
+      "weight": 0.617014,
+      "rect": {
+        "x": 0.578741,
+        "y": 0.370956,
+        "width": 0.215431,
+        "height": 0.362366
+      }
+    },
+    {
+      "src": "/references/mood/metalic/metalic_3.png",
+      "fileName": "metalic_3.png",
+      "width": 1320,
+      "height": 1760,
+      "colorEmbedding": [
+        0.527122,
+        0.00219,
+        0.022037,
+        0.218477,
+        0.020543
+      ],
+      "colorDistance": 0.053296,
+      "weight": 0.516725,
+      "rect": {
+        "x": 0.578741,
+        "y": 0.024069,
+        "width": 0.142249,
+        "height": 0.337183
+      }
+    },
+    {
+      "src": "/references/mood/metalic/metalic_2.png",
+      "fileName": "metalic_2.png",
+      "width": 1178,
+      "height": 1709,
+      "colorEmbedding": [
+        0.520917,
+        0.001885,
+        0.009493,
+        0.233924,
+        0.005303
+      ],
+      "colorDistance": 0.058011,
+      "weight": 0.438935,
+      "rect": {
+        "x": 0.29953,
+        "y": 0.68235,
+        "width": 0.123161,
+        "height": 0.31765
+      }
+    },
+    {
+      "src": "/references/mood/metalic/metalic_13.png",
+      "fileName": "metalic_13.png",
+      "width": 1200,
+      "height": 1598,
+      "colorEmbedding": [
+        0.576422,
+        0.001246,
+        0.011158,
+        0.156914,
+        0.013524
+      ],
+      "colorDistance": 0.06231,
+      "weight": 0.375376,
+      "rect": {
+        "x": 0.166636,
+        "y": 0.68235,
+        "width": 0.127435,
+        "height": 0.30169
+      }
+    },
+    {
+      "src": "/references/mood/metalic/metalic_8.png",
+      "fileName": "metalic_8.png",
+      "width": 782,
+      "height": 862,
+      "colorEmbedding": [
+        0.501185,
+        0.003835,
+        0.004677,
+        0.239563,
+        0.007315
+      ],
+      "colorDistance": 0.07662,
+      "weight": 0.321638,
+      "rect": {
+        "x": 0.102264,
+        "y": 0.38445,
+        "width": 0.147065,
+        "height": 0.288196
+      }
+    },
+    {
+      "src": "/references/mood/metalic/metalic_12.png",
+      "fileName": "metalic_12.png",
+      "width": 922,
+      "height": 1152,
+      "colorEmbedding": [
+        0.635388,
+        0.000078,
+        0.013561,
+        0.199894,
+        0.009714
+      ],
+      "colorDistance": 0.0828,
+      "weight": 0.275087,
+      "rect": {
+        "x": 0.726449,
+        "y": 0.084744,
+        "width": 0.124482,
+        "height": 0.276507
+      }
+    },
+    {
+      "src": "/references/mood/metalic/metalic_10.png",
+      "fileName": "metalic_10.png",
+      "width": 1000,
+      "height": 751,
+      "colorEmbedding": [
+        0.621014,
+        0.001941,
+        0.006156,
+        0.158633,
+        0.00411
+      ],
+      "colorDistance": 0.087202,
+      "weight": 0.234027,
+      "rect": {
+        "x": 0.374735,
+        "y": 0,
+        "width": 0.198547,
+        "height": 0.265083
+      }
+    },
+    {
+      "src": "/references/mood/metalic/metalic_5.png",
+      "fileName": "metalic_5.png",
+      "width": 1199,
+      "height": 1199,
+      "colorEmbedding": [
+        0.436601,
+        0.000866,
+        0.013801,
+        0.230792,
+        0.018929
+      ],
+      "colorDistance": 0.126308,
+      "weight": 0.197297,
+      "rect": {
+        "x": 0.799631,
+        "y": 0.370956,
+        "width": 0.144548,
+        "height": 0.256974
+      }
+    },
+    {
+      "src": "/references/mood/metalic/metalic_11.png",
+      "fileName": "metalic_11.png",
+      "width": 736,
+      "height": 977,
+      "colorEmbedding": [
+        0.430041,
+        0.00523,
+        0.008525,
+        0.21611,
+        0.011021
+      ],
+      "colorDistance": 0.126555,
+      "weight": 0.164071,
+      "rect": {
+        "x": 0.055821,
+        "y": 0.68235,
+        "width": 0.105356,
+        "height": 0.248631
+      }
+    },
+    {
+      "src": "/references/mood/metalic/metalic_14.png",
+      "fileName": "metalic_14.png",
+      "width": 640,
+      "height": 799,
+      "colorEmbedding": [
+        0.676832,
+        0.000132,
+        0.0008,
+        0.13294,
+        0.006855
+      ],
+      "colorDistance": 0.152946,
+      "weight": 0.133738,
+      "rect": {
+        "x": 0.799631,
+        "y": 0.637634,
+        "width": 0.108592,
+        "height": 0.241014
+      }
+    },
+    {
+      "src": "/references/mood/metalic/metalic_6.png",
+      "fileName": "metalic_6.png",
+      "width": 1080,
+      "height": 1440,
+      "colorEmbedding": [
+        0.377461,
+        0.001026,
+        -0.001543,
+        0.219361,
+        0.016818
+      ],
+      "colorDistance": 0.180048,
+      "weight": 0.105835,
+      "rect": {
+        "x": 0.42815,
+        "y": 0.743026,
+        "width": 0.098722,
+        "height": 0.234008
+      }
+    },
+    {
+      "src": "/references/mood/metalic/metalic_1.png",
+      "fileName": "metalic_1.png",
+      "width": 1178,
+      "height": 1673,
+      "colorEmbedding": [
+        0.814891,
+        -0.000037,
+        0.000058,
+        0.169225,
+        0.000509
+      ],
+      "colorDistance": 0.264997,
+      "weight": 0.08,
+      "rect": {
+        "x": 0.532331,
+        "y": 0.743026,
+        "width": 0.090114,
+        "height": 0.22752
+      }
+    }
+  ]
+}

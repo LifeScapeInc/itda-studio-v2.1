@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { NavigationLeft } from "@/components/layout/navigation-left";
 import { NavigationTop } from "@/components/layout/navigation-top";
 import { MoodboardDetail } from "@/components/moodboard/moodboard-detail";
-import { getMoodboardDetailImages } from "@/system/moodboard/moodboard-images";
+import { getMoodboardLayoutManifest } from "@/system/moodboard/moodboard-manifest";
 import { getMoodboard, MOODBOARDS } from "@/system/moodboard/moodboards";
 import { StudioShell, WorkspaceContent } from "@/system/styles/layout";
 
@@ -24,14 +24,18 @@ export default async function MoodboardStylePage({
     notFound();
   }
 
-  const images = getMoodboardDetailImages(style);
+  const manifest = getMoodboardLayoutManifest(style);
+
+  if (!manifest) {
+    notFound();
+  }
 
   return (
     <StudioShell>
       <NavigationTop />
       <NavigationLeft />
       <WorkspaceContent $surface>
-        <MoodboardDetail moodboard={moodboard} images={images} />
+        <MoodboardDetail moodboard={moodboard} manifest={manifest} />
       </WorkspaceContent>
     </StudioShell>
   );

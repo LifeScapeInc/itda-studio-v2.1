@@ -134,8 +134,17 @@
 
 - `public/references/mood/<style>/`를 데이터 원본으로 사용한다.
 - 목록은 `ItemReferences` grid로 표시한다.
-- 상세 화면은 `<style>_render.png`를 workspace에 맞춰 표시한다.
-- 상세보기는 `<style>_<n>.<ext>` 이미지들을 workspace 범위의 overlay album으로 표시한다.
+- 상세 화면은 `<style>_render.png`에 의존하지 않고 `<style>_<n>.<ext>` 이미지와 `data/moodboard-layouts/<style>.json`을 이용해 16:9 자유형 collage를 직접 렌더링한다.
+- manifest는 `npm run moodboard:layout`으로 생성한다. 스크립트는 축소 이미지의 OKLab 평균·분산 임베딩을 스타일 전체 중심과 비교해 상대 가중치를 만들고, 가중치가 큰 이미지를 더 크고 중앙에 배치한 결정론적 결과를 기록한다.
+- 레이아웃 계산의 기준 gap은 8px이고 스타일 이름 기반 고정 seed를 사용한다. 기존 manifest의 `weightOverride` 값은 재생성할 때 보존되므로 사람이 중요도를 보정할 수 있다.
+- 배치는 가장 높은 가중치 이미지를 중앙에 놓고, 다음 이미지를 기존 이미지의 변과 8px 간격으로 이어 붙이는 center-out packing 방식이다. 후보는 기존 이미지 변의 중간이 아니라 양 끝에 맞춘 위치만 생성한다.
+- 1~4번 이미지는 원점 거리와 분산 평가로 기본 골격을 만든다. 5번부터는 유효 후보가 맞닿는 기존 이미지 수를 먼저 계산하고, 가장 많은 이미지와 접촉하는 후보들만 남긴 뒤 새 면적 가중 중심과 canvas 원점 `(0.5, 0.5)` 사이의 거리, 전체 중심으로부터의 정규화된 2차 모멘트, X/Y 분산의 비등방성을 비교한다. 이전 단계의 무게중심 변화량은 평가하지 않는다.
+- 색상 유사도 순위는 logarithmic decay로 0.08~1 사이의 가중치가 된다. 이미지 면적에는 `0.46 + weight^1.75 × 2.3`을 사용하며, 1순위와 최하위 목표 면적의 비율이 6배를 넘지 않도록 하위 구간의 기울기를 완화한다.
+- 전체 이미지의 목표 점유율은 virtual canvas의 96%를 기준으로 계산하며, 개별 최대 폭과 높이는 가중치에 따라 각각 15~30%, 19~42% 범위로 제한한다.
+- 배치 완료 후 전체 bounding box를 다시 계산하고, aspect ratio를 유지한 uniform scale로 `BB 높이 = canvas 높이`가 되도록 확대한다. BB 상단은 canvas 상단에 맞추고, 가로는 BB 전체를 canvas 중앙에 정렬한다.
+- 페이지 진입 시 이미지 분석이나 rectangle packing을 다시 실행하지 않고 server component가 검증된 manifest를 읽는다.
+- collage 이미지는 원본 aspect ratio를 유지한다. hover 시 내부 이미지만 `280ms ease-out`으로 1.04배 확대되어 layout shift 없이 가장자리만 crop된다.
+- 각 collage 이미지를 클릭하면 해당 이미지 index부터 workspace 범위의 overlay album을 연다. 별도의 `상세보기` 버튼은 사용하지 않는다.
 
 ### 가구
 

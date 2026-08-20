@@ -2,34 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { Images, X } from "lucide-react";
+import { X } from "lucide-react";
 import styled from "styled-components";
 import { ImageAlbum } from "@/components/references/image-album";
-import { floatingButtonEffect } from "@/system/styles/button-effects";
-
-const DetailButton = styled.button`
-  position: absolute;
-  z-index: 2;
-  right: var(--space-md);
-  bottom: var(--space-md);
-  display: inline-flex;
-  height: 42px;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-2xs);
-  padding: 0 var(--space-md);
-  border: 1px solid rgb(255 255 255 / 68%);
-  border-radius: 999px;
-  background: rgb(255 255 255 / 92%);
-  color: var(--color-label-studio-black);
-  cursor: pointer;
-
-  ${floatingButtonEffect}
-
-  &:hover {
-    background: white;
-  }
-`;
 
 const Overlay = styled.div`
   position: absolute;
@@ -81,11 +56,17 @@ const CloseButton = styled.button`
 export function MoodboardDetailViewer({
   images,
   name,
+  initialIndex,
+  isOpen,
+  onClose,
 }: {
   images: string[];
   name: string;
+  initialIndex: number;
+  isOpen: boolean;
+  onClose: () => void;
 }) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(initialIndex);
   const workspaceContent = typeof document === "undefined"
     ? null
     : document.querySelector("main");
@@ -98,7 +79,7 @@ export function MoodboardDetailViewer({
     const previousOverflow = document.body.style.overflow;
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-        setIsOpen(false);
+        onClose();
       }
     };
 
@@ -109,25 +90,14 @@ export function MoodboardDetailViewer({
       document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", closeOnEscape);
     };
-  }, [isOpen]);
+  }, [isOpen, onClose]);
 
-  return (
-    <>
-      <DetailButton
-        type="button"
-        aria-haspopup="dialog"
-        onClick={() => setIsOpen(true)}
-      >
-        <Images size={16} />
-        <span className="type-xsmall-body">상세보기</span>
-      </DetailButton>
-
-      {isOpen && workspaceContent ? createPortal((
+  return isOpen && workspaceContent ? createPortal((
         <Overlay
           role="presentation"
           onMouseDown={(event) => {
             if (event.target === event.currentTarget) {
-              setIsOpen(false);
+              onClose();
             }
           }}
         >
@@ -140,7 +110,7 @@ export function MoodboardDetailViewer({
               type="button"
               aria-label="상세보기 닫기"
               autoFocus
-              onClick={() => setIsOpen(false)}
+              onClick={onClose}
             >
               <X size={19} />
             </CloseButton>
@@ -148,11 +118,11 @@ export function MoodboardDetailViewer({
               images={images}
               name={name}
               overlay
+              selectedIndex={selectedIndex}
+              onIndexChange={setSelectedIndex}
               emptyDescription="이 무드보드의 상세 이미지가 추가되면 여기에 표시됩니다."
             />
           </Viewer>
         </Overlay>
-      ), workspaceContent) : null}
-    </>
-  );
+      ), workspaceContent) : null;
 }

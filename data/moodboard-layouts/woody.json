@@ -1,0 +1,223 @@
+{
+  "version": 1,
+  "style": "woody",
+  "generatedAt": "2026-08-20T08:14:38.191Z",
+  "seed": 4190823875,
+  "canvas": {
+    "width": 1600,
+    "height": 900,
+    "gap": 8
+  },
+  "items": [
+    {
+      "src": "/references/mood/woody/woody_8.jpg",
+      "fileName": "woody_8.jpg",
+      "width": 736,
+      "height": 920,
+      "colorEmbedding": [
+        0.448781,
+        0.018533,
+        0.041785,
+        0.22879,
+        0.020343
+      ],
+      "colorDistance": 0.028622,
+      "weight": 1,
+      "rect": {
+        "x": 0.400074,
+        "y": 0.248306,
+        "width": 0.215979,
+        "height": 0.479954
+      }
+    },
+    {
+      "src": "/references/mood/woody/woody_6.jpg",
+      "fileName": "woody_6.jpg",
+      "width": 736,
+      "height": 981,
+      "colorEmbedding": [
+        0.412281,
+        0.030218,
+        0.033702,
+        0.226917,
+        0.027853
+      ],
+      "colorDistance": 0.050227,
+      "weight": 0.723052,
+      "rect": {
+        "x": 0.22253,
+        "y": 0.248306,
+        "width": 0.17183,
+        "height": 0.407163
+      }
+    },
+    {
+      "src": "/references/mood/woody/woody_9.jpg",
+      "fileName": "woody_9.jpg",
+      "width": 736,
+      "height": 1104,
+      "colorEmbedding": [
+        0.417168,
+        0.016242,
+        0.022619,
+        0.173005,
+        0.014536
+      ],
+      "colorDistance": 0.066496,
+      "weight": 0.561048,
+      "rect": {
+        "x": 0.621767,
+        "y": 0.363677,
+        "width": 0.136719,
+        "height": 0.364583
+      }
+    },
+    {
+      "src": "/references/mood/woody/woody_4.jpg",
+      "fileName": "woody_4.jpg",
+      "width": 736,
+      "height": 1104,
+      "colorEmbedding": [
+        0.496941,
+        0.019963,
+        0.052952,
+        0.218051,
+        0.020284
+      ],
+      "colorDistance": 0.067116,
+      "weight": 0.446105,
+      "rect": {
+        "x": 0.26897,
+        "y": 0.665627,
+        "width": 0.12539,
+        "height": 0.334373
+      }
+    },
+    {
+      "src": "/references/mood/woody/woody_7.jpg",
+      "fileName": "woody_7.jpg",
+      "width": 708,
+      "height": 949,
+      "colorEmbedding": [
+        0.497558,
+        0.010993,
+        0.046919,
+        0.238288,
+        0.025723
+      ],
+      "colorDistance": 0.072656,
+      "weight": 0.356948,
+      "rect": {
+        "x": 0.621767,
+        "y": 0.04258,
+        "width": 0.130486,
+        "height": 0.310939
+      }
+    },
+    {
+      "src": "/references/mood/woody/woody_2.jpg",
+      "fileName": "woody_2.jpg",
+      "width": 736,
+      "height": 1104,
+      "colorEmbedding": [
+        0.517335,
+        0.013328,
+        0.042829,
+        0.215753,
+        0.022929
+      ],
+      "colorDistance": 0.075936,
+      "weight": 0.284101,
+      "rect": {
+        "x": 0.757967,
+        "y": 0.061726,
+        "width": 0.109422,
+        "height": 0.291793
+      }
+    },
+    {
+      "src": "/references/mood/woody/woody_5.jpg",
+      "fileName": "woody_5.jpg",
+      "width": 736,
+      "height": 919,
+      "colorEmbedding": [
+        0.563755,
+        0.009228,
+        0.030592,
+        0.211793,
+        0.012327
+      ],
+      "colorDistance": 0.122046,
+      "weight": 0.22251,
+      "rect": {
+        "x": 0.764199,
+        "y": 0.363677,
+        "width": 0.124157,
+        "height": 0.275605
+      }
+    },
+    {
+      "src": "/references/mood/woody/woody_3.jpg",
+      "fileName": "woody_3.jpg",
+      "width": 676,
+      "height": 1200,
+      "colorEmbedding": [
+        0.330111,
+        0.026098,
+        0.033198,
+        0.180644,
+        0.015744
+      ],
+      "colorDistance": 0.1232,
+      "weight": 0.169157,
+      "rect": {
+        "x": 0.180368,
+        "y": 0.665627,
+        "width": 0.082889,
+        "height": 0.261582
+      }
+    },
+    {
+      "src": "/references/mood/woody/woody_10.jpg",
+      "fileName": "woody_10.jpg",
+      "width": 736,
+      "height": 981,
+      "colorEmbedding": [
+        0.39539,
+        0.021398,
+        0.031749,
+        0.110326,
+        0.007122
+      ],
+      "colorDistance": 0.145465,
+      "weight": 0.122097,
+      "rect": {
+        "x": 0.111644,
+        "y": 0.406257,
+        "width": 0.105172,
+        "height": 0.249213
+      }
+    },
+    {
+      "src": "/references/mood/woody/woody_1.jpg",
+      "fileName": "woody_1.jpg",
+      "width": 736,
+      "height": 1104,
+      "colorEmbedding": [
+        0.368101,
+        0.017869,
+        0.0234,
+        0.302216,
+        0.022013
+      ],
+      "colorDistance": 0.148689,
+      "weight": 0.08,
+      "rect": {
+        "x": 0.526747,
+        "y": 0,
+        "width": 0.089306,
+        "height": 0.238149
+      }
+    }
+  ]
+}

@@ -1,10 +1,10 @@
 "use client";
 
 import styled from "styled-components";
-import { MoodboardDetailViewer } from "@/components/moodboard/moodboard-detail-viewer";
+import { MoodboardCollage } from "@/components/moodboard/moodboard-collage";
 import { ReferenceDetailTitle } from "@/components/references/reference-detail-title";
 import { ButtonBack } from "@/components/ui/button-back";
-import { LoadingImage } from "@/components/ui/loading-image";
+import type { MoodboardLayoutManifest } from "@/system/moodboard/moodboard-layout";
 import type { Moodboard } from "@/system/moodboard/moodboards";
 
 const Root = styled.div`
@@ -23,24 +23,12 @@ const Area = styled.div`
   overflow: hidden;
 `;
 
-const Figure = styled.figure`
-  position: relative;
-  display: flex;
-  width: 100%;
-  height: 100%;
-  align-items: center;
-  justify-content: center;
-  margin: 0;
-  background: white;
-  overflow: hidden;
-`;
-
 export function MoodboardDetail({
   moodboard,
-  images,
+  manifest,
 }: {
   moodboard: Moodboard;
-  images: string[];
+  manifest: MoodboardLayoutManifest;
 }) {
   return (
     <Root>
@@ -50,19 +38,9 @@ export function MoodboardDetail({
         description={moodboard.description}
       />
       <Area>
-        <Figure>
-          <LoadingImage
-            src={moodboard.renderImage}
-            alt={`${moodboard.name} 스타일 무드보드`}
-            fill
-            priority
-            sizes="calc(100vw - 275px)"
-            style={{ objectFit: "contain", background: "white" }}
-          />
-        </Figure>
-        <MoodboardDetailViewer
-          images={images}
-          name={moodboard.name}
+        <MoodboardCollage
+          manifest={manifest}
+          styleName={moodboard.name}
         />
       </Area>
     </Root>

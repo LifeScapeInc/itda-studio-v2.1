@@ -1,0 +1,202 @@
+{
+  "version": 1,
+  "style": "white",
+  "generatedAt": "2026-08-20T08:14:38.151Z",
+  "seed": 3724674918,
+  "canvas": {
+    "width": 1600,
+    "height": 900,
+    "gap": 8
+  },
+  "items": [
+    {
+      "src": "/references/mood/white/white_2.jpg",
+      "fileName": "white_2.jpg",
+      "width": 736,
+      "height": 1044,
+      "colorEmbedding": [
+        0.757717,
+        0.006011,
+        0.015865,
+        0.122871,
+        0.012999
+      ],
+      "colorDistance": 0.026899,
+      "weight": 1,
+      "rect": {
+        "x": 0.421728,
+        "y": 0.264033,
+        "width": 0.192341,
+        "height": 0.485033
+      }
+    },
+    {
+      "src": "/references/mood/white/white_7.jpg",
+      "fileName": "white_7.jpg",
+      "width": 736,
+      "height": 920,
+      "colorEmbedding": [
+        0.715101,
+        0.006773,
+        0.00867,
+        0.100865,
+        0.019302
+      ],
+      "colorDistance": 0.050715,
+      "weight": 0.709772,
+      "rect": {
+        "x": 0.619843,
+        "y": 0.341122,
+        "width": 0.183575,
+        "height": 0.407944
+      }
+    },
+    {
+      "src": "/references/mood/white/white_8.jpg",
+      "fileName": "white_8.jpg",
+      "width": 736,
+      "height": 981,
+      "colorEmbedding": [
+        0.695306,
+        -0.00093,
+        0.005304,
+        0.160699,
+        0.010449
+      ],
+      "colorDistance": 0.063495,
+      "weight": 0.54,
+      "rect": {
+        "x": 0.262825,
+        "y": 0.264033,
+        "width": 0.15313,
+        "height": 0.362851
+      }
+    },
+    {
+      "src": "/references/mood/white/white_4.jpg",
+      "fileName": "white_4.jpg",
+      "width": 735,
+      "height": 1103,
+      "colorEmbedding": [
+        0.795497,
+        0.001564,
+        0.001944,
+        0.162039,
+        0.004083
+      ],
+      "colorDistance": 0.070501,
+      "weight": 0.419545,
+      "rect": {
+        "x": 0.619843,
+        "y": 0,
+        "width": 0.124015,
+        "height": 0.330856
+      }
+    },
+    {
+      "src": "/references/mood/white/white_5.jpg",
+      "fileName": "white_5.jpg",
+      "width": 736,
+      "height": 1308,
+      "colorEmbedding": [
+        0.809941,
+        0.002671,
+        0.012569,
+        0.098958,
+        0.008867
+      ],
+      "colorDistance": 0.080293,
+      "weight": 0.326112,
+      "rect": {
+        "x": 0.319089,
+        "y": 0.637149,
+        "width": 0.096866,
+        "height": 0.306039
+      }
+    },
+    {
+      "src": "/references/mood/white/white_3.jpg",
+      "fileName": "white_3.jpg",
+      "width": 736,
+      "height": 981,
+      "colorEmbedding": [
+        0.799371,
+        0.002436,
+        0.003023,
+        0.175889,
+        0.009858
+      ],
+      "colorDistance": 0.08466,
+      "weight": 0.249772,
+      "rect": {
+        "x": 0.192717,
+        "y": 0.637149,
+        "width": 0.120597,
+        "height": 0.285762
+      }
+    },
+    {
+      "src": "/references/mood/white/white_1.jpg",
+      "fileName": "white_1.jpg",
+      "width": 736,
+      "height": 920,
+      "colorEmbedding": [
+        0.815959,
+        0.001516,
+        0.019205,
+        0.091438,
+        0.008228
+      ],
+      "colorDistance": 0.093989,
+      "weight": 0.185228,
+      "rect": {
+        "x": 0.136172,
+        "y": 0.358265,
+        "width": 0.120878,
+        "height": 0.268619
+      }
+    },
+    {
+      "src": "/references/mood/white/white_6.jpg",
+      "fileName": "white_6.jpg",
+      "width": 736,
+      "height": 920,
+      "colorEmbedding": [
+        0.65206,
+        -0.002648,
+        -0.002654,
+        0.121946,
+        0.023082
+      ],
+      "colorDistance": 0.097162,
+      "weight": 0.129317,
+      "rect": {
+        "x": 0.749632,
+        "y": 0.077088,
+        "width": 0.114196,
+        "height": 0.253768
+      }
+    },
+    {
+      "src": "/references/mood/white/white_9.jpg",
+      "fileName": "white_9.jpg",
+      "width": 736,
+      "height": 920,
+      "colorEmbedding": [
+        0.642462,
+        0.004187,
+        0.012685,
+        0.139156,
+        0.006167
+      ],
+      "colorDistance": 0.101668,
+      "weight": 0.08,
+      "rect": {
+        "x": 0.421728,
+        "y": 0.759331,
+        "width": 0.108301,
+        "height": 0.240669
+      }
+    }
+  ]
+}

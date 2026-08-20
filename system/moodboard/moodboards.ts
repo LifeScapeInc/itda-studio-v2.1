@@ -3,9 +3,6 @@ export type Moodboard = {
   name: string;
   description: string;
   previewImages: string[];
-  renderImage: string;
-  renderWidth: number;
-  renderHeight: number;
 };
 
 export const MOODBOARDS: Moodboard[] = [
@@ -16,9 +13,6 @@ export const MOODBOARDS: Moodboard[] = [
     previewImages: [1, 2, 3].map(
       (index) => `/references/mood/metalic/metalic_${index}.png`,
     ),
-    renderImage: "/references/mood/metalic/metalic_render.png",
-    renderWidth: 8000,
-    renderHeight: 4500,
   },
   {
     slug: "white",
@@ -27,9 +21,6 @@ export const MOODBOARDS: Moodboard[] = [
     previewImages: [1, 2, 3].map(
       (index) => `/references/mood/white/white_${index}.jpg`,
     ),
-    renderImage: "/references/mood/white/white_render.png",
-    renderWidth: 9180,
-    renderHeight: 5163,
   },
   {
     slug: "woody",
@@ -38,9 +29,6 @@ export const MOODBOARDS: Moodboard[] = [
     previewImages: [1, 2, 3].map(
       (index) => `/references/mood/woody/woody_${index}.jpg`,
     ),
-    renderImage: "/references/mood/woody/woody_render.png",
-    renderWidth: 9180,
-    renderHeight: 5163,
   },
 ];
 
