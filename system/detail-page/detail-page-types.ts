@@ -150,6 +150,7 @@ export type PlanningGenerationResponse = {
   metadata?: {
     model?: string;
   };
+  tokenUsage?: TokenUsage;
 };
 
 export type TemplateStructureTile = {
@@ -166,6 +167,7 @@ export type TemplateStructureResponse = {
   metadata?: {
     model?: string;
   };
+  tokenUsage?: TokenUsage;
 };
 
 export const DETAIL_PAGE_STEPS: Array<{
@@ -456,3 +458,4 @@ export function createDetailTilesFromStructure(
     }];
   });
 }
+import type { TokenUsage } from "@/system/usage/token-usage";

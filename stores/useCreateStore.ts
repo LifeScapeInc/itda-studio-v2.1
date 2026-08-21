@@ -31,6 +31,7 @@ import {
   type LibraryGenerationShot,
 } from "@/system/create/generation-library";
 import { useProjectStore } from "@/stores/useProjectStore";
+import { useTokenUsageStore } from "@/stores/useTokenUsageStore";
 import {
   ANGLE_VARIATION_OPTIONS,
   CONTENT_SET_OPTIONS,
@@ -615,6 +616,9 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
         } else {
           usedActualGeneration = true;
           actualCompleted += 1;
+          if (result.tokenUsage) {
+            useTokenUsageStore.getState().recordUsage(result.tokenUsage);
+          }
         }
         completed += 1;
 

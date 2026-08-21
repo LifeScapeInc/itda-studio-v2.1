@@ -2,6 +2,7 @@ import type {
   PlanningCandidate,
   TemplateStructureResponse,
 } from "@/system/detail-page/detail-page-types";
+import { useTokenUsageStore } from "@/stores/useTokenUsageStore";
 
 async function readError(response: Response): Promise<string> {
   try {
@@ -33,5 +34,9 @@ export async function generateTemplateStructure({
   if (!response.ok) {
     throw new Error(await readError(response));
   }
-  return response.json() as Promise<TemplateStructureResponse>;
+  const result = await response.json() as TemplateStructureResponse;
+  if (!result.mock && result.tokenUsage) {
+    useTokenUsageStore.getState().recordUsage(result.tokenUsage);
+  }
+  return result;
 }

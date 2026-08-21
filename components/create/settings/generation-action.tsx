@@ -8,7 +8,6 @@ import { useAppSettingsStore } from "@/stores/useAppSettingsStore";
 import {
   getCutCount,
   getEstimatedCost,
-  QUALITY_COST,
 } from "@/system/create/generation-options";
 
 const Footer = styled.footer`
@@ -33,7 +32,6 @@ const Cost = styled.div`
 export function GenerationAction() {
   const state = useCreateStore();
   const mockMode = useAppSettingsStore((settings) => settings.mockMode);
-  const spendTokens = useAppSettingsStore((settings) => settings.spendTokens);
   const cutCount = getCutCount(
     state.contentSet,
     state.freeCount,
@@ -68,15 +66,7 @@ export function GenerationAction() {
         height={48}
         labelClassName="type-xsmall-body"
         disabled={!canGenerate || state.isGenerating}
-        onClick={() => {
-          void state.requestGeneration(mockMode).then((result) => {
-            if (result.usedActualGeneration) {
-              spendTokens(
-                result.actualCompleted * QUALITY_COST[state.quality],
-              );
-            }
-          });
-        }}
+        onClick={() => void state.requestGeneration(mockMode)}
       >
         {state.isGenerating ? "생성 중..." : "생성하기"}
       </PrimaryIconButton>

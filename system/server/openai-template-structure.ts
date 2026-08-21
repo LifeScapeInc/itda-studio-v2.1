@@ -8,6 +8,7 @@ import {
   type TemplateStructureResponse,
   type TemplateStructureTile,
 } from "@/system/detail-page/detail-page-types";
+import { textResponseTokenUsage } from "@/system/usage/token-usage";
 
 const TEMPLATE_MODEL = process.env.OPENAI_PLANNING_MODEL?.trim()
   || "gpt-5.6-terra";
@@ -137,5 +138,6 @@ export async function runOpenAITemplateStructure({
     tiles: normalizeTiles(output.tiles, plan),
     note: `${TEMPLATE_MODEL}로 템플릿 구조를 생성했습니다.`,
     metadata: { model: TEMPLATE_MODEL },
+    tokenUsage: textResponseTokenUsage(response.usage),
   };
 }

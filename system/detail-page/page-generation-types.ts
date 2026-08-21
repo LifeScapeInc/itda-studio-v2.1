@@ -3,6 +3,7 @@ import type {
   DetailTileType,
   ProcessedPlanningInput,
 } from "@/system/detail-page/detail-page-types";
+import type { TokenUsage } from "@/system/usage/token-usage";
 
 export type GeneratedTextAlign = "left" | "center";
 export type GeneratedTextPlacement = "top" | "bottom" | "left" | "right";
@@ -67,4 +68,5 @@ export type PageGenerationResponse = {
     layoutModel?: string;
     imageModel?: string;
   };
+  tokenUsage?: TokenUsage;
 };

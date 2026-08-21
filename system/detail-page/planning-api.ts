@@ -2,6 +2,7 @@ import type {
   PlanningGenerationResponse,
   RequestDocument,
 } from "@/system/detail-page/detail-page-types";
+import { useTokenUsageStore } from "@/stores/useTokenUsageStore";
 
 type GeneratePlanningInput = {
   furnitureImage: string | null;
@@ -77,11 +78,19 @@ export async function generatePlanning(
     }
     handleLine(buffer);
 
-    if (!result) {
+    const completedResult = result as PlanningGenerationResponse | null;
+    if (!completedResult) {
       throw new Error("기획안 생성 결과가 비어 있습니다.");
     }
-    return result;
+    if (!completedResult.mock && completedResult.tokenUsage) {
+      useTokenUsageStore.getState().recordUsage(completedResult.tokenUsage);
+    }
+    return completedResult;
   }
 
-  return response.json() as Promise<PlanningGenerationResponse>;
+  const result = await response.json() as PlanningGenerationResponse;
+  if (!result.mock && result.tokenUsage) {
+    useTokenUsageStore.getState().recordUsage(result.tokenUsage);
+  }
+  return result;
 }

@@ -3,6 +3,7 @@ import type {
   GenerationApiResponse,
 } from "@/system/create/generation-api";
 import { getOpenAIApiKey } from "@/system/server/app-settings";
+import { imageResponseTokenUsage } from "@/system/usage/token-usage";
 import { runOpenAIImageEdit } from "@/system/server/openai-image";
 
 export const maxDuration = 300;  // static configuration of Next.js Route Handler
@@ -165,7 +166,7 @@ export async function POST(request: Request): Promise<Response> {
       mock: false,
       prompt: body.prompt,
       images: result.images,
-      usage: result.usage,
+      tokenUsage: imageResponseTokenUsage(result.usage),
       note: `실제 생성 완료 · ${result.quality} · ${result.size}`,
     };
     return Response.json(response);

@@ -6,6 +6,10 @@ import type {
   DetailTileType,
   PlanningGenerationResponse,
 } from "@/system/detail-page/detail-page-types";
+import {
+  addTokenUsage,
+  textResponseTokenUsage,
+} from "@/system/usage/token-usage";
 
 const PLANNING_MODEL = process.env.OPENAI_PLANNING_MODEL?.trim()
   || "gpt-5.6-terra";
@@ -275,5 +279,9 @@ export async function runOpenAIPlanning({
     note: `${PLANNING_MODEL}로 의뢰 정보 가공과 기획안 생성을 완료했습니다.`,
     input: processed.input,
     metadata: { model: PLANNING_MODEL },
+    tokenUsage: addTokenUsage(
+      textResponseTokenUsage(inputResponse.usage),
+      textResponseTokenUsage(proposalResponse.usage),
+    ),
   };
 }

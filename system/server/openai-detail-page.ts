@@ -14,6 +14,11 @@ import type {
 import { MOCK_GENERATED_DETAIL_PAGE } from "@/system/detail-page/mock-generated-page-data";
 import { runOpenAIImageEdit } from "@/system/server/openai-image";
 import { IMAGE_MODEL } from "@/system/server/image-settings";
+import {
+  addTokenUsage,
+  imageResponseTokenUsage,
+  textResponseTokenUsage,
+} from "@/system/usage/token-usage";
 
 const PAGE_LAYOUT_MODEL = process.env.OPENAI_PLANNING_MODEL?.trim()
   || "gpt-5.6-terra";
@@ -269,6 +274,7 @@ export async function runOpenAIDetailPage({
     }, apiKey);
     return {
       tileIndex: job.tileIndex,
+      tokenUsage: imageResponseTokenUsage(result.usage),
       image: {
         id: `${job.tile.id}-image-${job.imageIndex + 1}`,
         url: result.images[0],
@@ -292,5 +298,9 @@ export async function runOpenAIDetailPage({
     page,
     note: `${PAGE_LAYOUT_MODEL}와 ${IMAGE_MODEL}로 상세페이지를 생성했습니다.`,
     metadata: { layoutModel: PAGE_LAYOUT_MODEL, imageModel: IMAGE_MODEL },
+    tokenUsage: addTokenUsage(
+      textResponseTokenUsage(response.usage),
+      ...generatedImages.map(generated => generated.tokenUsage),
+    ),
   };
 }

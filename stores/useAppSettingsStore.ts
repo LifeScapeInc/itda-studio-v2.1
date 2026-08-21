@@ -6,13 +6,10 @@ import type {
   OpenAiApiKeyMode,
 } from "@/system/server/app-settings";
 
-const TOKEN_STORAGE_KEY = "itda-studio-v2.1:estimated-tokens";
 const MOCK_MODE_STORAGE_KEY = "itda-studio-v2.1:mock-mode";
-const STARTING_TOKENS = 12_500;
 
 type AppSettingsStore = {
   status: AppSettingsStatus | null;
-  estimatedTokens: number;
   mockMode: boolean;
   loading: boolean;
   saving: boolean;
@@ -21,23 +18,8 @@ type AppSettingsStore = {
   setApiKeyMode: (mode: OpenAiApiKeyMode) => Promise<boolean>;
   saveApiKey: (apiKey: string) => Promise<boolean>;
   resetApiKey: () => Promise<boolean>;
-  spendTokens: (amount: number) => void;
   setMockMode: (mockMode: boolean) => void;
 };
-
-function readEstimatedTokens(): number {
-  const raw = window.localStorage.getItem(TOKEN_STORAGE_KEY);
-  if (raw === null) {
-    return STARTING_TOKENS;
-  }
-
-  const stored = Number(raw);
-  return Number.isFinite(stored) && stored >= 0 ? stored : STARTING_TOKENS;
-}
-
-function saveEstimatedTokens(value: number): void {
-  window.localStorage.setItem(TOKEN_STORAGE_KEY, String(value));
-}
 
 function readMockMode(): boolean {
   return typeof window !== "undefined"
@@ -62,7 +44,6 @@ async function responseError(
 
 export const useAppSettingsStore = create<AppSettingsStore>((set, get) => ({
   status: null,
-  estimatedTokens: STARTING_TOKENS,
   mockMode: readMockMode(),
   loading: false,
   saving: false,
@@ -82,7 +63,6 @@ export const useAppSettingsStore = create<AppSettingsStore>((set, get) => ({
       const status = (await response.json()) as AppSettingsStatus;
       set({
         status,
-        estimatedTokens: readEstimatedTokens(),
         mockMode: readMockMode(),
         loading: false,
       });
@@ -178,11 +158,6 @@ export const useAppSettingsStore = create<AppSettingsStore>((set, get) => ({
       });
       return false;
     }
-  },
-  spendTokens: (amount) => {
-    const estimatedTokens = Math.max(0, get().estimatedTokens - amount);
-    saveEstimatedTokens(estimatedTokens);
-    set({ estimatedTokens });
   },
   setMockMode: (mockMode) => {
     window.localStorage.setItem(MOCK_MODE_STORAGE_KEY, String(mockMode));

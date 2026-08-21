@@ -1,5 +1,6 @@
 import type { GenerationQuality } from "@/system/create/generation-options";
 import type { GenerationRatio } from "@/system/create/generation-shots";
+import type { TokenUsage } from "@/system/usage/token-usage";
 
 export type GenerationApiRequest = {
   productImage: string;
@@ -15,7 +16,7 @@ export type GenerationApiResponse = {
   prompt: string;
   images: string[];
   note: string;
-  usage?: Record<string, unknown>;
+  tokenUsage?: TokenUsage;
 };
 
 export type GenerationApiError = {

@@ -2,11 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect } from "react";
-import { Zap } from "lucide-react";
 import styled from "styled-components";
 import { useWorkspaceLayoutStore } from "@/stores/useWorkspaceLayoutStore";
-import { useAppSettingsStore } from "@/stores/useAppSettingsStore";
 import { Account } from "./account";
 import { TabProject } from "./tab-project";
 
@@ -80,28 +77,6 @@ const AccountArea = styled.div`
   gap: var(--space-xs);
 `;
 
-const TokenBalance = styled.span`
-  display: inline-flex;
-  height: 32px;
-  align-items: center;
-  gap: var(--space-3xs);
-  padding: 0 var(--space-xs);
-  border: 1px solid var(--color-border);
-  border-radius: 999px;
-  background: var(--color-surface);
-  color: var(--color-label-studio-comment);
-  font-size: 11px;
-
-  svg {
-    color: var(--color-main-primary);
-  }
-
-  strong {
-    color: var(--color-label-studio-black);
-    font-weight: 600;
-  }
-`;
-
 const AccountLink = styled(Link)`
   display: block;
   border-radius: 50%;
@@ -119,16 +94,6 @@ export function NavigationTop() {
   const toggleNavigation = useWorkspaceLayoutStore(
     (state) => state.toggleNavigation,
   );
-  const status = useAppSettingsStore((state) => state.status);
-  const estimatedTokens = useAppSettingsStore(
-    (state) => state.estimatedTokens,
-  );
-  const loadStatus = useAppSettingsStore((state) => state.loadStatus);
-
-  useEffect(() => {
-    void loadStatus();
-  }, [loadStatus]);
-
   return (
     <Header>
       <Brand>
@@ -156,13 +121,6 @@ export function NavigationTop() {
       </Brand>
       <TabProject />
       <AccountArea>
-        {status?.hasOpenAiApiKey ? (
-          <TokenBalance title="앱 내부 사용량 기준 예상 잔여 토큰">
-            <Zap size={13} strokeWidth={2} />
-            <strong>{estimatedTokens.toLocaleString("ko-KR")}</strong>
-            토큰
-          </TokenBalance>
-        ) : null}
         <AccountLink href="/account" aria-label="계정 페이지 열기">
           <Account />
         </AccountLink>

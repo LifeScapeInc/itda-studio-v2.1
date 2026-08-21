@@ -2,6 +2,7 @@ import type {
   PageGenerationRequest,
   PageGenerationResponse,
 } from "@/system/detail-page/page-generation-types";
+import { useTokenUsageStore } from "@/stores/useTokenUsageStore";
 
 async function readError(response: Response): Promise<string> {
   try {
@@ -21,5 +22,9 @@ export async function generateDetailPage(
     body: JSON.stringify(request),
   });
   if (!response.ok) throw new Error(await readError(response));
-  return response.json() as Promise<PageGenerationResponse>;
+  const result = await response.json() as PageGenerationResponse;
+  if (!result.mock && result.tokenUsage) {
+    useTokenUsageStore.getState().recordUsage(result.tokenUsage);
+  }
+  return result;
 }
