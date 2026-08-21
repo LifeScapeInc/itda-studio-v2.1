@@ -1,9 +1,9 @@
 "use client";
 
-import { Check } from "lucide-react";
 import styled from "styled-components";
 import { useCreateStore } from "@/stores/useCreateStore";
 import { CONTENT_SET_OPTIONS } from "@/system/create/generation-options";
+import { GenerationOptionCard } from "./generation-option-card";
 
 const Description = styled.p`
   margin-bottom: var(--space-xs);
@@ -18,58 +18,9 @@ const List = styled.div`
   gap: var(--space-2xs);
 `;
 
-const Option = styled.button<{ $selected: boolean }>`
-  width: 100%;
-  display: grid;
-  grid-template-columns: 20px minmax(0, 1fr) auto;
-  align-items: center;
-  gap: var(--space-2xs);
-  padding: var(--space-xs);
-  border: 1px solid ${({ $selected }) => (
-    $selected ? "var(--color-main-primary)" : "var(--color-border)"
-  )};
-  border-radius: 8px;
-  background: ${({ $selected }) => (
-    $selected ? "var(--color-main-neutral)" : "var(--color-surface)"
-  )};
-  text-align: left;
-  cursor: pointer;
-`;
-
-const CheckBox = styled.span<{ $selected: boolean }>`
-  display: grid;
-  width: 18px;
-  height: 18px;
-  place-items: center;
-  border: 1px solid ${({ $selected }) => (
-    $selected ? "var(--color-main-primary)" : "var(--color-border)"
-  )};
-  border-radius: 50%;
-  background: ${({ $selected }) => ($selected ? "var(--color-main-primary)" : "transparent")};
-  color: var(--color-surface);
-`;
-
-const OptionCopy = styled.span`
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  gap: var(--space-3xs);
-
-  small { color: var(--color-label-studio-comment); }
-`;
-
-const OptionTitle = styled.span`
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  min-width: 0;
-  gap: var(--space-3xs);
-`;
-
-
 const CutCount = styled.span`
   padding: var(--space-3xs) var(--space-2xs);
-  border-radius: 999px;
+  border-radius: 8px;
   background: var(--color-main-neutral-light);
   color: var(--color-label-studio-comment);
   font-size: 11px;
@@ -109,27 +60,20 @@ export function ContentSetSelector() {
           const Icon = option.icon;
           return (
             <div key={option.id}>
-              <Option
-                type="button"
+              <GenerationOptionCard
+                selected={selected}
+                label={option.label}
+                description={option.description}
+                icon={<Icon size={13} />}
+                trailing={(
+                  <CutCount>
+                    {option.cutCount ? `${option.cutCount}컷` : `${freeCount}컷`}
+                  </CutCount>
+                )}
                 role="radio"
-                aria-checked={selected}
-                $selected={selected}
+                ariaChecked={selected}
                 onClick={() => setContentSet(option.id)}
-              >
-                <CheckBox $selected={selected}>
-                  {selected ? <Check size={12} /> : null}
-                </CheckBox>
-                <OptionCopy>
-                  <OptionTitle>
-                    <Icon size={13} />
-                    {option.label}
-                  </OptionTitle>
-                  <small>{option.description}</small>
-                </OptionCopy>
-                <CutCount>
-                  {option.cutCount ? `${option.cutCount}컷` : `${freeCount}컷`}
-                </CutCount>
-              </Option>
+              />
               {option.id === "free" && selected ? (
                 <FreeCount>
                   <label

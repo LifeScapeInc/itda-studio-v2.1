@@ -37,6 +37,8 @@ export type ContentSetOption = {
 export type AngleVariationOption = {
   id: AngleVariationId;
   label: string;
+  description: string;
+  previewImage: string;
   shotRole: string;
   compositionPrompt: string;
   techniquePrompt: string;
@@ -95,6 +97,8 @@ export const ANGLE_VARIATION_OPTIONS: AngleVariationOption[] = [
   {
     id: "closeup",
     label: "고감도 클로즈업",
+    description: "제품이 프레임을 가득 채우도록 촬영",
+    previewImage: "/assets/create/angle_1.png",
     shotRole: "move much closer and fill the frame with the main piece",
     compositionPrompt: "eye level, straight on",
     techniquePrompt:
@@ -103,6 +107,8 @@ export const ANGLE_VARIATION_OPTIONS: AngleVariationOption[] = [
   {
     id: "reverse",
     label: "리버스 앵글",
+    description: "공간 반대편에서 촬영",
+    previewImage: "/assets/create/angle_2.png",
     shotRole:
       "cross to the opposite side of the room and shoot back toward the original camera position",
     compositionPrompt: "a three-quarter 45-degree angle",
@@ -112,6 +118,8 @@ export const ANGLE_VARIATION_OPTIONS: AngleVariationOption[] = [
   {
     id: "editorial",
     label: "에디토리얼 텔레포토",
+    description: "눈높이 정면에서 망원 렌즈로 촬영",
+    previewImage: "/assets/create/angle_3.png",
     shotRole:
       "step back and shoot straight on from eye level with a long lens",
     compositionPrompt: "eye level, straight on",
@@ -121,6 +129,8 @@ export const ANGLE_VARIATION_OPTIONS: AngleVariationOption[] = [
   {
     id: "architectural",
     label: "로우앵글 아키텍처럴",
+    description: "바닥 가까이 낮춰 살짝 위쪽으로 촬영",
+    previewImage: "/assets/create/angle_4.png",
     shotRole: "drop close to floor height and shoot slightly upward",
     compositionPrompt: "a low angle, shooting slightly upward",
     techniquePrompt:
@@ -129,6 +139,8 @@ export const ANGLE_VARIATION_OPTIONS: AngleVariationOption[] = [
   {
     id: "wide",
     label: "와이드 환경샷",
+    description: "뒤로 물러나 공간 전체가 담기도록 촬영",
+    previewImage: "/assets/create/angle_5.png",
     shotRole: "pull back to take in the whole room",
     compositionPrompt: "wide, with generous negative space",
     techniquePrompt:

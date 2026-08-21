@@ -1,9 +1,9 @@
 "use client";
 
-import { Check } from "lucide-react";
 import styled from "styled-components";
 import { useCreateStore } from "@/stores/useCreateStore";
 import { ANGLE_VARIATION_OPTIONS } from "@/system/create/generation-options";
+import { GenerationOptionCard } from "./generation-option-card";
 
 const Description = styled.p`
   margin-bottom: var(--space-xs);
@@ -16,46 +16,6 @@ const List = styled.div`
   display: flex;
   flex-direction: column;
   gap: var(--space-2xs);
-`;
-
-const Option = styled.button<{ $selected: boolean }>`
-  display: grid;
-  width: 100%;
-  grid-template-columns: 20px minmax(0, 1fr);
-  align-items: center;
-  gap: var(--space-2xs);
-  padding: var(--space-xs);
-  border: 1px solid ${({ $selected }) => (
-    $selected ? "var(--color-main-primary)" : "var(--color-border)"
-  )};
-  border-radius: 8px;
-  background: ${({ $selected }) => (
-    $selected ? "var(--color-main-neutral)" : "var(--color-surface)"
-  )};
-  color: var(--color-label-studio-black);
-  text-align: left;
-  cursor: pointer;
-
-  &:hover,
-  &:focus-visible {
-    border-color: var(--color-main-primary);
-    outline: none;
-  }
-`;
-
-const CheckBox = styled.span<{ $selected: boolean }>`
-  display: grid;
-  width: 18px;
-  height: 18px;
-  place-items: center;
-  border: 1px solid ${({ $selected }) => (
-    $selected ? "var(--color-main-primary)" : "var(--color-border)"
-  )};
-  border-radius: 5px;
-  background: ${({ $selected }) => (
-    $selected ? "var(--color-main-primary)" : "transparent"
-  )};
-  color: var(--color-surface);
 `;
 
 export function AngleVariationSelector({
@@ -78,10 +38,12 @@ export function AngleVariationSelector({
           const selected = selectedIds.includes(option.id);
 
           return (
-            <Option
-              type="button"
-              $selected={selected}
-              aria-pressed={selected}
+            <GenerationOptionCard
+              selected={selected}
+              label={option.label}
+              description={option.description}
+              previewImage={option.previewImage}
+              ariaPressed={selected}
               onClick={() => {
                 if (!selected) {
                   onActivate();
@@ -89,12 +51,7 @@ export function AngleVariationSelector({
                 toggleAngleVariation(option.id);
               }}
               key={option.id}
-            >
-              <CheckBox $selected={selected}>
-                {selected ? <Check size={12} /> : null}
-              </CheckBox>
-              <span className="type-xsmall-thin">{option.label}</span>
-            </Option>
+            />
           );
         })}
       </List>
