@@ -101,6 +101,7 @@ async function normalizeImage(
 export type OpenAIImageResult = {
   images: string[];
   usage?: Record<string, unknown>;
+  model: string;
   quality: string;
   size: string;
 };
@@ -183,6 +184,7 @@ export async function runOpenAIImageEdit(
     usage: usage && typeof usage === "object"
       ? usage as Record<string, unknown>
       : undefined,
+    model: IMAGE_MODEL,
     quality,
     size,
   };

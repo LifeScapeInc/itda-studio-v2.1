@@ -3,10 +3,6 @@
 ## 1. 작업 기준과 경로
 
 - 실제 작업 루트는 `C:\Users\jusmi\Desktop\+\LifeScape\workspace\itda-studio-v2.1`이다.
-- `C:\Users\jusmi\Desktop\+\LifeScape\workspace\itda-studio_v2`는 구현 방식과 기능 흐름을 확인하기 위한 참고 프로젝트다.
-- v2.1을 수정하기 전에 관련 기능이 v2에 존재하는지 먼저 확인한다. 특히 생성 과정, 비용 산정, 프롬프트 조합, API 연동, navigation interaction을 적극 참고한다.
-- v2는 읽기 전용으로 취급한다. 사용자가 명시적으로 요청하지 않는 한 v2에 v2.1 코드, 임시 파일, 빌드 결과 또는 로그를 생성하지 않는다.
-- Figma 명세와 v2 구현이 충돌하면 시각 결과는 Figma를 우선하고, 코드 구조와 동작 방식은 가능한 v2의 검증된 패턴을 따른다.
 
 ## 2. 기술 구성
 
@@ -69,6 +65,7 @@
 - `useWorkspaceLayoutStore`: navigation 접힘과 resizable panel 너비
 - `useAppSettingsStore`: API key 연결, mock mode 등 앱 설정
 - `useThemeStore`: light/dark theme
+- `useTokenUsageStore`: 실제 API 응답의 일별 토큰 합계와 호출 맥락별 사용 기록
 
 ## 6. 공유 컴포넌트 기준
 
@@ -117,18 +114,27 @@
 ### 상세 페이지
 
 - route는 `/detail-page`이며 `app/detail-page/page.tsx`와 `components/detail-page/`에서 조립한다.
-- 작업은 `재료 준비 → 기획안 → 템플릿 제작 → 템플릿 편집`의 네 단계로 진행하며 `DetailStepNavigation`으로 이동한다.
-- 단계 navigation 높이는 create panel header와 같은 58px이고, 제목과 보조 문구는 staging canvas의 `type-xsmall-body`, `type-xsmall-thin` 조합을 사용한다.
-- 재료 준비는 대상 가구 이미지와 의뢰 요청서를 받는다. 두 업로드 영역은 같은 `UploadCard`와 최대 420px 정사각형 크기를 사용한다.
+- 상단 단계는 `기획안 → 템플릿 제작 → 템플릿 편집`의 세 단계다. 재료 준비는 별도 단계가 아니라 기획안 화면 왼쪽의 resizable panel이다.
+- 단계 navigation 높이는 create panel header와 같은 58px이고, 완료 조건을 충족한 단계만 다시 열 수 있다.
+- 재료 준비 panel은 대상 가구 이미지와 의뢰 요청서를 받는다. 두 업로드 영역은 같은 `UploadCard`를 사용한다.
 - 가구 이미지는 1:1 crop 형태로 표시한다. 요청서는 PDF, DOC, DOCX, XLSX, TXT를 허용한다.
-- `기획 생성`은 현재 mock 동작이다. 약 900ms 뒤 세 개의 `MOCK_PLANNING_CANDIDATES`를 제공하며, 이전/다음 navigator로 후보를 넘기고 하나를 확정한다.
-- 기획안 단계에는 템플릿 미리보기를 표시하지 않고 콘셉트, 제목, 설명, 키워드만 표시한다.
-- 기획안을 확정하면 `createDetailTiles`가 선택한 `tileTypes` 순서대로 템플릿 초안을 만든다.
-- 템플릿 제작 단계에서는 각 타일의 설명을 textarea로 수정할 수 있다. 이미지 타일은 `shotCount`를 가지며 1~12컷 범위로 수정한다. 기본값은 히어로 1컷, 클로즈업 3컷, 소재 2컷, 공간 연출 2컷이다.
-- 템플릿 편집 단계는 왼쪽 타일 library, 가운데 wireframe, 오른쪽 inspector로 구성된다. 타일 추가·삭제·선택·순서 변경과 PNG/WebP 내보내기를 지원한다.
+- 실제 모드의 `기획 생성`은 `/api/planning`을 호출한다. 요청서를 구조화한 뒤 세 개의 기획 후보와 레퍼런스를 생성하며, NDJSON stream의 `input`/`proposal` 진행 상태를 UI에 표시한다. mock mode에서는 `MOCK_PLANNING_CANDIDATES`를 즉시 사용하고 재료가 없어도 흐름을 확인할 수 있다.
+- 기획안 후보는 이전/다음 버튼, dot navigator, 좌우 방향키로 이동한다. 콘셉트, 슬로건, 타깃 고객, 톤앤매너, 네이밍과 레퍼런스를 표시한다.
+- 기획안을 확정하면 실제 모드는 `/api/template-structure`, mock mode는 `MOCK_TEMPLATE_STRUCTURES`를 사용하여 선택 기획안 기반의 타일 구조를 만든다.
+- 템플릿 제작 단계는 왼쪽 타일 library, 가운데 wireframe, 오른쪽 inspector의 3-panel composer다. 양쪽 panel은 resize할 수 있고 타일 추가·삭제·선택·순서 변경을 지원한다.
+- 이미지 타일은 히어로만 1컷, 나머지는 1~4컷 범위다. 생성된 `content`, `imageLayout`, `imageCount`는 각각 설명, 이미지 제작 지시, 컷 수로 변환된다.
 - 타일 drag 중에는 반투명 drag image가 pointer를 따라가며 전체 cursor를 `grabbing`으로 통일한다. drag enter 시 로컬 preview 배열을 먼저 재배치하고 drop 시 Zustand 상태에 확정해 Figma auto-layout과 유사한 순서 미리보기를 제공한다.
-- 이미지 타일을 선택하면 inspector에서 이미지 생성 prompt를 확인한다. 현재 실제 상세페이지 이미지 생성과 기획 생성 API는 연결하지 않은 mockup 단계다.
-- `useDetailPageStore`는 프로젝트별 workspace snapshot과 프로젝트에 속하지 않은 snapshot을 분리한다. 프로젝트 탭 전환 시 재료, 단계, 기획안, 타일 편집 상태가 복원된다.
+- `페이지 생성`은 `/api/detail-page-generation`을 호출한다. 실제 모드에서는 확정된 기획 입력과 타일을 바탕으로 텍스트 레이아웃을 만들고 이미지 타일의 컷을 병렬 생성한다. mock mode에서는 고정된 `MOCK_GENERATED_DETAIL_PAGE`를 사용한다.
+- 템플릿 편집 단계는 생성 완료 페이지를 표시하며 PNG/WebP 내보내기를 지원한다. 타일 구성을 수정하면 기존 생성 결과를 무효화하므로 다시 생성해야 한다.
+- `useDetailPageStore`는 프로젝트별 workspace snapshot과 프로젝트에 속하지 않은 snapshot을 분리한다. 프로젝트 탭 전환 중 API 응답이 완료되어도 해당 프로젝트 snapshot에 결과를 저장한다.
+
+### 계정과 토큰 사용량
+
+- `/account`는 계정 정보와 API 토큰 사용량을 같은 scroll workspace에 표시한다.
+- `useTokenUsageStore`는 실제 API 응답에 usage가 있을 때만 브라우저 localStorage에 일별 합계와 개별 호출 기록을 저장한다. mock 응답은 기록하지 않는다.
+- 집계는 전체, 입력 텍스트, 입력 이미지, 출력 텍스트, 출력 이미지로 구분하며 월 선택 요약과 현재 연도의 월별 line chart를 제공한다.
+- 현재 미커밋 작업은 호출 기록에 모델과 생성 맥락을 추가한다. 컷 생성은 콘텐츠 세트/앵글/품질/비율/레퍼런스 여부를, 상세페이지는 기획·템플릿·최종 레이아웃·최종 이미지 단계를 구분한다.
+- 호출 맥락별 통계는 호출 횟수와 1회 평균 토큰을 보여준다. 기존 일별 합계 데이터는 유지되지만 이 기능 추가 전에 저장된 사용량에는 맥락별 기록이 없다.
 
 ### 무드보드
 
@@ -168,6 +174,8 @@
 - 환경변수가 없으면 설정 화면에서 사용자가 등록한 key를 서버 설정 경로를 통해 사용한다.
 - key 원문을 클라이언트 상태나 로그에 노출하지 않는다.
 - mock mode에서는 실제 OpenAI 요청을 보내지 않는다.
+- 컷 생성의 `/api/generate`는 key가 없을 때도 mock 결과로 fallback한다. 상세페이지의 세 API는 mock mode가 꺼져 있으면 필수 입력과 key가 모두 필요하며, 없을 경우 오류를 반환한다.
+- 상세페이지의 기획, 템플릿 구조와 최종 레이아웃 모델은 `OPENAI_PLANNING_MODEL`로 override할 수 있고 기본값은 `gpt-5.6-terra`다. 이미지 모델 설정은 `system/server/image-settings.ts`를 단일 기준으로 사용한다.
 
 ### Studio 로그인
 
@@ -186,9 +194,9 @@
 
 ### 현재 작업 트리와 최근 검증
 
-- 상세페이지 구현과 프로젝트 탭 관련 파일은 현재 아직 커밋되지 않은 상태다. `app/detail-page/`, `components/detail-page/`, `stores/useDetailPageStore.ts`, `system/detail-page/`는 untracked이므로 누락하지 않는다.
-- `components/create/preparation/upload-card.tsx`도 새 공용 컴포넌트로 untracked 상태다.
-- 기존 사용자 변경과 상세페이지 변경이 같은 작업 트리에 있으므로 reset, checkout 또는 일괄 정리를 하지 않는다.
-- 최근 검증에서 `npx tsc --noEmit`, `npm run lint`, `npm run build`가 모두 통과했다.
-- 브라우저에서 `/detail-page` 초기 화면의 58px 단계 header, typography class, 이미지 및 문서 accept 형식을 확인했다.
+- 상세페이지, 프로젝트 탭과 공용 `UploadCard`는 이미 tracked 상태다. 기존 handoff에 적혀 있던 untracked 주의 문구는 더 이상 유효하지 않다.
+- 현재 작업 트리에는 토큰 사용량의 호출 맥락·모델별 평균 통계를 확장하는 미커밋 변경이 있다. 관련 범위는 `components/account/`, `stores/useTokenUsageStore.ts`, create/detail-page API client와 server usage 변환, `system/usage/`다.
+- 현재 변경에는 새 파일 `components/account/token-usage-section-heading.tsx`, `components/account/token-usage-statistics.tsx`, `system/usage/token-usage-context.ts`, `system/usage/token-usage-statistics.ts`가 포함된다. reset, checkout 또는 일괄 정리로 누락하지 않는다.
+- `docs/handoff.md`도 현재 상태 갱신으로 수정되어 있다.
+- 2026-08-24 현재 미커밋 변경을 포함해 `npm run lint`, `npx tsc --noEmit --incremental false`, `npm run build`가 모두 통과했다. 이번 handoff 갱신에서는 별도의 브라우저 interaction 회귀 검사는 실행하지 않았다.
 - Git 명령은 sandbox ownership 때문에 필요할 경우 `git -c safe.directory="C:/Users/jusmi/Desktop/+/LifeScape/workspace/itda-studio-v2.1" ...` 형식으로 실행한다. 전역 Git 설정은 변경하지 않는다.

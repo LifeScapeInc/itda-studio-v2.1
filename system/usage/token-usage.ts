@@ -6,6 +6,25 @@ export type TokenUsage = {
   outputImage: number;
 };
 
+export type TokenUsageContext = {
+  key: string;
+  label: string;
+  detail?: string;
+  model?: string;
+};
+
+export type TokenUsageRecord = {
+  id: string;
+  occurredAt: string;
+  usage: TokenUsage;
+  context: TokenUsageContext;
+};
+
+export const UNCLASSIFIED_USAGE_CONTEXT: TokenUsageContext = {
+  key: "unclassified",
+  label: "분류되지 않은 호출",
+};
+
 export const EMPTY_TOKEN_USAGE: TokenUsage = {
   total: 0,
   inputText: 0,
@@ -95,4 +114,35 @@ export function isTokenUsage(value: unknown): value is TokenUsage {
     usage.outputText,
     usage.outputImage,
   ].every(item => typeof item === "number" && Number.isFinite(item));
+}
+
+export function isTokenUsageContext(
+  value: unknown,
+): value is TokenUsageContext {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const context = value as Partial<TokenUsageContext>;
+  return typeof context.key === "string"
+    && context.key.length > 0
+    && typeof context.label === "string"
+    && context.label.length > 0
+    && (context.detail === undefined || typeof context.detail === "string")
+    && (context.model === undefined || typeof context.model === "string");
+}
+
+export function isTokenUsageRecord(
+  value: unknown,
+): value is TokenUsageRecord {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const record = value as Partial<TokenUsageRecord>;
+  return typeof record.id === "string"
+    && typeof record.occurredAt === "string"
+    && !Number.isNaN(Date.parse(record.occurredAt))
+    && isTokenUsage(record.usage)
+    && isTokenUsageContext(record.context);
 }

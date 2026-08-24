@@ -17,6 +17,9 @@ export type GenerationApiResponse = {
   images: string[];
   note: string;
   tokenUsage?: TokenUsage;
+  metadata?: {
+    model: string;
+  };
 };
 
 export type GenerationApiError = {

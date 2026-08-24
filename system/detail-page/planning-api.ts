@@ -3,6 +3,7 @@ import type {
   RequestDocument,
 } from "@/system/detail-page/detail-page-types";
 import { useTokenUsageStore } from "@/stores/useTokenUsageStore";
+import { detailPlanningUsageContext } from "@/system/usage/token-usage-context";
 
 type GeneratePlanningInput = {
   furnitureImage: string | null;
@@ -83,14 +84,28 @@ export async function generatePlanning(
       throw new Error("기획안 생성 결과가 비어 있습니다.");
     }
     if (!completedResult.mock && completedResult.tokenUsage) {
-      useTokenUsageStore.getState().recordUsage(completedResult.tokenUsage);
+      useTokenUsageStore.getState().recordUsage(
+        completedResult.tokenUsage,
+        detailPlanningUsageContext({
+          model: completedResult.metadata?.model ?? "unknown-text-model",
+          hasFurnitureImage: Boolean(input.furnitureImage),
+          hasRequestDocument: Boolean(input.requestDocument),
+        }),
+      );
     }
     return completedResult;
   }
 
   const result = await response.json() as PlanningGenerationResponse;
   if (!result.mock && result.tokenUsage) {
-    useTokenUsageStore.getState().recordUsage(result.tokenUsage);
+    useTokenUsageStore.getState().recordUsage(
+      result.tokenUsage,
+      detailPlanningUsageContext({
+        model: result.metadata?.model ?? "unknown-text-model",
+        hasFurnitureImage: Boolean(input.furnitureImage),
+        hasRequestDocument: Boolean(input.requestDocument),
+      }),
+    );
   }
   return result;
 }

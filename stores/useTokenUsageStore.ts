@@ -7,18 +7,29 @@ import {
   EMPTY_TOKEN_USAGE,
   hasTokenUsage,
   isTokenUsage,
+  isTokenUsageRecord,
+  UNCLASSIFIED_USAGE_CONTEXT,
   type TokenUsage,
+  type TokenUsageContext,
+  type TokenUsageRecord,
 } from "@/system/usage/token-usage";
+import { normalizeCutUsageContext } from "@/system/usage/token-usage-context";
 
 const STORAGE_KEY = "itda-studio-v2.1:token-usage-by-day";
+const RECORDS_STORAGE_KEY = "itda-studio-v2.1:token-usage-records";
 
 export type DailyTokenUsage = Record<string, TokenUsage>;
 
 type TokenUsageStore = {
   dailyUsage: DailyTokenUsage;
+  records: TokenUsageRecord[];
   hydrated: boolean;
   hydrate: () => void;
-  recordUsage: (usage: TokenUsage, occurredAt?: Date) => void;
+  recordUsage: (
+    usage: TokenUsage,
+    context?: TokenUsageContext,
+    occurredAt?: Date,
+  ) => void;
 };
 
 function readUsage(): DailyTokenUsage {
@@ -47,17 +58,61 @@ function writeUsage(dailyUsage: DailyTokenUsage): void {
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(dailyUsage));
 }
 
+function readRecords(): TokenUsageRecord[] {
+  if (typeof window === "undefined") {
+    return [];
+  }
+
+  try {
+    const raw = window.localStorage.getItem(RECORDS_STORAGE_KEY);
+    if (!raw) {
+      return [];
+    }
+
+    const parsed = JSON.parse(raw) as unknown;
+    return Array.isArray(parsed)
+      ? parsed.filter(isTokenUsageRecord).map(record => ({
+          ...record,
+          context: normalizeCutUsageContext(record.context),
+        }))
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeRecords(records: TokenUsageRecord[]): void {
+  window.localStorage.setItem(RECORDS_STORAGE_KEY, JSON.stringify(records));
+}
+
+function usageRecordId(): string {
+  return typeof crypto !== "undefined" && "randomUUID" in crypto
+    ? crypto.randomUUID()
+    : `usage-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
 export const useTokenUsageStore = create<TokenUsageStore>((set, get) => ({
   dailyUsage: {},
+  records: [],
   hydrated: false,
   hydrate: () => {
     if (get().hydrated) {
       return;
     }
 
-    set({ dailyUsage: readUsage(), hydrated: true });
+    const records = readRecords();
+    writeRecords(records);
+    set({
+      dailyUsage: readUsage(),
+      records,
+      hydrated: true,
+    });
   },
-  recordUsage: (usage, occurredAt = new Date()) => {
+  recordUsage: (
+    usage,
+    context = UNCLASSIFIED_USAGE_CONTEXT,
+    occurredAt = new Date(),
+  ) => {
     if (!hasTokenUsage(usage) || typeof window === "undefined") {
       return;
     }
@@ -68,7 +123,18 @@ export const useTokenUsageStore = create<TokenUsageStore>((set, get) => ({
       ...stored,
       [key]: addTokenUsage(stored[key] ?? EMPTY_TOKEN_USAGE, usage),
     };
+    const storedRecords = get().hydrated ? get().records : readRecords();
+    const records = [
+      ...storedRecords,
+      {
+        id: usageRecordId(),
+        occurredAt: occurredAt.toISOString(),
+        usage,
+        context,
+      },
+    ];
     writeUsage(dailyUsage);
-    set({ dailyUsage, hydrated: true });
+    writeRecords(records);
+    set({ dailyUsage, records, hydrated: true });
   },
 }));

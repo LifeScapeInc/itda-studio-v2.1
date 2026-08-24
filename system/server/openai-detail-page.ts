@@ -293,14 +293,27 @@ export async function runOpenAIDetailPage({
     toGeneratedTile(tile, layouts[index], imagesByTile.get(index) ?? [])
   ));
   const page: GeneratedDetailPage = { width: 860, tiles };
+  const layoutTokenUsage = textResponseTokenUsage(response.usage);
+  const imageTokenUsage = addTokenUsage(
+    ...generatedImages.map(generated => generated.tokenUsage),
+  );
   return {
     mock: false,
     page,
     note: `${PAGE_LAYOUT_MODEL}와 ${IMAGE_MODEL}로 상세페이지를 생성했습니다.`,
     metadata: { layoutModel: PAGE_LAYOUT_MODEL, imageModel: IMAGE_MODEL },
-    tokenUsage: addTokenUsage(
-      textResponseTokenUsage(response.usage),
-      ...generatedImages.map(generated => generated.tokenUsage),
-    ),
+    tokenUsage: addTokenUsage(layoutTokenUsage, imageTokenUsage),
+    tokenUsageByModel: [
+      {
+        model: PAGE_LAYOUT_MODEL,
+        phase: "layout",
+        usage: layoutTokenUsage,
+      },
+      {
+        model: IMAGE_MODEL,
+        phase: "images",
+        usage: imageTokenUsage,
+      },
+    ],
   };
 }

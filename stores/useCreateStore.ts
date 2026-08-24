@@ -39,6 +39,7 @@ import {
   QUALITY_OPTIONS,
 } from "@/system/create/generation-options";
 import { getGenerationModeLabel } from "@/system/create/generation-prompt";
+import { cutGenerationUsageContext } from "@/system/usage/token-usage-context";
 
 export type GenerationRunResult = {
   usedActualGeneration: boolean;
@@ -617,7 +618,18 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
           usedActualGeneration = true;
           actualCompleted += 1;
           if (result.tokenUsage) {
-            useTokenUsageStore.getState().recordUsage(result.tokenUsage);
+            useTokenUsageStore.getState().recordUsage(
+              result.tokenUsage,
+              cutGenerationUsageContext({
+                model: result.metadata?.model ?? "unknown-image-model",
+                contentSet: current.contentSet,
+                shotId: shot.id,
+                shotLabel: shot.label,
+                ratio: shot.ratio,
+                quality: current.quality,
+                hasReference: Boolean(requestReferenceImage),
+              }),
+            );
           }
         }
         completed += 1;

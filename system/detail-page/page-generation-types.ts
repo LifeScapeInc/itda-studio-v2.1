@@ -69,4 +69,9 @@ export type PageGenerationResponse = {
     imageModel?: string;
   };
   tokenUsage?: TokenUsage;
+  tokenUsageByModel?: Array<{
+    model: string;
+    phase: "layout" | "images";
+    usage: TokenUsage;
+  }>;
 };

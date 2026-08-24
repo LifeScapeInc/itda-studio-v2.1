@@ -10,18 +10,38 @@ import {
   monthKey,
   type TokenUsage,
 } from "@/system/usage/token-usage";
+import { AccountSubHeader } from "./account-subheader";
+import { TokenUsageStatistics } from "./token-usage-statistics";
 
 const Content = styled.div`
   display: flex;
   width: min(100%, 980px);
   flex-direction: column;
-  gap: var(--space-lg);
+  gap: var(--space-xl);
 `;
 
-const UsagePeriod = styled.div`
+const UsageSection = styled.section`
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--space-sm);
+  padding-top: var(--space-xl);
+  border-top: 1px solid var(--color-border);
+
+  &:first-child {
+    padding-top: 0;
+    border-top: 0;
+  }
+`;
+
+const SectionMeta = styled.p`
+  flex: 0 0 auto;
+  color: var(--color-label-studio-comment);
+`;
+
+const MonthControlArea = styled.div`
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: var(--space-md);
 
   > span {
@@ -41,8 +61,6 @@ const MonthButton = styled.button`
   height: 28px;
   place-items: center;
   padding: 0;
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
   background: var(--color-surface);
   color: var(--color-label-studio-comment);
   cursor: pointer;
@@ -102,26 +120,6 @@ const Metric = styled.div<{ $primary?: boolean }>`
   }
 `;
 
-const ActivitySection = styled.section`
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  gap: var(--space-sm);
-  padding-top: var(--space-md);
-  border-top: 1px solid var(--color-border);
-`;
-
-const ActivityHeading = styled.div`
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: var(--space-md);
-
-  p {
-    color: var(--color-label-studio-comment);
-  }
-`;
-
 const ChartViewport = styled.div`
   min-width: 0;
   overflow-x: auto;
@@ -151,15 +149,12 @@ const LineChart = styled.svg`
     fill: var(--color-surface);
     stroke: var(--color-main-primary);
     stroke-width: 2;
-    cursor: pointer;
+    cursor: default;
     transition: fill 150ms ease-out;
   }
 
-  .chart-point:hover,
-  .chart-point:focus,
-  .chart-point-selected {
+  .chart-point:hover {
     fill: var(--color-main-primary);
-    outline: none;
   }
 
   .chart-label {
@@ -215,11 +210,10 @@ export function TokenUsagePanel() {
     return new Date(now.getFullYear(), now.getMonth(), 1);
   });
   const dailyUsage = useTokenUsageStore((state) => state.dailyUsage);
-  const chartYear = selectedMonth.getFullYear();
-  const months = useMemo(
-    () => yearMonths(chartYear, dailyUsage),
-    [chartYear, dailyUsage],
-  );
+  const records = useTokenUsageStore((state) => state.records);
+  const now = new Date();
+  const chartYear = now.getFullYear();
+  const months = yearMonths(chartYear, dailyUsage);
   const selectedKey = monthKey(selectedMonth);
   const monthUsage = useMemo(() => (
     Object.entries(dailyUsage)
@@ -241,37 +235,43 @@ export function TokenUsagePanel() {
     };
   });
   const chartLine = chartPoints.map(point => `${point.x},${point.y}`).join(" ");
-  const now = new Date();
   const currentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const isCurrentMonth = selectedMonth.getTime() >= currentMonth.getTime();
 
   return (
     <Content>
-          <UsagePeriod>
-            <MonthControls>
-              <MonthButton
-                type="button"
-                aria-label="이전 달 보기"
-                onClick={() => setSelectedMonth(month => shiftMonth(month, -1))}
-              >
-                <ChevronLeft size={15} />
-              </MonthButton>
-              <MonthLabel className="type-xsmall-body">
-                {selectedMonth.toLocaleDateString("ko-KR", {
-                  year: "numeric",
-                  month: "long",
-                })}
-              </MonthLabel>
-              <MonthButton
-                type="button"
-                aria-label="다음 달 보기"
-                disabled={isCurrentMonth}
-                onClick={() => setSelectedMonth(month => shiftMonth(month, 1))}
-              >
-                <ChevronRight size={15} />
-              </MonthButton>
-            </MonthControls>
-          </UsagePeriod>
+      <UsageSection>
+        <AccountSubHeader
+          title={`${selectedMonth.getMonth() + 1}월 사용량`}
+          description="선택한 달에 기록된 유형별 토큰 사용량입니다."
+          action={(
+            <MonthControlArea>
+              <MonthControls>
+                <MonthButton
+                  type="button"
+                  aria-label="이전 달 보기"
+                  onClick={() => setSelectedMonth(month => shiftMonth(month, -1))}
+                >
+                  <ChevronLeft size={15} />
+                </MonthButton>
+                <MonthLabel className="type-xsmall-body">
+                  {selectedMonth.toLocaleDateString("ko-KR", {
+                    year: "numeric",
+                    month: "long",
+                  })}
+                </MonthLabel>
+                <MonthButton
+                  type="button"
+                  aria-label="다음 달 보기"
+                  disabled={isCurrentMonth}
+                  onClick={() => setSelectedMonth(month => shiftMonth(month, 1))}
+                >
+                  <ChevronRight size={15} />
+                </MonthButton>
+              </MonthControls>
+            </MonthControlArea>
+          )}
+        />
           <SummaryGrid>
             {METRICS.map((metric, index) => (
               <Metric key={metric.key} $primary={index === 0}>
@@ -282,18 +282,17 @@ export function TokenUsagePanel() {
               </Metric>
             ))}
           </SummaryGrid>
-          <ActivitySection>
-            <ActivityHeading>
-              <div>
-                <strong className="type-xsmall-body">{chartYear}년 월별 활동</strong>
-                <p className="type-xsmall-thin">
-                  각 점은 해당 월의 전체 토큰 사용량을 나타냅니다.
-                </p>
-              </div>
-              <p className="type-xsmall-thin">
-                최대 {maximum.toLocaleString("ko-KR")} tokens / month
-              </p>
-            </ActivityHeading>
+      </UsageSection>
+      <UsageSection>
+            <AccountSubHeader
+              title={`${chartYear}년 월별 활동`}
+              description="각 점은 해당 달의 전체 토큰 사용량을 나타냅니다."
+              action={(
+                <SectionMeta className="type-xsmall-thin">
+                  한 달 최대 {maximum.toLocaleString("ko-KR")} 토큰
+                </SectionMeta>
+              )}
+            />
             <ChartViewport>
               <LineChart
                 viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`}
@@ -318,27 +317,13 @@ export function TokenUsagePanel() {
                 {chartPoints.map(point => (
                   <g key={point.key}>
                     <circle
-                      className={`chart-point ${point.monthIndex === selectedMonth.getMonth()
-                        ? "chart-point-selected"
-                        : ""}`}
+                      className="chart-point"
                       cx={point.x}
                       cy={point.y}
-                      r={point.monthIndex === selectedMonth.getMonth() ? 5 : 4}
-                      role="button"
-                      tabIndex={0}
-                      aria-label={`${point.monthIndex + 1}월 ${point.usage.total.toLocaleString("ko-KR")} tokens`}
-                      onClick={() => setSelectedMonth(
-                        new Date(chartYear, point.monthIndex, 1),
-                      )}
-                      onKeyDown={(event) => {
-                        if (event.key === "Enter" || event.key === " ") {
-                          event.preventDefault();
-                          setSelectedMonth(new Date(chartYear, point.monthIndex, 1));
-                        }
-                      }}
+                      r={4}
                     >
                       <title>
-                        {point.monthIndex + 1}월 · {point.usage.total.toLocaleString("ko-KR")} tokens
+                        {point.monthIndex + 1}월 · {point.usage.total.toLocaleString("ko-KR")} 토큰
                       </title>
                     </circle>
                     <text
@@ -352,7 +337,8 @@ export function TokenUsagePanel() {
                 ))}
               </LineChart>
             </ChartViewport>
-          </ActivitySection>
+      </UsageSection>
+          <TokenUsageStatistics records={records} />
     </Content>
   );
 }

@@ -3,6 +3,7 @@ import type {
   TemplateStructureResponse,
 } from "@/system/detail-page/detail-page-types";
 import { useTokenUsageStore } from "@/stores/useTokenUsageStore";
+import { detailTemplateUsageContext } from "@/system/usage/token-usage-context";
 
 async function readError(response: Response): Promise<string> {
   try {
@@ -36,7 +37,14 @@ export async function generateTemplateStructure({
   }
   const result = await response.json() as TemplateStructureResponse;
   if (!result.mock && result.tokenUsage) {
-    useTokenUsageStore.getState().recordUsage(result.tokenUsage);
+    useTokenUsageStore.getState().recordUsage(
+      result.tokenUsage,
+      detailTemplateUsageContext({
+        model: result.metadata?.model ?? "unknown-text-model",
+        hasFurnitureImage: Boolean(furnitureImage),
+        tileCount: plan.tileTypes.length,
+      }),
+    );
   }
   return result;
 }

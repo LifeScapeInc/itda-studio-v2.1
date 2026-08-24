@@ -10,6 +10,7 @@ import { useTokenUsageStore } from "@/stores/useTokenUsageStore";
 import { StudioShell } from "@/system/styles/layout";
 import { AccountProfilePanel } from "./account-profile-panel";
 import { TokenUsagePanel } from "./token-usage-panel";
+import { AccountHeader } from "./account-header";
 
 const Workspace = styled.main`
   display: flex;
@@ -18,7 +19,7 @@ const Workspace = styled.main`
   margin-left: var(--navigation-left-width, 203px);
   padding: 104px var(--space-2xl) var(--space-2xl);
   flex-direction: column;
-  background: var(--color-main-neutral-light);
+  background: var(--color-main-neutral);
   overflow: hidden;
   transition: margin-left 220ms ease;
 `;
@@ -52,17 +53,6 @@ const Group = styled.section`
   background: var(--color-surface);
 `;
 
-const GroupHeading = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3xs);
-
-  p {
-    color: var(--color-label-studio-comment);
-    line-height: 1.5;
-  }
-`;
-
 export function AccountWorkspace() {
   const loadStatus = useAppSettingsStore((state) => state.loadStatus);
   const hydrateUsage = useTokenUsageStore((state) => state.hydrate);
@@ -84,21 +74,11 @@ export function AccountWorkspace() {
         <ScrollArea>
           <Content>
             <Group>
-              <GroupHeading>
-                <h2 className="type-small-body">계정 정보</h2>
-                <p className="type-xsmall-thin">
-                  현재 워크스페이스와 API 연결 상태입니다.
-                </p>
-              </GroupHeading>
+              <AccountHeader>계정 정보</AccountHeader>
               <AccountProfilePanel />
             </Group>
             <Group>
-              <GroupHeading>
-                <h2 className="type-small-body">토큰 사용량</h2>
-                <p className="type-xsmall-thin">
-                  월별 API 활동과 호출 유형별 사용량을 확인합니다.
-                </p>
-              </GroupHeading>
+              <AccountHeader>토큰 사용량</AccountHeader>
               <TokenUsagePanel />
             </Group>
           </Content>

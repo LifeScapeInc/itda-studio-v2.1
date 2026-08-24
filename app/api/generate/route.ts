@@ -167,6 +167,7 @@ export async function POST(request: Request): Promise<Response> {
       prompt: body.prompt,
       images: result.images,
       tokenUsage: imageResponseTokenUsage(result.usage),
+      metadata: { model: result.model },
       note: `실제 생성 완료 · ${result.quality} · ${result.size}`,
     };
     return Response.json(response);
