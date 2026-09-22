@@ -1,0 +1,160 @@
+{
+  "version": 1,
+  "style": "woodylight",
+  "generatedAt": "2026-09-22T05:52:51.739Z",
+  "seed": 3889911725,
+  "canvas": {
+    "width": 1600,
+    "height": 900,
+    "gap": 8
+  },
+  "items": [
+    {
+      "src": "/references/mood/woodylight/woodylight_7.png",
+      "fileName": "woodylight_7.png",
+      "width": 896,
+      "height": 1344,
+      "colorEmbedding": [
+        0.695441,
+        0.011004,
+        0.033809,
+        0.132997,
+        0.019437
+      ],
+      "colorDistance": 0.028313,
+      "weight": 1,
+      "rect": {
+        "x": 0.370678,
+        "y": 0.177518,
+        "width": 0.208008,
+        "height": 0.554688
+      }
+    },
+    {
+      "src": "/references/mood/woodylight/woodylight_4.png",
+      "fileName": "woodylight_4.png",
+      "width": 944,
+      "height": 1280,
+      "colorEmbedding": [
+        0.711895,
+        0.007787,
+        0.038124,
+        0.089766,
+        0.019266
+      ],
+      "colorDistance": 0.041916,
+      "weight": 0.672289,
+      "rect": {
+        "x": 0.175261,
+        "y": 0.177518,
+        "width": 0.188814,
+        "height": 0.455144
+      }
+    },
+    {
+      "src": "/references/mood/woodylight/woodylight_6.png",
+      "fileName": "woodylight_6.png",
+      "width": 864,
+      "height": 1376,
+      "colorEmbedding": [
+        0.733069,
+        0.003902,
+        0.024122,
+        0.087265,
+        0.015321
+      ],
+      "colorDistance": 0.050978,
+      "weight": 0.480591,
+      "rect": {
+        "x": 0.58529,
+        "y": 0.335292,
+        "width": 0.140189,
+        "height": 0.396914
+      }
+    },
+    {
+      "src": "/references/mood/woodylight/woodylight_3.png",
+      "fileName": "woodylight_3.png",
+      "width": 816,
+      "height": 1456,
+      "colorEmbedding": [
+        0.763031,
+        0.006849,
+        0.027904,
+        0.128512,
+        0.02028
+      ],
+      "colorDistance": 0.055435,
+      "weight": 0.344579,
+      "rect": {
+        "x": 0.251973,
+        "y": 0.644401,
+        "width": 0.112102,
+        "height": 0.355599
+      }
+    },
+    {
+      "src": "/references/mood/woodylight/woodylight_1.png",
+      "fileName": "woodylight_1.png",
+      "width": 896,
+      "height": 1344,
+      "colorEmbedding": [
+        0.6533,
+        0.002402,
+        0.035147,
+        0.126965,
+        0.016878
+      ],
+      "colorDistance": 0.059468,
+      "weight": 0.23908,
+      "rect": {
+        "x": 0.58529,
+        "y": 0,
+        "width": 0.121332,
+        "height": 0.323553
+      }
+    },
+    {
+      "src": "/references/mood/woodylight/woodylight_5.png",
+      "fileName": "woodylight_5.png",
+      "width": 896,
+      "height": 1344,
+      "colorEmbedding": [
+        0.776953,
+        0.005785,
+        0.030046,
+        0.098939,
+        0.01557
+      ],
+      "colorDistance": 0.071827,
+      "weight": 0.15288,
+      "rect": {
+        "x": 0.713225,
+        "y": 0.026184,
+        "width": 0.111513,
+        "height": 0.297369
+      }
+    },
+    {
+      "src": "/references/mood/woodylight/woodylight_2.png",
+      "fileName": "woodylight_2.png",
+      "width": 816,
+      "height": 1456,
+      "colorEmbedding": [
+        0.637184,
+        0.004365,
+        0.029856,
+        0.162366,
+        0.021458
+      ],
+      "colorDistance": 0.094522,
+      "weight": 0.08,
+      "rect": {
+        "x": 0.732082,
+        "y": 0.335292,
+        "width": 0.086766,
+        "height": 0.275231
+      }
+    }
+  ]
+}

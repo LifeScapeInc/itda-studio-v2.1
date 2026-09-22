@@ -1,0 +1,244 @@
+{
+  "version": 1,
+  "style": "industrial",
+  "generatedAt": "2026-09-22T05:52:50.236Z",
+  "seed": 334064402,
+  "canvas": {
+    "width": 1600,
+    "height": 900,
+    "gap": 8
+  },
+  "items": [
+    {
+      "src": "/references/mood/industrial/industrial_2.png",
+      "fileName": "industrial_2.png",
+      "width": 896,
+      "height": 1344,
+      "colorEmbedding": [
+        0.511821,
+        0.0037,
+        0.019016,
+        0.169005,
+        0.012803
+      ],
+      "colorDistance": 0.026959,
+      "weight": 1,
+      "rect": {
+        "x": 0.410645,
+        "y": 0.259008,
+        "width": 0.180744,
+        "height": 0.481984
+      }
+    },
+    {
+      "src": "/references/mood/industrial/industrial_5.png",
+      "fileName": "industrial_5.png",
+      "width": 928,
+      "height": 1232,
+      "colorEmbedding": [
+        0.524245,
+        0.000658,
+        0.01021,
+        0.166895,
+        0.0112
+      ],
+      "colorDistance": 0.027052,
+      "weight": 0.73406,
+      "rect": {
+        "x": 0.230431,
+        "y": 0.329201,
+        "width": 0.174476,
+        "height": 0.411791
+      }
+    },
+    {
+      "src": "/references/mood/industrial/industrial_1.png",
+      "fileName": "industrial_1.png",
+      "width": 960,
+      "height": 1200,
+      "colorEmbedding": [
+        0.529989,
+        0.001804,
+        0.004887,
+        0.154711,
+        0.010675
+      ],
+      "colorDistance": 0.028806,
+      "weight": 0.578496,
+      "rect": {
+        "x": 0.597126,
+        "y": 0.259008,
+        "width": 0.166829,
+        "height": 0.37073
+      }
+    },
+    {
+      "src": "/references/mood/industrial/industrial_6.png",
+      "fileName": "industrial_6.png",
+      "width": 896,
+      "height": 1344,
+      "colorEmbedding": [
+        0.485712,
+        0.002246,
+        0.012222,
+        0.151822,
+        0.010005
+      ],
+      "colorDistance": 0.02921,
+      "weight": 0.468121,
+      "rect": {
+        "x": 0.597126,
+        "y": 0.639939,
+        "width": 0.128099,
+        "height": 0.341598
+      }
+    },
+    {
+      "src": "/references/mood/industrial/industrial_4.png",
+      "fileName": "industrial_4.png",
+      "width": 928,
+      "height": 1232,
+      "colorEmbedding": [
+        0.501868,
+        0.000998,
+        0.010646,
+        0.129949,
+        0.00538
+      ],
+      "colorDistance": 0.033816,
+      "weight": 0.382507,
+      "rect": {
+        "x": 0.269746,
+        "y": 0,
+        "width": 0.135161,
+        "height": 0.319
+      }
+    },
+    {
+      "src": "/references/mood/industrial/industrial_8.png",
+      "fileName": "industrial_8.png",
+      "width": 896,
+      "height": 1344,
+      "colorEmbedding": [
+        0.546573,
+        0.004447,
+        0.022865,
+        0.165035,
+        0.010218
+      ],
+      "colorDistance": 0.042726,
+      "weight": 0.312556,
+      "rect": {
+        "x": 0.730963,
+        "y": 0.639939,
+        "width": 0.112702,
+        "height": 0.300537
+      }
+    },
+    {
+      "src": "/references/mood/industrial/industrial_11.png",
+      "fileName": "industrial_11.png",
+      "width": 960,
+      "height": 1200,
+      "colorEmbedding": [
+        0.572105,
+        0.004188,
+        0.010052,
+        0.161549,
+        0.011305
+      ],
+      "colorDistance": 0.06065,
+      "weight": 0.253413,
+      "rect": {
+        "x": 0.769693,
+        "y": 0.344812,
+        "width": 0.128217,
+        "height": 0.284927
+      }
+    },
+    {
+      "src": "/references/mood/industrial/industrial_10.png",
+      "fileName": "industrial_10.png",
+      "width": 960,
+      "height": 1184,
+      "colorEmbedding": [
+        0.569476,
+        0.009054,
+        0.019882,
+        0.136919,
+        0.010208
+      ],
+      "colorDistance": 0.061215,
+      "weight": 0.202181,
+      "rect": {
+        "x": 0.140225,
+        "y": 0.047596,
+        "width": 0.123782,
+        "height": 0.271405
+      }
+    },
+    {
+      "src": "/references/mood/industrial/industrial_7.png",
+      "fileName": "industrial_7.png",
+      "width": 1008,
+      "height": 1200,
+      "colorEmbedding": [
+        0.614605,
+        0.003405,
+        0.007053,
+        0.172924,
+        0.012102
+      ],
+      "colorDistance": 0.106286,
+      "weight": 0.156991,
+      "rect": {
+        "x": 0.10209,
+        "y": 0.329201,
+        "width": 0.122603,
+        "height": 0.259477
+      }
+    },
+    {
+      "src": "/references/mood/industrial/industrial_9.png",
+      "fileName": "industrial_9.png",
+      "width": 928,
+      "height": 1232,
+      "colorEmbedding": [
+        0.407288,
+        0.007963,
+        0.02072,
+        0.110257,
+        0.005017
+      ],
+      "colorDistance": 0.121674,
+      "weight": 0.116568,
+      "rect": {
+        "x": 0.485968,
+        "y": 0.751192,
+        "width": 0.10542,
+        "height": 0.248808
+      }
+    },
+    {
+      "src": "/references/mood/industrial/industrial_3.png",
+      "fileName": "industrial_3.png",
+      "width": 960,
+      "height": 1200,
+      "colorEmbedding": [
+        0.39113,
+        0.006935,
+        0.020814,
+        0.142657,
+        0.01457
+      ],
+      "colorDistance": 0.124738,
+      "weight": 0.08,
+      "rect": {
+        "x": 0.37261,
+        "y": 0.751192,
+        "width": 0.10762,
+        "height": 0.239156
+      }
+    }
+  ]
+}

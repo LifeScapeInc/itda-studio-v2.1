@@ -5,30 +5,60 @@ export type Moodboard = {
   previewImages: string[];
 };
 
+function previewImages(slug: string): string[] {
+  return [1, 2, 3].map(
+    (index) => `/references/mood/${slug}/${slug}_${index}.png`,
+  );
+}
+
 export const MOODBOARDS: Moodboard[] = [
   {
-    slug: "metalic",
-    name: "metalic",
-    description: "실버, 블랙, 그레이 톤을 중심으로 구조감과 오브제성을 강조하는 메탈무드",
-    previewImages: [1, 2, 3].map(
-      (index) => `/references/mood/metalic/metalic_${index}.png`,
-    ),
+    slug: "black",
+    name: "black",
+    description: "블랙을 중심으로 깊은 대비와 절제된 구조감",
+    previewImages: previewImages("black"),
+  },
+  {
+    slug: "colorful",
+    name: "colorful",
+    description: "선명한 색채와 경쾌한 조합으로 개성 있는 공간",
+    previewImages: previewImages("colorful"),
+  },
+  {
+    slug: "industrial",
+    name: "industrial",
+    description: "노출된 구조와 거친 소재의 질감",
+    previewImages: previewImages("industrial"),
+  },
+  {
+    slug: "metallic",
+    name: "metallic",
+    description: "실버와 메탈 소재의 반사감, 정제된 오브제",
+    previewImages: previewImages("metallic"),
+  },
+  {
+    slug: "natural",
+    name: "natural",
+    description: "자연 소재와 부드러운 중성 톤으로 만드는 편안함",
+    previewImages: previewImages("natural"),
   },
   {
     slug: "white",
     name: "white",
-    description: "깔끔한 하얀 배경과 자연광을 활용",
-    previewImages: [1, 2, 3].map(
-      (index) => `/references/mood/white/white_${index}.jpg`,
-    ),
+    description: "밝은 화이트 톤과 자연광으로 깨끗하고 여유로운 인상",
+    previewImages: previewImages("white"),
   },
   {
-    slug: "woody",
-    name: "woody",
-    description: "우드/원목 등 웜톤 가구에 쓸 수 있는 안정감을 강조하는 무드",
-    previewImages: [1, 2, 3].map(
-      (index) => `/references/mood/woody/woody_${index}.jpg`,
-    ),
+    slug: "woodydark",
+    name: "woody dark",
+    description: "짙은 목재와 깊은 웜톤으로 차분하고 묵직한 안정감",
+    previewImages: previewImages("woodydark"),
+  },
+  {
+    slug: "woodylight",
+    name: "woody light",
+    description: "밝은 원목과 부드러운 웜톤으로 가볍고 편안한 인상",
+    previewImages: previewImages("woodylight"),
   },
 ];
 

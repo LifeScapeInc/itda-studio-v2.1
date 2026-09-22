@@ -1,0 +1,307 @@
+{
+  "version": 1,
+  "style": "natural",
+  "generatedAt": "2026-09-22T05:52:50.946Z",
+  "seed": 3753552150,
+  "canvas": {
+    "width": 1600,
+    "height": 900,
+    "gap": 8
+  },
+  "items": [
+    {
+      "src": "/references/mood/natural/natural_1.png",
+      "fileName": "natural_1.png",
+      "width": 928,
+      "height": 1232,
+      "colorEmbedding": [
+        0.54776,
+        0.00345,
+        0.030334,
+        0.16478,
+        0.015549
+      ],
+      "colorDistance": 0.027888,
+      "weight": 1,
+      "rect": {
+        "x": 0.384506,
+        "y": 0.282979,
+        "width": 0.192087,
+        "height": 0.453355
+      }
+    },
+    {
+      "src": "/references/mood/natural/natural_11.png",
+      "fileName": "natural_11.png",
+      "width": 960,
+      "height": 1200,
+      "colorEmbedding": [
+        0.596731,
+        0.007436,
+        0.03347,
+        0.12488,
+        0.010769
+      ],
+      "colorDistance": 0.047149,
+      "weight": 0.758362,
+      "rect": {
+        "x": 0.202095,
+        "y": 0.342969,
+        "width": 0.177014,
+        "height": 0.393365
+      }
+    },
+    {
+      "src": "/references/mood/natural/natural_4.png",
+      "fileName": "natural_4.png",
+      "width": 912,
+      "height": 1296,
+      "colorEmbedding": [
+        0.534079,
+        -0.000651,
+        0.032182,
+        0.121997,
+        0.019448
+      ],
+      "colorDistance": 0.048103,
+      "weight": 0.617014,
+      "rect": {
+        "x": 0.58199,
+        "y": 0.282979,
+        "width": 0.141816,
+        "height": 0.358273
+      }
+    },
+    {
+      "src": "/references/mood/natural/natural_14.png",
+      "fileName": "natural_14.png",
+      "width": 896,
+      "height": 1344,
+      "colorEmbedding": [
+        0.5065,
+        0.000603,
+        0.037288,
+        0.14243,
+        0.013955
+      ],
+      "colorDistance": 0.059169,
+      "weight": 0.516725,
+      "rect": {
+        "x": 0.254093,
+        "y": 0,
+        "width": 0.125015,
+        "height": 0.333374
+      }
+    },
+    {
+      "src": "/references/mood/natural/natural_13.png",
+      "fileName": "natural_13.png",
+      "width": 928,
+      "height": 1232,
+      "colorEmbedding": [
+        0.500339,
+        0.010193,
+        0.034259,
+        0.144935,
+        0.012146
+      ],
+      "colorDistance": 0.065052,
+      "weight": 0.438935,
+      "rect": {
+        "x": 0.58199,
+        "y": 0.650846,
+        "width": 0.133068,
+        "height": 0.314062
+      }
+    },
+    {
+      "src": "/references/mood/natural/natural_8.png",
+      "fileName": "natural_8.png",
+      "width": 816,
+      "height": 1472,
+      "colorEmbedding": [
+        0.49646,
+        0.008621,
+        0.039185,
+        0.166853,
+        0.02162
+      ],
+      "colorDistance": 0.074068,
+      "weight": 0.375376,
+      "rect": {
+        "x": 0.720456,
+        "y": 0.650846,
+        "width": 0.093011,
+        "height": 0.298282
+      }
+    },
+    {
+      "src": "/references/mood/natural/natural_3.png",
+      "fileName": "natural_3.png",
+      "width": 896,
+      "height": 1344,
+      "colorEmbedding": [
+        0.550777,
+        0.002345,
+        0.02836,
+        0.206985,
+        0.022613
+      ],
+      "colorDistance": 0.08146,
+      "weight": 0.321638,
+      "rect": {
+        "x": 0.729203,
+        "y": 0.356311,
+        "width": 0.106853,
+        "height": 0.284941
+      }
+    },
+    {
+      "src": "/references/mood/natural/natural_12.png",
+      "fileName": "natural_12.png",
+      "width": 928,
+      "height": 1232,
+      "colorEmbedding": [
+        0.654547,
+        0.007298,
+        0.025959,
+        0.153769,
+        0.013155
+      ],
+      "colorDistance": 0.093282,
+      "weight": 0.275087,
+      "rect": {
+        "x": 0.132863,
+        "y": 0.05999,
+        "width": 0.115833,
+        "height": 0.273384
+      }
+    },
+    {
+      "src": "/references/mood/natural/natural_10.png",
+      "fileName": "natural_10.png",
+      "width": 896,
+      "height": 1344,
+      "colorEmbedding": [
+        0.65454,
+        0.003412,
+        0.025588,
+        0.179508,
+        0.014096
+      ],
+      "colorDistance": 0.101906,
+      "weight": 0.234027,
+      "rect": {
+        "x": 0.098001,
+        "y": 0.342969,
+        "width": 0.098696,
+        "height": 0.26319
+      }
+    },
+    {
+      "src": "/references/mood/natural/natural_5.png",
+      "fileName": "natural_5.png",
+      "width": 912,
+      "height": 1296,
+      "colorEmbedding": [
+        0.471764,
+        -0.008596,
+        0.043698,
+        0.163046,
+        0.01699
+      ],
+      "colorDistance": 0.102074,
+      "weight": 0.197297,
+      "rect": {
+        "x": 0.476023,
+        "y": 0.745929,
+        "width": 0.10057,
+        "height": 0.254071
+      }
+    },
+    {
+      "src": "/references/mood/natural/natural_2.png",
+      "fileName": "natural_2.png",
+      "width": 896,
+      "height": 1344,
+      "colorEmbedding": [
+        0.469645,
+        0.00966,
+        0.037787,
+        0.121069,
+        0.013222
+      ],
+      "colorDistance": 0.102315,
+      "weight": 0.164071,
+      "rect": {
+        "x": 0.378443,
+        "y": 0.745929,
+        "width": 0.092183,
+        "height": 0.245822
+      }
+    },
+    {
+      "src": "/references/mood/natural/natural_7.png",
+      "fileName": "natural_7.png",
+      "width": 896,
+      "height": 1344,
+      "colorEmbedding": [
+        0.452998,
+        0.003884,
+        0.033925,
+        0.149264,
+        0.011258
+      ],
+      "colorDistance": 0.110642,
+      "weight": 0.133738,
+      "rect": {
+        "x": 0.729203,
+        "y": 0.108424,
+        "width": 0.089359,
+        "height": 0.238292
+      }
+    },
+    {
+      "src": "/references/mood/natural/natural_6.png",
+      "fileName": "natural_6.png",
+      "width": 960,
+      "height": 1248,
+      "colorEmbedding": [
+        0.675358,
+        0.009487,
+        0.034234,
+        0.115854,
+        0.016024
+      ],
+      "colorDistance": 0.120926,
+      "weight": 0.105835,
+      "rect": {
+        "x": 0.096588,
+        "y": 0.615754,
+        "width": 0.10011,
+        "height": 0.231364
+      }
+    },
+    {
+      "src": "/references/mood/natural/natural_9.png",
+      "fileName": "natural_9.png",
+      "width": 864,
+      "height": 1376,
+      "colorEmbedding": [
+        0.776658,
+        0.004162,
+        0.026212,
+        0.12321,
+        0.019914
+      ],
+      "colorDistance": 0.216621,
+      "weight": 0.08,
+      "rect": {
+        "x": 0.82396,
+        "y": 0.121765,
+        "width": 0.079452,
+        "height": 0.22495
+      }
+    }
+  ]
+}

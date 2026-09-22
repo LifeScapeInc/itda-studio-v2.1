@@ -1,0 +1,244 @@
+{
+  "version": 1,
+  "style": "colorful",
+  "generatedAt": "2026-09-22T05:52:49.987Z",
+  "seed": 1564403331,
+  "canvas": {
+    "width": 1600,
+    "height": 900,
+    "gap": 8
+  },
+  "items": [
+    {
+      "src": "/references/mood/colorful/colorful_4.png",
+      "fileName": "colorful_4.png",
+      "width": 1088,
+      "height": 1445,
+      "colorEmbedding": [
+        0.524645,
+        0.019919,
+        0.046352,
+        0.162335,
+        0.047804
+      ],
+      "colorDistance": 0.020454,
+      "weight": 1,
+      "rect": {
+        "x": 0.405163,
+        "y": 0.260995,
+        "width": 0.197562,
+        "height": 0.466466
+      }
+    },
+    {
+      "src": "/references/mood/colorful/colorful_9.png",
+      "fileName": "colorful_9.png",
+      "width": 960,
+      "height": 1200,
+      "colorEmbedding": [
+        0.530324,
+        0.016641,
+        0.040536,
+        0.184994,
+        0.042001
+      ],
+      "colorDistance": 0.028648,
+      "weight": 0.73406,
+      "rect": {
+        "x": 0.608278,
+        "y": 0.260995,
+        "width": 0.17934,
+        "height": 0.398533
+      }
+    },
+    {
+      "src": "/references/mood/colorful/colorful_10.png",
+      "fileName": "colorful_10.png",
+      "width": 960,
+      "height": 1248,
+      "colorEmbedding": [
+        0.530554,
+        0.021012,
+        0.051755,
+        0.181618,
+        0.033114
+      ],
+      "colorDistance": 0.029284,
+      "weight": 0.578496,
+      "rect": {
+        "x": 0.244362,
+        "y": 0.368667,
+        "width": 0.155248,
+        "height": 0.358795
+      }
+    },
+    {
+      "src": "/references/mood/colorful/colorful_6.png",
+      "fileName": "colorful_6.png",
+      "width": 960,
+      "height": 1200,
+      "colorEmbedding": [
+        0.511907,
+        0.018791,
+        0.047249,
+        0.153094,
+        0.041494
+      ],
+      "colorDistance": 0.033267,
+      "weight": 0.468121,
+      "rect": {
+        "x": 0.608278,
+        "y": 0.6694,
+        "width": 0.14877,
+        "height": 0.3306
+      }
+    },
+    {
+      "src": "/references/mood/colorful/colorful_2.png",
+      "fileName": "colorful_2.png",
+      "width": 960,
+      "height": 1200,
+      "colorEmbedding": [
+        0.510065,
+        0.012044,
+        0.034202,
+        0.159724,
+        0.030401
+      ],
+      "colorDistance": 0.043289,
+      "weight": 0.382507,
+      "rect": {
+        "x": 0.260681,
+        "y": 0.050064,
+        "width": 0.138929,
+        "height": 0.30873
+      }
+    },
+    {
+      "src": "/references/mood/colorful/colorful_8.png",
+      "fileName": "colorful_8.png",
+      "width": 960,
+      "height": 1200,
+      "colorEmbedding": [
+        0.502578,
+        0.010575,
+        0.033685,
+        0.157949,
+        0.036711
+      ],
+      "colorDistance": 0.049969,
+      "weight": 0.312556,
+      "rect": {
+        "x": 0.124241,
+        "y": 0.067933,
+        "width": 0.130888,
+        "height": 0.290861
+      }
+    },
+    {
+      "src": "/references/mood/colorful/colorful_1.png",
+      "fileName": "colorful_1.png",
+      "width": 1088,
+      "height": 1445,
+      "colorEmbedding": [
+        0.521526,
+        0.019788,
+        0.047649,
+        0.202568,
+        0.043153
+      ],
+      "colorDistance": 0.052338,
+      "weight": 0.253413,
+      "rect": {
+        "x": 0.762601,
+        "y": 0.6694,
+        "width": 0.11679,
+        "height": 0.275754
+      }
+    },
+    {
+      "src": "/references/mood/colorful/colorful_7.png",
+      "fileName": "colorful_7.png",
+      "width": 960,
+      "height": 1200,
+      "colorEmbedding": [
+        0.587767,
+        0.023201,
+        0.057447,
+        0.15605,
+        0.035351
+      ],
+      "colorDistance": 0.06154,
+      "weight": 0.202181,
+      "rect": {
+        "x": 0.120609,
+        "y": 0.368667,
+        "width": 0.1182,
+        "height": 0.262667
+      }
+    },
+    {
+      "src": "/references/mood/colorful/colorful_11.png",
+      "fileName": "colorful_11.png",
+      "width": 960,
+      "height": 1200,
+      "colorEmbedding": [
+        0.615687,
+        0.02547,
+        0.047073,
+        0.158586,
+        0.028684
+      ],
+      "colorDistance": 0.080926,
+      "weight": 0.156991,
+      "rect": {
+        "x": 0.405163,
+        "y": 0,
+        "width": 0.113005,
+        "height": 0.251123
+      }
+    },
+    {
+      "src": "/references/mood/colorful/colorful_3.png",
+      "fileName": "colorful_3.png",
+      "width": 928,
+      "height": 1232,
+      "colorEmbedding": [
+        0.452067,
+        0.015661,
+        0.037799,
+        0.16472,
+        0.028844
+      ],
+      "colorDistance": 0.088801,
+      "weight": 0.116568,
+      "rect": {
+        "x": 0.523721,
+        "y": 0.010326,
+        "width": 0.102026,
+        "height": 0.240797
+      }
+    },
+    {
+      "src": "/references/mood/colorful/colorful_5.png",
+      "fileName": "colorful_5.png",
+      "width": 1015,
+      "height": 1549,
+      "colorEmbedding": [
+        0.632272,
+        0.032085,
+        0.04135,
+        0.152106,
+        0.051465
+      ],
+      "colorDistance": 0.102589,
+      "weight": 0.08,
+      "rect": {
+        "x": 0.793171,
+        "y": 0.428072,
+        "width": 0.085311,
+        "height": 0.231456
+      }
+    }
+  ]
+}

@@ -1,0 +1,223 @@
+{
+  "version": 1,
+  "style": "woodydark",
+  "generatedAt": "2026-09-22T05:52:51.441Z",
+  "seed": 2602909923,
+  "canvas": {
+    "width": 1600,
+    "height": 900,
+    "gap": 8
+  },
+  "items": [
+    {
+      "src": "/references/mood/woodydark/woodydark_7.png",
+      "fileName": "woodydark_7.png",
+      "width": 960,
+      "height": 1200,
+      "colorEmbedding": [
+        0.406227,
+        0.01494,
+        0.029091,
+        0.230163,
+        0.020269
+      ],
+      "colorDistance": 0.057419,
+      "weight": 1,
+      "rect": {
+        "x": 0.3945,
+        "y": 0.256532,
+        "width": 0.213616,
+        "height": 0.474702
+      }
+    },
+    {
+      "src": "/references/mood/woodydark/woodydark_1.png",
+      "fileName": "woodydark_1.png",
+      "width": 896,
+      "height": 1344,
+      "colorEmbedding": [
+        0.465969,
+        0.024816,
+        0.038087,
+        0.240027,
+        0.02017
+      ],
+      "colorDistance": 0.064989,
+      "weight": 0.723052,
+      "rect": {
+        "x": 0.237833,
+        "y": 0.256532,
+        "width": 0.151015,
+        "height": 0.402707
+      }
+    },
+    {
+      "src": "/references/mood/woodydark/woodydark_8.png",
+      "fileName": "woodydark_8.png",
+      "width": 928,
+      "height": 1232,
+      "colorEmbedding": [
+        0.361611,
+        0.024094,
+        0.030015,
+        0.200558,
+        0.015608
+      ],
+      "colorDistance": 0.083927,
+      "weight": 0.561048,
+      "rect": {
+        "x": 0.613767,
+        "y": 0.37064,
+        "width": 0.152784,
+        "height": 0.360594
+      }
+    },
+    {
+      "src": "/references/mood/woodydark/woodydark_3.png",
+      "fileName": "woodydark_3.png",
+      "width": 928,
+      "height": 1232,
+      "colorEmbedding": [
+        0.504411,
+        0.015697,
+        0.030203,
+        0.257816,
+        0.019339
+      ],
+      "colorDistance": 0.100882,
+      "weight": 0.446105,
+      "rect": {
+        "x": 0.248725,
+        "y": 0.669286,
+        "width": 0.140124,
+        "height": 0.330714
+      }
+    },
+    {
+      "src": "/references/mood/woodydark/woodydark_6.png",
+      "fileName": "woodydark_6.png",
+      "width": 928,
+      "height": 1232,
+      "colorEmbedding": [
+        0.380189,
+        0.021819,
+        0.042508,
+        0.129337,
+        0.016463
+      ],
+      "colorDistance": 0.115945,
+      "weight": 0.356948,
+      "rect": {
+        "x": 0.613767,
+        "y": 0.053057,
+        "width": 0.130304,
+        "height": 0.307537
+      }
+    },
+    {
+      "src": "/references/mood/woodydark/woodydark_5.png",
+      "fileName": "woodydark_5.png",
+      "width": 960,
+      "height": 1200,
+      "colorEmbedding": [
+        0.562203,
+        0.012606,
+        0.024783,
+        0.225404,
+        0.01362
+      ],
+      "colorDistance": 0.126165,
+      "weight": 0.284101,
+      "rect": {
+        "x": 0.749722,
+        "y": 0.071994,
+        "width": 0.12987,
+        "height": 0.2886
+      }
+    },
+    {
+      "src": "/references/mood/woodydark/woodydark_9.png",
+      "fileName": "woodydark_9.png",
+      "width": 960,
+      "height": 1200,
+      "colorEmbedding": [
+        0.579328,
+        0.013931,
+        0.044142,
+        0.21003,
+        0.014748
+      ],
+      "colorDistance": 0.139862,
+      "weight": 0.22251,
+      "rect": {
+        "x": 0.120409,
+        "y": 0.669286,
+        "width": 0.122665,
+        "height": 0.272589
+      }
+    },
+    {
+      "src": "/references/mood/woodydark/woodydark_2.png",
+      "fileName": "woodydark_2.png",
+      "width": 896,
+      "height": 1344,
+      "colorEmbedding": [
+        0.281692,
+        0.007363,
+        0.018963,
+        0.194863,
+        0.009367
+      ],
+      "colorDistance": 0.166758,
+      "weight": 0.169157,
+      "rect": {
+        "x": 0.772202,
+        "y": 0.37064,
+        "width": 0.09702,
+        "height": 0.258719
+      }
+    },
+    {
+      "src": "/references/mood/woodydark/woodydark_4.png",
+      "fileName": "woodydark_4.png",
+      "width": 896,
+      "height": 1344,
+      "colorEmbedding": [
+        0.612966,
+        0.014391,
+        0.036252,
+        0.183922,
+        0.024801
+      ],
+      "colorDistance": 0.171463,
+      "weight": 0.122097,
+      "rect": {
+        "x": 0.515683,
+        "y": 0,
+        "width": 0.092432,
+        "height": 0.246486
+      }
+    },
+    {
+      "src": "/references/mood/woodydark/woodydark_10.png",
+      "fileName": "woodydark_10.png",
+      "width": 896,
+      "height": 1344,
+      "colorEmbedding": [
+        0.278252,
+        0.016313,
+        0.032118,
+        0.113796,
+        0.015456
+      ],
+      "colorDistance": 0.200864,
+      "weight": 0.08,
+      "rect": {
+        "x": 0.143854,
+        "y": 0.423697,
+        "width": 0.088328,
+        "height": 0.235542
+      }
+    }
+  ]
+}
