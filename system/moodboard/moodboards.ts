@@ -11,7 +11,7 @@ function previewImages(slug: string): string[] {
   );
 }
 
-// moodboard
+// moodboard //
 export const MOODBOARDS: Moodboard[] = [
   {
     slug: "black",
