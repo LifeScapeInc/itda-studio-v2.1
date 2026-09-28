@@ -126,7 +126,7 @@ export function GenerationHistoryGallery({
   };
 
   return (
-    <Area aria-label="생성 히스토리">
+    <Area id="generation-history" aria-label="생성 히스토리">
       <Header>
         <h3 className="type-xsmall-body">
           <History size={15} />

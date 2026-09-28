@@ -29,7 +29,7 @@ const Tabs = styled.nav`
 const Tab = styled.div<{ $active: boolean }>`
   display: flex;
   width: 294px;
-  height: 56px;
+  height: var(--header-height);
   min-width: 180px;
   flex: 0 1 294px;
   align-items: center;
@@ -55,7 +55,7 @@ const OpenLink = styled(Link)`
   align-items: center;
   padding-left: 20px;
   color: var(--color-label-studio-black);
-  font-size: 16px;
+  font-size: 13px;
   font-weight: 500;
   line-height: 1;
 

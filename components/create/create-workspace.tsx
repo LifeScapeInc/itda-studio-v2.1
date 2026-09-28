@@ -26,7 +26,7 @@ const Workspace = styled.main<{
     minmax(0, 1fr)
     ${({ $settingsWidth }) => $settingsWidth}px;
   margin-left: var(--navigation-left-width, 203px);
-  padding-top: 56px;
+  padding-top: var(--header-height);
   overflow: hidden;
   transition: margin-left 220ms ease;
 `;

@@ -18,7 +18,7 @@ import {
 const Aside = styled.aside<{ $collapsed: boolean }>`
   position: fixed;
   z-index: 10;
-  top: 56px;
+  top: var(--header-height);
   bottom: 0;
   left: 0;
   width: 203px;

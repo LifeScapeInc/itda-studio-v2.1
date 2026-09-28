@@ -18,11 +18,7 @@ const List = styled.div`
   gap: var(--space-2xs);
 `;
 
-export function AngleVariationSelector({
-  onActivate,
-}: {
-  onActivate: () => void;
-}) {
+export function AngleVariationSelector() {
   const selectedIds = useCreateStore((state) => state.angleVariationIds);
   const toggleAngleVariation = useCreateStore(
     (state) => state.toggleAngleVariation,
@@ -31,7 +27,7 @@ export function AngleVariationSelector({
   return (
     <>
       <Description>
-        카메라 위치와 촬영 기법만 바꿔 생성합니다
+        같은 공간을 다른 시점으로 촬영합니다. 전문가 설정의 채광·소품도 함께 적용할 수 있어요.
       </Description>
       <List aria-label="앵글 변주" aria-multiselectable="true">
         {ANGLE_VARIATION_OPTIONS.map((option) => {
@@ -44,12 +40,7 @@ export function AngleVariationSelector({
               description={option.description}
               previewImage={option.previewImage}
               ariaPressed={selected}
-              onClick={() => {
-                if (!selected) {
-                  onActivate();
-                }
-                toggleAngleVariation(option.id);
-              }}
+              onClick={() => toggleAngleVariation(option.id)}
               key={option.id}
             />
           );

@@ -5,12 +5,12 @@ import styled from "styled-components";
 const Badge = styled.div`
   position: relative;
   display: grid;
-  width: 36px;
-  height: 36px;
-  flex: 0 0 36px;
+  width: 26px;
+  height: 26px;
+  flex: 0 0 26px;
   place-items: center;
   color: var(--color-surface);
-  font-size: 16px;
+  font-size: 11px;
   font-weight: 700;
   line-height: 1;
 

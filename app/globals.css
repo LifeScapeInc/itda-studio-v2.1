@@ -22,6 +22,7 @@
 
 :root {
   color-scheme: light;
+  --header-height: 44px;
   --color-main-primary: #625738;
   --color-main-secondary: #584439;
   --color-main-tertiary: #f2e7bc;

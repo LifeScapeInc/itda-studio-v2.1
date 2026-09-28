@@ -6,10 +6,9 @@ import { NavigationLeft } from "@/components/layout/navigation-left";
 import { NavigationTop } from "@/components/layout/navigation-top";
 import { LabelTitle } from "@/components/ui/label-title";
 import { useAppSettingsStore } from "@/stores/useAppSettingsStore";
-import { useTokenUsageStore } from "@/stores/useTokenUsageStore";
 import { StudioShell } from "@/system/styles/layout";
 import { AccountProfilePanel } from "./account-profile-panel";
-import { TokenUsagePanel } from "./token-usage-panel";
+import { ApiUsagePanel } from "./api-usage-panel";
 import { AccountHeader } from "./account-header";
 
 const Workspace = styled.main`
@@ -17,7 +16,7 @@ const Workspace = styled.main`
   height: 100%;
   min-height: 0;
   margin-left: var(--navigation-left-width, 203px);
-  padding: 104px var(--space-2xl) var(--space-2xl);
+  padding: calc(var(--header-height, 44px) + 32px) var(--space-2xl) var(--space-2xl);
   flex-direction: column;
   background: var(--color-main-neutral);
   overflow: hidden;
@@ -55,12 +54,10 @@ const Group = styled.section`
 
 export function AccountWorkspace() {
   const loadStatus = useAppSettingsStore((state) => state.loadStatus);
-  const hydrateUsage = useTokenUsageStore((state) => state.hydrate);
 
   useEffect(() => {
     void loadStatus();
-    hydrateUsage();
-  }, [hydrateUsage, loadStatus]);
+  }, [loadStatus]);
 
   return (
     <StudioShell>
@@ -78,8 +75,8 @@ export function AccountWorkspace() {
               <AccountProfilePanel />
             </Group>
             <Group>
-              <AccountHeader>토큰 사용량</AccountHeader>
-              <TokenUsagePanel />
+              <AccountHeader>OpenAI Platform 사용량</AccountHeader>
+              <ApiUsagePanel />
             </Group>
           </Content>
         </ScrollArea>

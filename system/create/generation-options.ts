@@ -86,8 +86,8 @@ export const CONTENT_SET_OPTIONS: ContentSetOption[] = [
   },
   {
     id: "free",
-    label: "자유 생성",
-    description: "필요한 장 수를 직접 설정",
+    label: "단건 · 여러 장 생성",
+    description: "같은 설정으로 1–8장의 시안 생성",
     cutCount: null,
     icon: SlidersHorizontal,
   },
@@ -168,28 +168,50 @@ export const EDIT_MODE_OPTIONS = [
 
 export function normalizeFreeCount(freeCount: number): number {
   if (!Number.isFinite(freeCount)) return 1;
-  return Math.max(1, Math.floor(freeCount));
+  return Math.min(MAX_GENERATION_COUNT, Math.max(1, Math.floor(freeCount)));
 }
 
+export const MAX_GENERATION_COUNT = 8;
+
 export const LIGHT_OPTIONS = [
+  "원본 유지",
   "아침 햇살",
+  "한낮 자연광",
+  "흐린 날 확산광",
   "노을빛",
+  "블루아워",
   "부드러운 스튜디오",
+  "측면 채광",
+  "역광 실루엣",
+  "따뜻한 간접조명",
   "드라마틱 대비",
 ];
 
 export const MOOD_OPTIONS = [
+  "원본 유지",
   "모던 미니멀",
   "따뜻 포근",
   "럭셔리",
   "빈티지",
+  "재팬디",
+  "스칸디나비안",
+  "인더스트리얼",
+  "내추럴 우드",
+  "갤러리 화이트",
 ];
 
 export const PROP_OPTIONS = [
+  "소품 없음",
   "식물",
   "러그",
   "커피/책",
   "벽 장식",
+  "도자기 화병",
+  "플로어 램프",
+  "쿠션/블랭킷",
+  "오브제",
+  "커튼",
+  "사이드 테이블",
 ];
 
 export function getCutCount(

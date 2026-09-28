@@ -26,6 +26,8 @@ export type GenerationPromptInput = {
   freeCount: number;
   quality: GenerationQuality;
   editMode: string;
+  productPreservation?: number;
+  referenceStrength?: number;
   light: string;
   mood: string;
   props: string[];
@@ -47,9 +49,9 @@ const PHOTOREAL =
   "Photorealistic, with believable scale and natural contact shadows.";
 const ANGLE_ROLE = "the same photographer continuing the same shoot";
 const ANGLE_BODY =
-  "Treat the first image as a finished photo of a real room. Re-photograph that same room from a different camera position — as if the photographer walked to another spot during the same shoot. Everything in the room stays identical; only the camera moves.";
+  "Treat the first image as the scene and product to re-photograph from a different camera position. Preserve the room layout and object identities. Change only the camera and the styling changes explicitly requested below; otherwise retain the original light, materials, and props.";
 const ANGLE_CONSTRAINTS =
-  "Same room photographed twice, not two similar rooms. If something falls outside the new frame, omit it — never invent a replacement. Photorealistic.";
+  "Keep the same room geometry. The requested camera angle takes priority over reference framing. If something falls outside the new frame, omit it; do not invent replacements. Explicit lighting and styling directions may change those aspects only. Photorealistic.";
 
 const CONTENT_PROMPT_TEMPLATES: Partial<
   Record<ContentSetId, PromptTemplate>
@@ -134,8 +136,14 @@ const CONTENT_PROMPT_TEMPLATES: Partial<
 
 const LIGHT_PROMPTS: Record<string, string> = {
   "아침 햇살": "soft morning sunlight, fresh and airy",
+  "한낮 자연광": "clear neutral midday daylight",
+  "흐린 날 확산광": "soft overcast daylight with gentle low-contrast shadows",
   노을빛: "warm golden-hour light, long soft shadows",
+  블루아워: "cool blue-hour ambient light balanced with warm interior lights",
   "부드러운 스튜디오": "soft diffused studio lighting",
+  "측면 채광": "directional window light from the side, revealing surface texture",
+  "역광 실루엣": "gentle backlighting with a readable product and delicate rim highlights",
+  "따뜻한 간접조명": "warm indirect interior lighting without harsh hotspots",
   "드라마틱 대비": "dramatic high-contrast lighting",
 };
 
@@ -144,14 +152,54 @@ const MOOD_PROMPTS: Record<string, string> = {
   "따뜻 포근": "warm, cozy, lived-in",
   럭셔리: "luxury boutique hotel",
   빈티지: "vintage retro",
+  재팬디: "restrained Japandi styling with organic textures and calm neutral tones",
+  스칸디나비안: "bright Scandinavian styling with pale wood and practical simplicity",
+  인더스트리얼: "industrial styling with concrete and metal accents",
+  "내추럴 우드": "natural wood finishes, earthy textures and an organic palette",
+  "갤러리 화이트": "quiet white gallery styling with generous breathing space",
 };
 
 const PROP_PROMPTS: Record<string, string> = {
+  "소품 없음": "no decorative props; keep the product and essential room architecture only",
   식물: "plants and greenery",
   러그: "a textured rug",
   "커피/책": "coffee, books, magazines",
   "벽 장식": "framed art on the wall",
+  "도자기 화병": "a restrained ceramic vase",
+  "플로어 램프": "a sculptural floor lamp",
+  "쿠션/블랭킷": "coordinated cushions and a casually draped blanket",
+  오브제: "a small curated decorative object",
+  커튼: "soft linen curtains",
+  "사이드 테이블": "a proportionate side table that does not obscure the main product",
 };
+
+function getProductLock(input: GenerationPromptInput): string {
+  if (input.productPreservation === undefined) {
+    return input.editMode === "material" ? PRODUCT_FORM_LOCK : PRODUCT_LOCK;
+  }
+  if (input.productPreservation >= 75) return PRODUCT_LOCK;
+  if (input.productPreservation >= 35) {
+    return `${PRODUCT_FORM_LOCK} Preserve recognizable construction and details, but allow subtle material and color adaptations to suit the styling direction.`;
+  }
+  return "Keep the core identity and function of the product from the first image recognizable. Allow creative changes to its color, finish, and styling, but retain its underlying structure.";
+}
+
+function getReferenceDirection(input: GenerationPromptInput): string {
+  if (!input.referenceImage) return "";
+  if (input.referenceStrength === undefined) {
+    return getInputRelationship(true, input.editMode).body;
+  }
+  if (input.referenceStrength === 0) {
+    return "Ignore the reference image; build the scene using the product image and written directions only.";
+  }
+  if (input.referenceStrength < 35) {
+    return "Use the second image as loose color and mood inspiration only. Compose a new scene around the first image's product.";
+  }
+  if (input.referenceStrength < 75) {
+    return "Borrow the second image's lighting, palette, textures, and styling language. Adapt its setting to the product; do not copy objects from the reference into the product itself.";
+  }
+  return "Closely follow the second image's room styling, background, light, and prop arrangement, replacing its main furniture with the first image's product. Explicit camera and styling directions below override matching reference aspects.";
+}
 
 function getInputRelationship(
   hasReference: boolean,
@@ -197,7 +245,7 @@ function getStylePrompt(input: GenerationPromptInput): string {
     ...input.props.map((prop) => PROP_PROMPTS[prop]),
   ].filter((value): value is string => Boolean(value));
 
-  return tags.length > 0 ? `Lean toward: ${tags.join(", ")}.` : "";
+  return tags.length > 0 ? `Requested styling changes: ${tags.join(", ")}. Apply these changes while preserving unmentioned scene elements.` : "";
 }
 
 function normalizeUserPrompt(value: string): string {
@@ -210,16 +258,14 @@ function composePrompt(
   template: PromptTemplate,
   shotRole?: string,
 ): string {
-  const relationship = getInputRelationship(
-    Boolean(input.referenceImage),
-    input.editMode,
-  );
   const lines = [
     template.purpose
       ? `Act as ${template.role}. Create ${template.purpose}.`
       : `Act as ${template.role || DEFAULT_ROLE}.`,
-    relationship.lock,
-    relationship.body,
+    getProductLock(input),
+    input.referenceImage
+      ? getReferenceDirection(input)
+      : "Build a believable interior scene around the product from scratch.",
     shotRole ? `This frame: ${shotRole}.` : "",
     getStylePrompt(input),
     normalizeUserPrompt(input.prompt),
@@ -256,10 +302,16 @@ function getAngleVariationPrompts(
       prompt: [
         `Act as ${ANGLE_ROLE}.`,
         ANGLE_BODY,
+        getProductLock(input),
+        input.referenceImage
+          ? `${getReferenceDirection(input)} Use these cues within the original room geometry; do not move walls, doors, or fixed architectural elements.`
+          : "",
         `This frame: ${option.shotRole}.`,
         `Camera: ${option.compositionPrompt}, ${option.techniquePrompt}.`,
+        getStylePrompt(input),
+        normalizeUserPrompt(input.prompt),
         ANGLE_CONSTRAINTS,
-      ].join("\n\n"),
+      ].filter(Boolean).join("\n\n"),
     }));
 }
 

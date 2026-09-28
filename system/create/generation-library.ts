@@ -1,4 +1,5 @@
 import type { GenerationShot } from "@/system/create/generation-shots";
+import type { ImageRatio } from "@/system/create/generation-ratios";
 import type {
   AngleVariationId,
   ContentSetId,
@@ -15,6 +16,10 @@ export type GenerationSettingsSnapshot = {
   contentSet: ContentSetId | null;
   angleVariationIds: AngleVariationId[];
   freeCount: number;
+  aspectRatio?: ImageRatio;
+  useSetRatios?: boolean;
+  productPreservation?: number;
+  referenceStrength?: number;
   quality: GenerationQuality;
   editMode?: string;
   light: string;

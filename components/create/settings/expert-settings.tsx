@@ -3,7 +3,6 @@
 import styled from "styled-components";
 import { useCreateStore } from "@/stores/useCreateStore";
 import {
-  EDIT_MODE_OPTIONS,
   LIGHT_OPTIONS,
   MOOD_OPTIONS,
   PROP_OPTIONS,
@@ -56,18 +55,6 @@ const Chip = styled.button<{ $selected: boolean }>`
   cursor: pointer;
 `;
 
-const Select = styled.select`
-  height: 34px;
-  padding: 0 var(--space-2xs);
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  background: var(--color-surface);
-  font-size: 12px;
-  outline: none;
-
-  &:focus { border-color: var(--color-main-primary); }
-`;
-
 const Prompt = styled.textarea`
   width: 100%;
   height: 78px;
@@ -95,7 +82,7 @@ function ChipGroup({
   multi?: boolean;
 }) {
   return (
-    <Chips aria-multiselectable={multi}>
+    <Chips role="group" aria-label={multi ? "복수 선택 가능" : "한 가지 선택"}>
       {options.map((option) => (
         <Chip
           type="button"
@@ -112,15 +99,12 @@ function ChipGroup({
 }
 
 export function ExpertSettings() {
-  const referenceImage = useCreateStore((state) => state.referenceImage);
   const quality = useCreateStore((state) => state.quality);
-  const editMode = useCreateStore((state) => state.editMode);
   const light = useCreateStore((state) => state.light);
   const mood = useCreateStore((state) => state.mood);
   const props = useCreateStore((state) => state.props);
   const prompt = useCreateStore((state) => state.prompt);
   const setQuality = useCreateStore((state) => state.setQuality);
-  const setEditMode = useCreateStore((state) => state.setEditMode);
   const setLight = useCreateStore((state) => state.setLight);
   const setMood = useCreateStore((state) => state.setMood);
   const toggleProp = useCreateStore((state) => state.toggleProp);
@@ -129,7 +113,7 @@ export function ExpertSettings() {
   return (
     <Fields>
       <Description>
-        품질과 조명, 무드 등 세부 생성 조건을 설정합니다
+        앵글과 함께 사용할 수 있어요. 원본 유지를 선택하면 해당 연출을 바꾸지 않습니다.
       </Description>
       <Field>
         <FieldLabel>품질</FieldLabel>
@@ -138,6 +122,7 @@ export function ExpertSettings() {
             <Chip
               type="button"
               $selected={quality === option.id}
+              aria-pressed={quality === option.id}
               onClick={() => setQuality(option.id as GenerationQuality)}
               key={option.id}
             >
@@ -146,27 +131,10 @@ export function ExpertSettings() {
           ))}
         </Chips>
       </Field>
-      {referenceImage ? (
-        <Field>
-          <FieldLabel>AI 편집 방식</FieldLabel>
-          <Select
-            value={editMode}
-            onChange={(event) => setEditMode(event.target.value)}
-          >
-            {EDIT_MODE_OPTIONS.map((option) => (
-              <option
-                value={option.id}
-                key={option.id}
-              >
-                {option.label}
-              </option>
-            ))}
-          </Select>
-        </Field>
-      ) : null}
       <Field><FieldLabel>채광 및 시간대</FieldLabel><ChipGroup options={LIGHT_OPTIONS} selected={[light]} onSelect={setLight} /></Field>
       <Field><FieldLabel>인테리어 무드</FieldLabel><ChipGroup options={MOOD_OPTIONS} selected={[mood]} onSelect={setMood} /></Field>
       <Field><FieldLabel>연출 소품</FieldLabel><ChipGroup options={PROP_OPTIONS} selected={props} onSelect={toggleProp} multi /></Field>
+      <Description>소품은 여러 개 선택할 수 있습니다. ‘소품 없음’은 다른 소품 선택을 해제합니다.</Description>
       <Field>
         <FieldLabel>추가 디렉션 (프롬프트)</FieldLabel>
         <Prompt

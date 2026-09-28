@@ -24,7 +24,7 @@ export const NAVIGATION_GROUPS: Array<{
     items: [
       {
         label: "가져오기",
-        href: "/",
+        href: "/workspace",
         icon: FileDown,
       },
       {
@@ -78,6 +78,7 @@ export function isNavigationItemActive(
   return href !== "#"
     && (
       pathname === href
+      || (href === "/workspace" && pathname === "/")
       || (href !== "/" && pathname.startsWith(`${href}/`))
     );
 }

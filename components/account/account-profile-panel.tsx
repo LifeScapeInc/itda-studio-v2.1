@@ -98,7 +98,7 @@ export function AccountProfilePanel() {
           </Row>
         </Rows>
         <Hint className="type-xsmall-thin">
-          토큰 사용량은 실제 API 응답을 기준으로 이 브라우저에 월별로 기록됩니다.
+          사용량은 OpenAI Platform에서 조회합니다. 조직 사용량 연결에는 이미지 생성용 키와 별도의 관리 키가 필요합니다.
         </Hint>
     </Content>
   );

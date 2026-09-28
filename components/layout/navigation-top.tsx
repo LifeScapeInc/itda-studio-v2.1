@@ -14,10 +14,10 @@ const Header = styled.header`
   right: 0;
   left: 0;
   display: flex;
-  height: 56px;
+  height: var(--header-height);
   align-items: center;
   justify-content: space-between;
-  padding: 0 var(--space-lg);
+  padding: 0 var(--space-md);
   border-bottom: 1px solid var(--color-border);
   background: var(--color-main-neutral);
 `;
@@ -27,7 +27,7 @@ const Brand = styled.div`
   z-index: 2;
   display: flex;
   align-items: center;
-  gap: var(--space-sm);
+  gap: 10px;
 `;
 
 const MenuButton = styled.button`
@@ -50,8 +50,8 @@ const MenuButton = styled.button`
   }
 
   img {
-    width: 22px;
-    height: 18px;
+    width: 16px;
+    height: 14px;
     object-fit: fill;
   }
 
@@ -61,11 +61,23 @@ const MenuButton = styled.button`
 `;
 
 const StudioLogo = styled(Image)`
-  width: 116px;
-  height: 18px;
+  width: 97px;
+  height: auto;
 
   :root.dark & {
     filter: brightness(0) invert(94%) sepia(8%) saturate(260%);
+  }
+`;
+
+const HomeLink = styled(Link)`
+  display: flex;
+  height: 32px;
+  align-items: center;
+  border-radius: 4px;
+
+  &:focus-visible {
+    outline: 2px solid var(--color-main-primary);
+    outline-offset: 4px;
   }
 `;
 
@@ -111,13 +123,15 @@ export function NavigationTop() {
             priority
           />
         </MenuButton>
-        <StudioLogo
-          src="/assets/icon_studio.svg"
-          width={116}
-          height={18}
-          alt="ITDA studio"
-          priority
-        />
+        <HomeLink href="/workspace" aria-label="ITDA Studio 홈으로 이동">
+          <StudioLogo
+            src="/assets/icon_studio.svg"
+            width={116}
+            height={18}
+            alt="ITDA studio"
+            priority
+          />
+        </HomeLink>
       </Brand>
       <TabProject />
       <AccountArea>

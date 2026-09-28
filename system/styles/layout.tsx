@@ -35,7 +35,7 @@ export const WorkspaceContent = styled.main<{ $surface?: boolean }>`
   min-height: 0;
   flex-direction: column;
   margin-left: var(--navigation-left-width, 203px);
-  padding: 104px var(--space-2xl) var(--space-2xl);
+  padding: calc(var(--header-height) + 32px) var(--space-2xl) var(--space-2xl);
   overflow: hidden;
   background: ${({ $surface }) => (
     $surface ? "var(--color-surface)" : "transparent"

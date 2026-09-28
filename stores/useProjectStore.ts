@@ -14,6 +14,7 @@ export type ProjectWorkRecord = {
 export type StudioProject = {
   id: string;
   projectName: string;
+  description?: string;
   workType: ProjectWorkType;
   stage: ProjectStage;
   manager: string;
@@ -29,6 +30,7 @@ export type StudioProject = {
 };
 export type ManualProjectInput = {
   projectName: string;
+  description?: string;
   workType: ProjectWorkType;
   stage: ProjectStage;
   manager?: string;
@@ -151,6 +153,7 @@ export const useProjectStore = create<ProjectStore>()(persist((set, get) => ({
     const project: StudioProject = {
       id: createId(),
       projectName: input.projectName.trim(),
+      description: input.description?.trim() || "",
       workType: input.workType,
       stage: input.stage,
       manager: input.manager?.trim() || "",

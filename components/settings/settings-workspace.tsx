@@ -15,7 +15,7 @@ const Workspace = styled.main`
   height: 100%;
   min-height: 0;
   margin-left: var(--navigation-left-width, 203px);
-  padding: 104px var(--space-2xl) var(--space-2xl);
+  padding: calc(var(--header-height) + 32px) var(--space-2xl) var(--space-2xl);
   flex-direction: column;
   background: var(--color-main-neutral-light);
   overflow: hidden;

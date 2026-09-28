@@ -18,7 +18,7 @@ export function ProjectPreview({
       alt=""
       fill
       unoptimized
-      sizes={index === 0 ? "180px" : "104px"}
+      sizes={index === 0 ? "(max-width: 1200px) 45vw, 30vw" : "104px"}
       style={{ objectFit: "cover" }}
     />
   ) : <ProjectPlaceholderImage seed={`${project.id}-${index}`} />;

@@ -28,7 +28,7 @@ const Workspace = styled.main`
   min-width: 0;
   min-height: 0;
   margin-left: var(--navigation-left-width, 203px);
-  padding-top: 56px;
+  padding-top: var(--header-height);
   background: var(--color-main-neutral-light);
   overflow: hidden;
   transition: margin-left 220ms ease;

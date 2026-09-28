@@ -5,6 +5,7 @@ import type {
 import { getOpenAIApiKey } from "@/system/server/app-settings";
 import { imageResponseTokenUsage } from "@/system/usage/token-usage";
 import { runOpenAIImageEdit } from "@/system/server/openai-image";
+import { getRatioOption, isGenerationRatio } from "@/system/create/generation-ratios";
 
 export const maxDuration = 300;  // static configuration of Next.js Route Handler
 
@@ -18,21 +19,20 @@ function isGenerationRequest(value: unknown): value is GenerationApiRequest {
     && Boolean(request.productImage)
     && typeof request.prompt === "string"
     && Boolean(request.prompt.trim())
-    && typeof request.quality === "string"
-    && typeof request.ratio === "string";
+    && ["low", "medium", "high"].includes(request.quality ?? "")
+    && isGenerationRatio(request.ratio)
+    && (request.mockMode === undefined || typeof request.mockMode === "boolean")
+    && (request.referenceImages === undefined || (
+      Array.isArray(request.referenceImages)
+      && request.referenceImages.length <= 15
+      && request.referenceImages.every(image => typeof image === "string" && Boolean(image))
+    ));
 }
 
 function mockDimensions(ratio: GenerationApiRequest["ratio"]): [number, number] {
-  const dimensions: Record<GenerationApiRequest["ratio"], [number, number]> = {
-    "1:1": [1024, 1024],
-    "3:4": [900, 1200],
-    "4:5": [960, 1200],
-    "9:16": [720, 1280],
-    "16:9": [1280, 720],
-    original: [1200, 900],
-  };
-
-  return dimensions[ratio];
+  if (ratio === "original") return [1200, 900];
+  const option = getRatioOption(ratio);
+  return [option.width, option.height];
 }
 
 function hashPrompt(prompt: string): number {

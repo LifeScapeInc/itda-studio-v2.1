@@ -5,13 +5,8 @@ import {
   type ContentSetId,
 } from "@/system/create/generation-options";
 
-export type GenerationRatio =
-  | "1:1"
-  | "3:4"
-  | "4:5"
-  | "9:16"
-  | "16:9"
-  | "original";
+import { getRatioOption, type ImageRatio, type GenerationRatio } from "./generation-ratios";
+export type { GenerationRatio } from "./generation-ratios";
 
 export type GenerationShotStatus = "pending" | "generating" | "done" | "error";
 
@@ -57,6 +52,8 @@ export type GenerationShotInput = {
   contentSet: ContentSetId | null;
   freeCount: number;
   angleVariationIds: AngleVariationId[];
+  aspectRatio?: ImageRatio;
+  useSetRatios?: boolean;
 };
 
 function getAngleShots(
@@ -98,6 +95,12 @@ export function createGenerationShots(
 
   return definitions.map((shot) => ({
     ...shot,
+    ...(input.aspectRatio && (
+      input.contentSet === "free" || input.angleVariationIds.length > 0 || input.useSetRatios === false
+    ) ? {
+      ratio: input.aspectRatio,
+      resolution: `${getRatioOption(input.aspectRatio).width}×${getRatioOption(input.aspectRatio).height}`,
+    } : {}),
     status: "pending",
   }));
 }

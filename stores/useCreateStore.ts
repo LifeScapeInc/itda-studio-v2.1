@@ -40,12 +40,15 @@ import {
 } from "@/system/create/generation-options";
 import { getGenerationModeLabel } from "@/system/create/generation-prompt";
 import { cutGenerationUsageContext } from "@/system/usage/token-usage-context";
+import { normalizeFreeCount } from "@/system/create/generation-options";
+import type { ImageRatio } from "@/system/create/generation-ratios";
 
 export type GenerationRunResult = {
   usedActualGeneration: boolean;
   actualCompleted: number;
   completed: number;
   failed: number;
+  error?: string;
 };
 
 type CreateWorkspaceSnapshot = {
@@ -54,6 +57,10 @@ type CreateWorkspaceSnapshot = {
   contentSet: ContentSetId | null;
   angleVariationIds: AngleVariationId[];
   freeCount: number;
+  aspectRatio: ImageRatio;
+  useSetRatios: boolean;
+  productPreservation: number;
+  referenceStrength: number;
   quality: GenerationQuality;
   editMode: string;
   light: string;
@@ -76,6 +83,10 @@ type CreateStore = {
   contentSet: ContentSetId | null;
   angleVariationIds: AngleVariationId[];
   freeCount: number;
+  aspectRatio: ImageRatio;
+  useSetRatios: boolean;
+  productPreservation: number;
+  referenceStrength: number;
   quality: GenerationQuality;
   editMode: string;
   light: string;
@@ -97,6 +108,10 @@ type CreateStore = {
   setContentSet: (contentSet: ContentSetId) => void;
   toggleAngleVariation: (angleVariation: AngleVariationId) => void;
   setFreeCount: (count: number) => void;
+  setAspectRatio: (ratio: ImageRatio) => void;
+  setUseSetRatios: (enabled: boolean) => void;
+  setProductPreservation: (strength: number) => void;
+  setReferenceStrength: (strength: number) => void;
   setQuality: (quality: GenerationQuality) => void;
   setEditMode: (editMode: string) => void;
   setLight: (light: string) => void;
@@ -110,7 +125,7 @@ type CreateStore = {
   restoreHistory: (historyId: string) => void;
   deleteHistory: (historyId: string) => void;
   toggleBookmark: (shotId: string) => void;
-  requestGeneration: (mockMode: boolean) => Promise<GenerationRunResult>;
+  requestGeneration: (mockMode: boolean, retryFailed?: boolean) => Promise<GenerationRunResult>;
 };
 
 const UNSCOPED_WORKSPACE_KEY = "__unscoped__";
@@ -123,13 +138,17 @@ function createEmptyWorkspace(): CreateWorkspaceSnapshot {
   return {
     productImage: null,
     referenceImage: null,
-    contentSet: null,
+    contentSet: "free",
     angleVariationIds: [],
     freeCount: 1,
+    aspectRatio: "1:1",
+    useSetRatios: true,
+    productPreservation: 100,
+    referenceStrength: 50,
     quality: "medium",
     editMode: "swap",
-    light: "아침 햇살",
-    mood: "모던 미니멀",
+    light: "원본 유지",
+    mood: "원본 유지",
     props: [],
     prompt: "",
     generationRequested: false,
@@ -148,6 +167,10 @@ function captureWorkspace(state: CreateStore): CreateWorkspaceSnapshot {
     contentSet: state.contentSet,
     angleVariationIds: [...state.angleVariationIds],
     freeCount: state.freeCount,
+    aspectRatio: state.aspectRatio,
+    useSetRatios: state.useSetRatios,
+    productPreservation: state.productPreservation,
+    referenceStrength: state.referenceStrength,
     quality: state.quality,
     editMode: state.editMode,
     light: state.light,
@@ -195,13 +218,17 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
   workspaceSnapshots: {},
   productImage: null,
   referenceImage: null,
-  contentSet: null,
+  contentSet: "free",
   angleVariationIds: [],
   freeCount: 1,
+  aspectRatio: "1:1",
+  useSetRatios: true,
+  productPreservation: 100,
+  referenceStrength: 50,
   quality: "medium",
   editMode: "swap",
-  light: "아침 햇살",
-  mood: "모던 미니멀",
+  light: "원본 유지",
+  mood: "원본 유지",
   props: [],
   prompt: "",
   isGenerating: false,
@@ -249,17 +276,28 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
     });
   },
   toggleAngleVariation: (angleVariation) => {
-    set((state) => ({
-      contentSet: null,
-      angleVariationIds: state.angleVariationIds.includes(angleVariation)
+    set((state) => {
+      const angleVariationIds = state.angleVariationIds.includes(angleVariation)
         ? state.angleVariationIds.filter((item) => item !== angleVariation)
-        : [...state.angleVariationIds, angleVariation],
-      generationRequested: false,
-    }));
+        : [...state.angleVariationIds, angleVariation];
+      return {
+        contentSet: angleVariationIds.length ? null : "free",
+        angleVariationIds,
+        generationRequested: false,
+      };
+    });
   },
   setFreeCount: (freeCount) => {
-    set({ freeCount, generationRequested: false });
+    set({ freeCount: normalizeFreeCount(freeCount), generationRequested: false });
   },
+  setAspectRatio: (aspectRatio) => set({ aspectRatio, useSetRatios: false }),
+  setUseSetRatios: (useSetRatios) => set({ useSetRatios }),
+  setProductPreservation: (strength) => set({
+    productPreservation: Number.isFinite(strength) ? Math.max(0, Math.min(100, Math.round(strength))) : 100,
+  }),
+  setReferenceStrength: (strength) => set({
+    referenceStrength: Number.isFinite(strength) ? Math.max(0, Math.min(100, Math.round(strength))) : 50,
+  }),
   setQuality: (quality) => {
     set({ quality });
   },
@@ -276,7 +314,7 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
     set((state) => ({
       props: state.props.includes(prop)
         ? state.props.filter((item) => item !== prop)
-        : [...state.props, prop],
+        : prop === "소품 없음" ? [prop] : [...state.props.filter(item => item !== "소품 없음"), prop],
     }));
   },
   setPrompt: (prompt) => {
@@ -345,6 +383,10 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
       angleVariationIds: snapshot?.angleVariationIds
         ?? (fallbackAngle ? [fallbackAngle] : []),
       freeCount: snapshot?.freeCount ?? 1,
+      aspectRatio: snapshot?.aspectRatio ?? (shot.ratio === "original" ? "1:1" : shot.ratio),
+      useSetRatios: snapshot?.useSetRatios ?? false,
+      productPreservation: snapshot?.productPreservation ?? (snapshot?.editMode === "material" ? 50 : 100),
+      referenceStrength: snapshot?.referenceStrength ?? (snapshot?.editMode === "swap" ? 100 : 50),
       quality: snapshot?.quality ?? fallbackQuality,
       ...(referenceImage && (snapshot?.editMode || fallbackEditMode) ? {
         editMode: snapshot?.editMode ?? fallbackEditMode,
@@ -425,15 +467,32 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
       };
     });
   },
-  requestGeneration: async (mockMode) => {
-    const current = get();
+  requestGeneration: async (mockMode, retryFailed = false) => {
+    const baseState = get();
+    const emptyResult = { usedActualGeneration: false, actualCompleted: 0, completed: 0, failed: 0 };
+    if (baseState.isGenerating) return emptyResult;
+    const retryHistory = retryFailed ? baseState.generationHistory.find(
+      history => history.id === baseState.activeHistoryId
+        && belongsToProject(history, baseState.workspaceProjectId),
+    ) : undefined;
+    const failedShots = retryHistory?.shots.filter(shot => shot.status === "error") ?? [];
+    if (retryFailed && failedShots.length === 0) return emptyResult;
+    const retryMetadata = failedShots[0]?.metadata;
+    const current = retryMetadata ? {
+      ...baseState,
+      ...retryMetadata.generationSettings,
+      productImage: retryMetadata.inputImages?.find(image => image.kind === "product")?.imageUrl
+        ?? baseState.productImage,
+      referenceImage: retryMetadata.inputImages?.find(image => image.kind === "reference")?.imageUrl
+        ?? null,
+    } : baseState;
     const runProjectId = current.workspaceProjectId;
-    const lastGenerationPrompts = buildGenerationPrompts(current);
+    const lastGenerationPrompts = retryFailed
+      ? failedShots.map(shot => ({ id: shot.id, label: shot.label, prompt: shot.metadata.finalPrompt }))
+      : buildGenerationPrompts(current);
     const runCreatedAt = new Date().toISOString();
-    const runId = `generation-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-    const editModeLabel = EDIT_MODE_OPTIONS.find(
-      (option) => option.id === current.editMode,
-    )?.label ?? "기본";
+    const runId = retryHistory?.id ?? `generation-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const editModeLabel = `제품 유지 ${current.productPreservation} · 레퍼런스 반영 ${current.referenceStrength}`;
     const qualityLabel = QUALITY_OPTIONS.find(
       (option) => option.id === current.quality,
     )?.label ?? current.quality;
@@ -441,7 +500,7 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
       current.contentSet,
       current.angleVariationIds,
     );
-    const shotDrafts = createGenerationShots(current);
+    const shotDrafts = retryFailed ? failedShots : createGenerationShots(current);
 
     if (
       shotDrafts.length === 0
@@ -456,14 +515,26 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
       };
     }
 
+    // Lock synchronously before image preparation so a double click cannot create two paid runs.
+    set({ isGenerating: true, generationMessage: "생성 작업을 준비하고 있습니다." });
     const productImage = current.productImage;
-    const [requestProductImage, requestReferenceImage] = await Promise.all([
-      optimizeImageDataUrl(productImage),
-      current.referenceImage
-        ? optimizeImageDataUrl(current.referenceImage)
-        : Promise.resolve(null),
-    ]);
-    const generationShots: LibraryGenerationShot[] = shotDrafts
+    let requestProductImage: string;
+    let requestReferenceImage: string | null;
+    try {
+      [requestProductImage, requestReferenceImage] = await Promise.all([
+        optimizeImageDataUrl(productImage),
+        current.referenceImage && current.referenceStrength > 0
+          ? optimizeImageDataUrl(current.referenceImage)
+          : Promise.resolve(null),
+      ]);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "입력 이미지를 준비하지 못했습니다.";
+      set({ isGenerating: false, generationMessage: message });
+      return { ...emptyResult, failed: shotDrafts.length, error: message };
+    }
+    const generationShots: LibraryGenerationShot[] = retryFailed
+      ? failedShots.map(shot => ({ ...shot, status: "pending", error: undefined }))
+      : shotDrafts
       .map((shot) => {
         const shotPrompt = lastGenerationPrompts.find((item) => item.id === shot.id)
           ?? lastGenerationPrompts[0];
@@ -499,6 +570,10 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
               contentSet: current.contentSet,
               angleVariationIds: [...current.angleVariationIds],
               freeCount: current.freeCount,
+              aspectRatio: current.aspectRatio,
+              useSetRatios: current.useSetRatios,
+              productPreservation: current.productPreservation,
+              referenceStrength: current.referenceStrength,
               quality: current.quality,
               ...(current.referenceImage ? { editMode: current.editMode } : {}),
               light: current.light,
@@ -510,27 +585,32 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
         };
       });
 
-    set({
+    const nextHistory = retryHistory
+      ? get().generationHistory.map(history => history.id === runId ? {
+        ...history,
+        shots: history.shots.map(shot => generationShots.find(next => next.id === shot.id) ?? shot),
+      } : history)
+      : [{
+        id: runId,
+        projectId: runProjectId,
+        createdAt: runCreatedAt,
+        title: variationType,
+        shots: generationShots,
+      }, ...get().generationHistory];
+    set((state) => ({
       isGenerating: true,
-      generationRequested: true,
-      lastGenerationPrompts,
-      generationShots,
-      activeHistoryId: runId,
-      selectedShotId: null,
-      generationHistory: [
-        {
-          id: runId,
-          projectId: runProjectId,
-          createdAt: runCreatedAt,
-          title: variationType,
-          shots: generationShots,
-        },
-        ...current.generationHistory,
-      ],
-      generationMessage: "생성 작업을 준비하고 있습니다.",
-    });
+      generationHistory: nextHistory,
+      ...(state.workspaceProjectId === runProjectId ? {
+        generationRequested: true,
+        lastGenerationPrompts,
+        generationShots: nextHistory.find(history => history.id === runId)?.shots ?? generationShots,
+        activeHistoryId: runId,
+        selectedShotId: retryFailed ? state.selectedShotId : null,
+        generationMessage: `${generationShots.length}장 생성 대기 중`,
+      } : {}),
+    }));
 
-    if (runProjectId) {
+    if (runProjectId && !retryFailed) {
       useProjectStore.getState().recordGenerationSet(
         runProjectId,
         runId,
@@ -543,11 +623,10 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
     let completed = 0;
     let failed = 0;
 
-    await saveGenerationHistory(get().generationHistory);
+    let storageFailed = false;
+    await saveGenerationHistory(get().generationHistory).catch(() => { storageFailed = true; });
 
-    const concurrency = current.contentSet === "free"
-      ? FREE_GENERATION_CONCURRENCY
-      : generationShots.length;
+    const concurrency = FREE_GENERATION_CONCURRENCY;
 
     await runGenerationQueue(generationShots, concurrency, async (shot) => {
       const prompt = { prompt: shot.metadata.finalPrompt };
@@ -575,7 +654,7 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
           ...(showingRun ? {
             generationShots: nextShots,
             generationMessage: generatingCount > 1
-              ? `${generatingCount}개 이미지를 동시에 생성하고 있습니다.`
+              ? `${completed}/${generationShots.length}장 완료 · ${generatingCount}장 동시 생성 중`
               : `${shot.label} 이미지를 생성하고 있습니다.`,
           } : {}),
         };
@@ -657,7 +736,7 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
             ...(showingRun ? {
               generationShots: runShots,
               selectedShotId: state.selectedShotId ?? shot.id,
-              generationMessage: result.note,
+              generationMessage: `${completed}/${generationShots.length}장 완료${failed > 0 ? ` · ${failed}장 실패` : ""}${result.mock ? " · 미리보기 모드" : ""}`,
             } : {}),
           };
         });
@@ -696,23 +775,25 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
       }
     });
 
+    await saveGenerationHistory(get().generationHistory).catch(() => { storageFailed = true; });
+
+    const storageWarning = storageFailed ? " 브라우저 저장 공간이 부족해 새로고침하면 결과가 사라질 수 있습니다. 이미지를 다운로드해 주세요." : "";
     set(state => ({
       isGenerating: false,
       ...(state.workspaceProjectId === runProjectId
         && state.activeHistoryId === runId ? {
           generationMessage: failed > 0
-            ? `${completed}개 완료, ${failed}개 실패했습니다.`
-            : `${completed}개 이미지 생성을 완료했습니다.`,
+            ? `${completed}개 완료, ${failed}개 실패했습니다. 실패한 이미지만 다시 시도할 수 있습니다.${storageWarning}`
+            : `${completed}개 이미지 생성을 완료했습니다.${storageWarning}`,
         } : {}),
     }));
-
-    await saveGenerationHistory(get().generationHistory);
 
     return {
       usedActualGeneration,
       actualCompleted,
       completed,
       failed,
+      ...(storageFailed ? { error: storageWarning.trim() } : {}),
     };
   },
 }));

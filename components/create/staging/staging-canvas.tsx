@@ -47,7 +47,7 @@ const SplitStage = styled.div<{ $historyHeight: number }>`
   display: grid;
   min-height: 0;
   flex: 1;
-  grid-template-rows: minmax(0, 1fr) 9px ${({ $historyHeight }) => $historyHeight}px;
+  grid-template-rows: minmax(0, 1fr) 28px ${({ $historyHeight }) => $historyHeight}px;
 `;
 
 const CurrentArea = styled.div`
@@ -60,10 +60,10 @@ const CurrentArea = styled.div`
   scrollbar-width: thin;
 `;
 
-const HISTORY_DEFAULT_HEIGHT = 182;
-const HISTORY_MIN_HEIGHT = 142;
+const HISTORY_DEFAULT_HEIGHT = 260;
+const HISTORY_MIN_HEIGHT = 160;
 const CURRENT_MIN_HEIGHT = 180;
-const RESIZE_HANDLE_HEIGHT = 9;
+const RESIZE_HANDLE_HEIGHT = 28;
 
 export function StagingCanvas({
   projectId,
@@ -185,6 +185,7 @@ export function StagingCanvas({
           minimum={HISTORY_MIN_HEIGHT}
           maximum={maximumHistoryHeight}
           onResize={resizeHistory}
+          onReset={() => setHistoryHeight(Math.min(HISTORY_DEFAULT_HEIGHT, maximumHistoryHeight))}
         />
         <GenerationHistoryGallery
           history={scopedHistory}

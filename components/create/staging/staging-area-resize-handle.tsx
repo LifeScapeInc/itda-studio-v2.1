@@ -1,48 +1,33 @@
 "use client";
 
-import {
-  useEffect,
-  useRef,
-  useState,
-  type MouseEvent as ReactMouseEvent,
-} from "react";
+import { useRef, useState, type PointerEvent } from "react";
+import { ChevronsUpDown, GripHorizontal } from "lucide-react";
 import styled from "styled-components";
 
 const Handle = styled.div<{ $active: boolean }>`
   position: relative;
   z-index: 5;
-  height: 9px;
-  outline: none;
-  background: var(--color-surface);
+  display: flex;
+  height: 28px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-block: 1px solid var(--color-border);
+  background: ${({ $active }) => $active ? "var(--color-main-neutral)" : "var(--color-main-neutral-light)"};
+  color: var(--color-label-studio-comment);
+  font-size: 10px;
+  font-weight: 500;
   cursor: row-resize;
   touch-action: none;
+  user-select: none;
 
-  &::before {
-    position: absolute;
-    top: 4px;
-    right: 0;
-    left: 0;
-    height: 1px;
-    background: var(--color-border);
-    content: "";
+  &:hover, &:focus-visible {
+    outline: none;
+    background: var(--color-main-neutral);
+    color: var(--color-main-primary);
   }
 
-  &::after {
-    position: absolute;
-    top: 3px;
-    right: 0;
-    left: 0;
-    height: 3px;
-    background: var(--color-main-primary);
-    content: "";
-    opacity: ${({ $active }) => $active ? 1 : 0};
-    transition: opacity 140ms ease;
-  }
-
-  &:hover::after,
-  &:focus-visible::after {
-    opacity: 1;
-  }
+  &:focus-visible { box-shadow: inset 0 0 0 2px var(--color-main-primary); }
 `;
 
 export function StagingAreaResizeHandle({
@@ -50,67 +35,73 @@ export function StagingAreaResizeHandle({
   minimum,
   maximum,
   onResize,
+  onReset,
 }: {
   value: number;
   minimum: number;
   maximum: number;
   onResize: (delta: number) => void;
+  onReset: () => void;
 }) {
   const [active, setActive] = useState(false);
-  const lastPointerY = useRef(0);
-  const cleanupDrag = useRef<(() => void) | null>(null);
+  const drag = useRef<{ id: number; y: number } | null>(null);
 
-  useEffect(() => () => cleanupDrag.current?.(), []);
-
-  const beginResize = (event: ReactMouseEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    lastPointerY.current = event.clientY;
-    setActive(true);
-
-    const previousUserSelect = document.body.style.userSelect;
-    document.body.style.userSelect = "none";
-
-    const handleMove = (moveEvent: globalThis.MouseEvent) => {
-      const heightDelta = lastPointerY.current - moveEvent.clientY;
-      lastPointerY.current = moveEvent.clientY;
-      onResize(heightDelta);
-    };
-
-    const finishResize = () => {
-      window.removeEventListener("mousemove", handleMove);
-      window.removeEventListener("mouseup", finishResize);
-      document.body.style.userSelect = previousUserSelect;
-      cleanupDrag.current = null;
-      setActive(false);
-    };
-
-    cleanupDrag.current?.();
-    cleanupDrag.current = finishResize;
-    window.addEventListener("mousemove", handleMove);
-    window.addEventListener("mouseup", finishResize);
+  const finishResize = (event: PointerEvent<HTMLDivElement>) => {
+    if (drag.current?.id !== event.pointerId) return;
+    drag.current = null;
+    setActive(false);
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
   };
 
   return (
     <Handle
       role="separator"
-      aria-label="현재 결과와 히스토리 높이 조절"
+      aria-label="히스토리 높이 조절"
+      aria-controls="generation-history"
       aria-orientation="horizontal"
       aria-valuemin={minimum}
       aria-valuemax={maximum}
       aria-valuenow={value}
+      aria-valuetext={`${Math.round(value)}픽셀`}
+      title="위아래로 드래그하거나 방향키로 조절 · 두 번 클릭하면 기본 높이"
       tabIndex={0}
       $active={active}
-      onMouseDown={beginResize}
+      onPointerDown={(event) => {
+        if (event.button !== 0) return;
+        event.preventDefault();
+        event.currentTarget.focus();
+        event.currentTarget.setPointerCapture(event.pointerId);
+        drag.current = { id: event.pointerId, y: event.clientY };
+        setActive(true);
+      }}
+      onPointerMove={(event) => {
+        if (drag.current?.id !== event.pointerId) return;
+        onResize(drag.current.y - event.clientY);
+        drag.current.y = event.clientY;
+      }}
+      onPointerUp={finishResize}
+      onPointerCancel={finishResize}
+      onLostPointerCapture={() => { drag.current = null; setActive(false); }}
+      onDoubleClick={onReset}
       onKeyDown={(event) => {
-        if (event.key === "ArrowUp") {
+        const delta = event.shiftKey ? 40 : 16;
+        const changes: Record<string, number> = {
+          ArrowUp: delta, ArrowDown: -delta, Home: minimum - value, End: maximum - value,
+        };
+        if (event.key in changes) {
           event.preventDefault();
-          onResize(8);
-        }
-        if (event.key === "ArrowDown") {
+          onResize(changes[event.key]);
+        } else if (event.key === "Enter") {
           event.preventDefault();
-          onResize(-8);
+          onReset();
         }
       }}
-    />
+    >
+      <GripHorizontal size={20} aria-hidden="true" />
+      <span>드래그하여 히스토리 높이 조절</span>
+      <ChevronsUpDown size={12} aria-hidden="true" />
+    </Handle>
   );
 }

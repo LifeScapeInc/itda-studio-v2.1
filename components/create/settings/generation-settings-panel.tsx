@@ -9,13 +9,14 @@ import {
   SETTINGS_PANEL_MIN_WIDTH,
 } from "@/system/layout/workspace-layout";
 import { useWorkspaceLayoutStore } from "@/stores/useWorkspaceLayoutStore";
-import { useCreateStore } from "@/stores/useCreateStore";
 import { AngleVariationSelector } from "./angle-variation-selector";
 import { CollapsibleSection } from "./collapsible-section";
 import { ContentSetSelector } from "./content-set-selector";
 import { ExpertSettings } from "./expert-settings";
 import { GenerationAction } from "./generation-action";
 import { PromptPreview } from "./prompt-preview";
+import { ImageRatioControl } from "./image-ratio-control";
+import { ReferenceStrengthControl } from "./reference-strength-control";
 
 const Panel = styled.aside`
   position: relative;
@@ -60,10 +61,6 @@ export function GenerationSettingsPanel() {
   const [contentOpen, setContentOpen] = useState(true);
   const [angleOpen, setAngleOpen] = useState(false);
   const [expertOpen, setExpertOpen] = useState(false);
-  const angleVariationIds = useCreateStore(
-    (state) => state.angleVariationIds,
-  );
-  const angleVariationActive = angleVariationIds.length > 0;
   const settingsPanelWidth = useWorkspaceLayoutStore(
     (state) => state.settingsPanelWidth,
   );
@@ -87,6 +84,8 @@ export function GenerationSettingsPanel() {
       </Header>
       <ScrollArea>
         <Sections>
+          <ImageRatioControl />
+          <ReferenceStrengthControl />
           <CollapsibleSection
             title="콘텐츠 세트 선택"
             icon={<Layers3 size={16} />}
@@ -101,15 +100,12 @@ export function GenerationSettingsPanel() {
             open={angleOpen}
             onToggle={() => setAngleOpen((open) => !open)}
           >
-            <AngleVariationSelector
-              onActivate={() => setExpertOpen(false)}
-            />
+            <AngleVariationSelector />
           </CollapsibleSection>
           <CollapsibleSection
             title="전문가 설정 (선택)"
             icon={<Settings2 size={16} />}
             open={expertOpen}
-            disabled={angleVariationActive}
             onToggle={() => setExpertOpen((open) => !open)}
           >
             <ExpertSettings />

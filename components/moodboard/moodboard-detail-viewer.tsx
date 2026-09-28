@@ -9,7 +9,7 @@ import { ImageAlbum } from "@/components/references/image-album";
 const Overlay = styled.div`
   position: absolute;
   z-index: 30;
-  top: 56px;
+  top: var(--header-height);
   right: 0;
   bottom: 0;
   left: 0;

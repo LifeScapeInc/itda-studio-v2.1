@@ -138,16 +138,7 @@ const ShotCopy = styled.div`
 `;
 
 function getAspectRatio(ratio: GenerationShot["ratio"]): string {
-  const ratios: Record<GenerationShot["ratio"], string> = {
-    "1:1": "1 / 1",
-    "3:4": "3 / 4",
-    "4:5": "4 / 5",
-    "9:16": "9 / 16",
-    "16:9": "16 / 9",
-    original: "4 / 3",
-  };
-
-  return ratios[ratio];
+  return ratio === "original" ? "4 / 3" : ratio.replace(":", " / ");
 }
 
 function ShotStatus({

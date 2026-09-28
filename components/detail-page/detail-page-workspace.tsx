@@ -19,7 +19,7 @@ const Workspace = styled.main`
   height: 100%;
   min-height: 0;
   margin-left: var(--navigation-left-width, 203px);
-  padding-top: 56px;
+  padding-top: var(--header-height);
   flex-direction: column;
   background: var(--color-surface);
   overflow: hidden;
