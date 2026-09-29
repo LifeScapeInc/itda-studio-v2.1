@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
+    "test:prompts": "node scripts/check-generation-prompts.cjs",
     "auth:setup": "node scripts/generate-login-secrets.mjs",
     "moodboard:layout": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/generate-moodboard-layout.ts"
   },

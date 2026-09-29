@@ -3,6 +3,11 @@
 import { useId } from "react";
 import styled from "styled-components";
 import { useCreateStore } from "@/stores/useCreateStore";
+import {
+  PRODUCT_PRESERVATION_STEPS,
+  REFERENCE_ROLE_OPTIONS,
+  REFERENCE_STRENGTH_STEPS,
+} from "@/system/create/reference-controls";
 
 const Card = styled.section`
   display: flex;
@@ -35,34 +40,67 @@ const Scale = styled.div`
   font-size: 10px;
   color: var(--color-label-studio-comment);
 `;
+const RoleChoices = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 5px;
+  button {
+    min-height: 38px;
+    padding: 5px 3px;
+    border: 1px solid var(--color-border);
+    border-radius: 7px;
+    background: var(--color-surface);
+    color: var(--color-label-studio-comment);
+    font-size: 10px;
+    cursor: pointer;
+  }
+  button[aria-pressed="true"] {
+    border-color: var(--color-main-primary);
+    color: var(--color-main-primary);
+    font-weight: 700;
+  }
+`;
 
 export function ReferenceStrengthControl() {
   const id = useId();
   const reference = useCreateStore(state => state.referenceImage);
   const preservation = useCreateStore(state => state.productPreservation);
   const strength = useCreateStore(state => state.referenceStrength);
+  const referenceRole = useCreateStore(state => state.referenceRole);
   const setPreservation = useCreateStore(state => state.setProductPreservation);
   const setStrength = useCreateStore(state => state.setReferenceStrength);
+  const setReferenceRole = useCreateStore(state => state.setReferenceRole);
+  const preservationIndex = Math.max(0, PRODUCT_PRESERVATION_STEPS.findIndex(step => step.value === preservation));
+  const strengthIndex = Math.max(0, REFERENCE_STRENGTH_STEPS.findIndex(step => step.value === strength));
   if (!reference) return null;
 
   return (
     <Card aria-label="이미지 참조 설정">
       <h3>이미지 참조 설정</h3>
       <div>
-        <Heading><label htmlFor={`${id}-product`}>내 제품 유지 강도</label><strong>{preservation}</strong></Heading>
-        <Slider id={`${id}-product`} type="range" min={0} max={100} step={5} value={preservation}
-          aria-valuetext={`${preservation}, ${preservation >= 75 ? "형태·색상·소재 유지" : preservation >= 35 ? "형태 유지, 소재와 색감 조정" : "소재와 스타일을 자유롭게 변형"}`}
-          onChange={event => setPreservation(Number(event.target.value))} />
-        <Scale><span>자유롭게 변형</span><span>원형 충실히 유지</span></Scale>
+        <Heading>두 번째 사진의 역할</Heading>
+        <RoleChoices role="group" aria-label="두 번째 사진의 역할">
+          {REFERENCE_ROLE_OPTIONS.map(option => (
+            <button key={option.id} type="button" aria-pressed={referenceRole === option.id}
+              title={option.description} onClick={() => setReferenceRole(option.id)}>{option.label}</button>
+          ))}
+        </RoleChoices>
       </div>
       <div>
-        <Heading><label htmlFor={`${id}-reference`}>레퍼런스 반영 강도</label><strong>{strength}</strong></Heading>
-        <Slider id={`${id}-reference`} type="range" min={0} max={100} step={5} value={strength}
-          aria-valuetext={`${strength}, ${strength === 0 ? "레퍼런스 사용 안 함" : strength < 35 ? "분위기만 참고" : strength < 75 ? "조명·색감·스타일 참고" : "공간과 배치까지 반영"}`}
-          onChange={event => setStrength(Number(event.target.value))} />
-        <Scale><span>분위기만 참고</span><span>공간·배치까지 반영</span></Scale>
+        <Heading><label htmlFor={`${id}-product`}>내 제품 유지</label><strong>{PRODUCT_PRESERVATION_STEPS[preservationIndex].label}</strong></Heading>
+        <Slider id={`${id}-product`} type="range" min={0} max={PRODUCT_PRESERVATION_STEPS.length - 1} step={1} value={preservationIndex}
+          aria-valuetext={PRODUCT_PRESERVATION_STEPS[preservationIndex].description}
+          onChange={event => setPreservation(PRODUCT_PRESERVATION_STEPS[Number(event.target.value)].value)} />
+        <Scale><span>창의적 변형</span><span>원형 충실</span></Scale>
       </div>
-      <p>강도는 AI에게 전달할 연출 방향입니다. 정확한 복제 비율을 뜻하지 않으며, 제품 유지 강도가 낮으면 색상·소재가 달라질 수 있어요.</p>
+      <div>
+        <Heading><label htmlFor={`${id}-reference`}>레퍼런스 반영</label><strong>{REFERENCE_STRENGTH_STEPS[strengthIndex].label}</strong></Heading>
+        <Slider id={`${id}-reference`} type="range" min={0} max={REFERENCE_STRENGTH_STEPS.length - 1} step={1} value={strengthIndex}
+          aria-valuetext={REFERENCE_STRENGTH_STEPS[strengthIndex].description}
+          onChange={event => setStrength(REFERENCE_STRENGTH_STEPS[Number(event.target.value)].value)} />
+        <Scale><span>사용 안 함</span><span>강하게</span></Scale>
+      </div>
+      <p>각 눈금은 서로 다른 프롬프트 단계입니다. 정확한 복제율은 아니며, ‘사용 안 함’에서는 두 번째 사진을 API에 보내지 않습니다.</p>
     </Card>
   );
 }

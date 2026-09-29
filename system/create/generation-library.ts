@@ -1,5 +1,6 @@
 import type { GenerationShot } from "@/system/create/generation-shots";
 import type { ImageRatio } from "@/system/create/generation-ratios";
+import type { ReferenceRole } from "@/system/create/reference-controls";
 import type {
   AngleVariationId,
   ContentSetId,
@@ -20,6 +21,7 @@ export type GenerationSettingsSnapshot = {
   useSetRatios?: boolean;
   productPreservation?: number;
   referenceStrength?: number;
+  referenceRole?: ReferenceRole;
   quality: GenerationQuality;
   editMode?: string;
   light: string;

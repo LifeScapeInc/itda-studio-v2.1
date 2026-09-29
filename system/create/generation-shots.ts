@@ -31,13 +31,13 @@ const CONTENT_SET_SHOTS: Partial<Record<ContentSetId, ShotDefinition[]>> = {
   ],
   sns: [
     { id: "sns-square", label: "피드", ratio: "1:1", resolution: "1024×1024" },
-    { id: "sns-portrait", label: "세로 피드", ratio: "4:5", resolution: "1024×1280" },
+    { id: "sns-portrait", label: "라이프스타일 피드", ratio: "4:5", resolution: "1024×1280" },
     { id: "sns-story", label: "스토리", ratio: "9:16", resolution: "1152×2048" },
     { id: "sns-ad", label: "광고용", ratio: "1:1", resolution: "1024×1024" },
   ],
   ad: [
-    { id: "ad-wide", label: "배너 와이드", ratio: "16:9", resolution: "2048×1152" },
-    { id: "ad-vertical", label: "배너 세로", ratio: "9:16", resolution: "1152×2048" },
+    { id: "ad-wide", label: "카피 공간 배너", ratio: "16:9", resolution: "2048×1152" },
+    { id: "ad-vertical", label: "텍스트 중심 배너", ratio: "9:16", resolution: "1152×2048" },
     { id: "ad-thumbnail", label: "썸네일", ratio: "1:1", resolution: "1024×1024" },
   ],
   lookbook: [

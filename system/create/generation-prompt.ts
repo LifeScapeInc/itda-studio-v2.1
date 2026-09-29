@@ -1,11 +1,18 @@
 import {
   ANGLE_VARIATION_OPTIONS,
   CONTENT_SET_OPTIONS,
-  normalizeFreeCount,
   type AngleVariationId,
   type ContentSetId,
   type GenerationQuality,
 } from "@/system/create/generation-options";
+import { createGenerationShots } from "@/system/create/generation-shots";
+import type { GenerationRatio, ImageRatio } from "@/system/create/generation-ratios";
+import {
+  legacyEditModeToRole,
+  normalizeProductPreservation,
+  normalizeReferenceStrength,
+  type ReferenceRole,
+} from "@/system/create/reference-controls";
 
 type PromptShot = {
   id: string;
@@ -28,6 +35,9 @@ export type GenerationPromptInput = {
   editMode: string;
   productPreservation?: number;
   referenceStrength?: number;
+  referenceRole?: ReferenceRole;
+  aspectRatio?: ImageRatio;
+  useSetRatios?: boolean;
   light: string;
   mood: string;
   props: string[];
@@ -49,9 +59,7 @@ const PHOTOREAL =
   "Photorealistic, with believable scale and natural contact shadows.";
 const ANGLE_ROLE = "the same photographer continuing the same shoot";
 const ANGLE_BODY =
-  "Treat the first image as the scene and product to re-photograph from a different camera position. Preserve the room layout and object identities. Change only the camera and the styling changes explicitly requested below; otherwise retain the original light, materials, and props.";
-const ANGLE_CONSTRAINTS =
-  "Keep the same room geometry. The requested camera angle takes priority over reference framing. If something falls outside the new frame, omit it; do not invent replacements. Explicit lighting and styling directions may change those aspects only. Photorealistic.";
+  "Image 1 is the product, not a room to preserve. Re-photograph that product from the requested camera position. Keep its identity consistent across cuts.";
 
 const CONTENT_PROMPT_TEMPLATES: Partial<
   Record<ContentSetId, PromptTemplate>
@@ -83,16 +91,16 @@ const CONTENT_PROMPT_TEMPLATES: Partial<
     role: "a professional content designer art-directing a brand's social feed",
     purpose: "images to post on an Instagram feed",
     shots: [
-      { id: "sns-square", label: "피드 1:1", role: "the scroll-stopping square" },
+      { id: "sns-square", label: "피드", role: "a scroll-stopping feed composition" },
       {
         id: "sns-portrait",
-        label: "피드 4:5",
-        role: "a vertical lifestyle post",
+        label: "라이프스타일 피드",
+        role: "a lifestyle feed composition",
       },
-      { id: "sns-story", label: "스토리 9:16", role: "a full-bleed story frame" },
+      { id: "sns-story", label: "스토리", role: "a full-bleed story composition" },
       {
         id: "sns-ad",
-        label: "광고용 1:1",
+        label: "광고용",
         role: "an ad frame with room for text",
       },
     ],
@@ -103,13 +111,13 @@ const CONTENT_PROMPT_TEMPLATES: Partial<
     shots: [
       {
         id: "ad-wide",
-        label: "배너 와이드",
-        role: "a wide banner with the piece to one side and copy space beside it",
+        label: "카피 공간 배너",
+        role: "a banner with the piece to one side and copy space beside it",
       },
       {
         id: "ad-vertical",
-        label: "배너 세로",
-        role: "a tall banner with text-safe zones",
+        label: "텍스트 중심 배너",
+        role: "a banner with text-safe zones",
       },
       {
         id: "ad-thumbnail",
@@ -174,68 +182,42 @@ const PROP_PROMPTS: Record<string, string> = {
 };
 
 function getProductLock(input: GenerationPromptInput): string {
-  if (input.productPreservation === undefined) {
-    return input.editMode === "material" ? PRODUCT_FORM_LOCK : PRODUCT_LOCK;
-  }
-  if (input.productPreservation >= 75) return PRODUCT_LOCK;
-  if (input.productPreservation >= 35) {
+  const preservation = normalizeProductPreservation(input.productPreservation);
+  if (preservation === 100) return PRODUCT_LOCK;
+  if (preservation === 50) {
     return `${PRODUCT_FORM_LOCK} Preserve recognizable construction and details, but allow subtle material and color adaptations to suit the styling direction.`;
   }
   return "Keep the core identity and function of the product from the first image recognizable. Allow creative changes to its color, finish, and styling, but retain its underlying structure.";
 }
 
 function getReferenceDirection(input: GenerationPromptInput): string {
-  if (!input.referenceImage) return "";
-  if (input.referenceStrength === undefined) {
-    return getInputRelationship(true, input.editMode).body;
+  if (!input.referenceImage || normalizeReferenceStrength(input.referenceStrength) === 0) {
+    return "Build a believable scene around the product in Image 1 from scratch. No reference scene is supplied.";
   }
-  if (input.referenceStrength === 0) {
-    return "Ignore the reference image; build the scene using the product image and written directions only.";
+  const role = input.referenceRole ?? legacyEditModeToRole(input.editMode);
+  const strength = normalizeReferenceStrength(input.referenceStrength);
+  const intro = "Image 2 is a reference only; Image 1 remains the product source.";
+  if (role === "space") {
+    if (strength === 25) return `${intro} Use Image 2 only as a loose interior setting cue. Create a new room; do not copy its objects or geometry.`;
+    if (strength === 50) return `${intro} Borrow the main spatial layout and scale cues from Image 2, adapting them to display the product from Image 1. Do not transfer the reference furniture into the product.`;
+    return `${intro} Follow Image 2's visible room architecture and major placement closely where the requested camera view allows. Place the product from Image 1 into that space; do not claim pixel-identical geometry outside the visible reference. Requested camera, light, mood, and props override matching reference aspects.`;
   }
-  if (input.referenceStrength < 35) {
-    return "Use the second image as loose color and mood inspiration only. Compose a new scene around the first image's product.";
+  if (role === "style") {
+    if (strength === 25) return `${intro} Borrow only a subtle mood cue from Image 2. Do not copy its room, objects, or framing.`;
+    if (strength === 50) return `${intro} Borrow Image 2's lighting and palette for a newly composed scene. Do not copy its room layout or furniture.`;
+    return `${intro} Strongly adapt Image 2's lighting, color palette, and atmosphere. Create a new composition; do not copy its room geometry or objects. Explicit styling settings take priority.`;
   }
-  if (input.referenceStrength < 75) {
-    return "Borrow the second image's lighting, palette, textures, and styling language. Adapt its setting to the product; do not copy objects from the reference into the product itself.";
-  }
-  return "Closely follow the second image's room styling, background, light, and prop arrangement, replacing its main furniture with the first image's product. Explicit camera and styling directions below override matching reference aspects.";
+  const productLocked = normalizeProductPreservation(input.productPreservation) === 100;
+  if (strength === 25) return `${intro} Borrow subtle material and color cues from Image 2 for the surrounding styling only.`;
+  if (strength === 50) return `${intro} Borrow Image 2's surface textures and palette ${productLocked ? "for the surroundings only; leave the product's own material and color unchanged" : "for compatible product finishes and surroundings while retaining the product's form"}. Do not copy its room layout.`;
+  return `${intro} Strongly adapt Image 2's material language and palette ${productLocked ? "in the surroundings only; the product's original material and color remain unchanged" : "to compatible product finishes and surrounding details while retaining recognizable construction"}. Do not copy its room layout or unrelated objects. Explicit styling settings take priority.`;
 }
 
-function getInputRelationship(
-  hasReference: boolean,
-  editMode: string,
-): {
-  lock: string;
-  body: string;
-} {
-  if (!hasReference) {
-    return {
-      lock: PRODUCT_LOCK,
-      body: "Build a believable interior scene around the product from scratch.",
-    };
-  }
-
-  if (editMode === "mood") {
-    return {
-      lock: PRODUCT_LOCK,
-      body:
-        "Borrow only the mood, light, and color of the reference image. Build a new scene around the product.",
-    };
-  }
-
-  if (editMode === "material") {
-    return {
-      lock: PRODUCT_FORM_LOCK,
-      body:
-        "Use the reference image as material and color guidance. Restyle the product surface while preserving its construction.",
-    };
-  }
-
-  return {
-    lock: PRODUCT_LOCK,
-    body:
-      "Use the reference image exactly as it is. Swap the furniture for the product and change nothing else — same background, light, props, and framing.",
-  };
+function getFormatInstruction(ratio: GenerationRatio): string {
+  if (ratio === "original") return "Compose for the original image aspect ratio; keep the product comfortably inside the frame.";
+  const [width, height] = ratio.split(":").map(Number);
+  const orientation = width === height ? "square" : width > height ? "landscape" : "portrait";
+  return `Final output aspect ratio: ${ratio} (${orientation}). Arrange subject and negative space for this exact frame; do not crop away essential product features.`;
 }
 
 function getStylePrompt(input: GenerationPromptInput): string {
@@ -256,6 +238,7 @@ function normalizeUserPrompt(value: string): string {
 function composePrompt(
   input: GenerationPromptInput,
   template: PromptTemplate,
+  ratio: GenerationRatio,
   shotRole?: string,
 ): string {
   const lines = [
@@ -267,6 +250,7 @@ function composePrompt(
       ? getReferenceDirection(input)
       : "Build a believable interior scene around the product from scratch.",
     shotRole ? `This frame: ${shotRole}.` : "",
+    getFormatInstruction(ratio),
     getStylePrompt(input),
     normalizeUserPrompt(input.prompt),
     PHOTOREAL,
@@ -276,24 +260,35 @@ function composePrompt(
 }
 
 function getFreePrompt(input: GenerationPromptInput): GenerationPrompt[] {
-  const count = normalizeFreeCount(input.freeCount);
+  const shots = createGenerationShots(input);
   const template: PromptTemplate = {
     role: DEFAULT_ROLE,
     shots: [],
   };
-
-  return [
-    {
-      id: "free-common",
-      label: `자유 생성 · ${count}컷 공통`,
-      prompt: composePrompt(input, template),
-    },
+  const cutRoles = [
+    "an eye-level hero view showing the full product clearly",
+    "a three-quarter view from the left showing the product's depth",
+    "a closer frame emphasizing craftsmanship while keeping the product identifiable",
+    "a wider contextual view with generous breathing room around the product",
+    "a low camera view that reveals the product's silhouette",
+    "a three-quarter view from the right, distinct from the left view",
+    "a balanced frontal composition with clean visual hierarchy",
+    "an editorial off-center composition with purposeful negative space",
   ];
+  return shots.map((shot, index) => ({
+    id: shot.id,
+    label: shot.label,
+    prompt: composePrompt(input, template, shot.ratio, cutRoles[index]),
+  }));
 }
 
 function getAngleVariationPrompts(
   input: GenerationPromptInput,
 ): GenerationPrompt[] {
+  const ratios = new Map(createGenerationShots(input).map(shot => [shot.id, shot.ratio]));
+  const usesSpaceReference = Boolean(input.referenceImage)
+    && normalizeReferenceStrength(input.referenceStrength) > 0
+    && (input.referenceRole ?? legacyEditModeToRole(input.editMode)) === "space";
   return ANGLE_VARIATION_OPTIONS
     .filter((option) => input.angleVariationIds.includes(option.id))
     .map((option) => ({
@@ -303,14 +298,15 @@ function getAngleVariationPrompts(
         `Act as ${ANGLE_ROLE}.`,
         ANGLE_BODY,
         getProductLock(input),
-        input.referenceImage
-          ? `${getReferenceDirection(input)} Use these cues within the original room geometry; do not move walls, doors, or fixed architectural elements.`
-          : "",
+        getReferenceDirection(input),
         `This frame: ${option.shotRole}.`,
         `Camera: ${option.compositionPrompt}, ${option.techniquePrompt}.`,
+        getFormatInstruction(ratios.get(`angle-${option.id}`) ?? "original"),
         getStylePrompt(input),
         normalizeUserPrompt(input.prompt),
-        ANGLE_CONSTRAINTS,
+        usesSpaceReference
+          ? "Preserve visible fixed architecture from Image 2 where plausible, but the requested camera angle takes priority over its original framing. Photorealistic."
+          : "Invent a coherent setting if needed; do not assume Image 1 contains a room or copy room geometry from a style/material reference. Photorealistic.",
       ].filter(Boolean).join("\n\n"),
     }));
 }
@@ -335,10 +331,11 @@ export function buildGenerationPrompts(
     return [];
   }
 
+  const ratios = new Map(createGenerationShots(input).map(shot => [shot.id, shot.ratio]));
   return template.shots.map((shot) => ({
     id: shot.id,
     label: shot.label,
-    prompt: composePrompt(input, template, shot.role),
+    prompt: composePrompt(input, template, ratios.get(shot.id) ?? "original", shot.role),
   }));
 }
 

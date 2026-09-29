@@ -107,10 +107,10 @@ export const ANGLE_VARIATION_OPTIONS: AngleVariationOption[] = [
   {
     id: "reverse",
     label: "리버스 앵글",
-    description: "공간 반대편에서 촬영",
+    description: "제품의 반대편 구도를 탐색",
     previewImage: "/assets/create/angle_2.png",
     shotRole:
-      "cross to the opposite side of the room and shoot back toward the original camera position",
+      "shoot the product from the opposite side to reveal a different profile, without inventing unseen product details",
     compositionPrompt: "a three-quarter 45-degree angle",
     techniquePrompt:
       "shot on an 85–135mm telephoto lens, compressed perspective that flattens depth and keeps vertical lines parallel, subject isolated from a softly defocused background",
@@ -141,7 +141,7 @@ export const ANGLE_VARIATION_OPTIONS: AngleVariationOption[] = [
     label: "와이드 환경샷",
     description: "뒤로 물러나 공간 전체가 담기도록 촬영",
     previewImage: "/assets/create/angle_5.png",
-    shotRole: "pull back to take in the whole room",
+    shotRole: "pull back to show the product in a wider, coherent setting",
     compositionPrompt: "wide, with generous negative space",
     techniquePrompt:
       "shot on a 24–35mm wide lens from a comfortable standing distance, showing the full room context and how the piece sits in the space, corrected for distortion",

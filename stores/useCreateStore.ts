@@ -42,6 +42,12 @@ import { getGenerationModeLabel } from "@/system/create/generation-prompt";
 import { cutGenerationUsageContext } from "@/system/usage/token-usage-context";
 import { normalizeFreeCount } from "@/system/create/generation-options";
 import type { ImageRatio } from "@/system/create/generation-ratios";
+import {
+  legacyEditModeToRole,
+  normalizeProductPreservation,
+  normalizeReferenceStrength,
+  type ReferenceRole,
+} from "@/system/create/reference-controls";
 
 export type GenerationRunResult = {
   usedActualGeneration: boolean;
@@ -61,6 +67,7 @@ type CreateWorkspaceSnapshot = {
   useSetRatios: boolean;
   productPreservation: number;
   referenceStrength: number;
+  referenceRole: ReferenceRole;
   quality: GenerationQuality;
   editMode: string;
   light: string;
@@ -87,6 +94,7 @@ type CreateStore = {
   useSetRatios: boolean;
   productPreservation: number;
   referenceStrength: number;
+  referenceRole: ReferenceRole;
   quality: GenerationQuality;
   editMode: string;
   light: string;
@@ -112,6 +120,7 @@ type CreateStore = {
   setUseSetRatios: (enabled: boolean) => void;
   setProductPreservation: (strength: number) => void;
   setReferenceStrength: (strength: number) => void;
+  setReferenceRole: (role: ReferenceRole) => void;
   setQuality: (quality: GenerationQuality) => void;
   setEditMode: (editMode: string) => void;
   setLight: (light: string) => void;
@@ -145,6 +154,7 @@ function createEmptyWorkspace(): CreateWorkspaceSnapshot {
     useSetRatios: true,
     productPreservation: 100,
     referenceStrength: 50,
+    referenceRole: "space",
     quality: "medium",
     editMode: "swap",
     light: "원본 유지",
@@ -171,6 +181,7 @@ function captureWorkspace(state: CreateStore): CreateWorkspaceSnapshot {
     useSetRatios: state.useSetRatios,
     productPreservation: state.productPreservation,
     referenceStrength: state.referenceStrength,
+    referenceRole: state.referenceRole,
     quality: state.quality,
     editMode: state.editMode,
     light: state.light,
@@ -225,6 +236,7 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
   useSetRatios: true,
   productPreservation: 100,
   referenceStrength: 50,
+  referenceRole: "space",
   quality: "medium",
   editMode: "swap",
   light: "원본 유지",
@@ -293,11 +305,12 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
   setAspectRatio: (aspectRatio) => set({ aspectRatio, useSetRatios: false }),
   setUseSetRatios: (useSetRatios) => set({ useSetRatios }),
   setProductPreservation: (strength) => set({
-    productPreservation: Number.isFinite(strength) ? Math.max(0, Math.min(100, Math.round(strength))) : 100,
+    productPreservation: normalizeProductPreservation(strength),
   }),
   setReferenceStrength: (strength) => set({
-    referenceStrength: Number.isFinite(strength) ? Math.max(0, Math.min(100, Math.round(strength))) : 50,
+    referenceStrength: normalizeReferenceStrength(strength),
   }),
+  setReferenceRole: (referenceRole) => set({ referenceRole }),
   setQuality: (quality) => {
     set({ quality });
   },
@@ -385,8 +398,9 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
       freeCount: snapshot?.freeCount ?? 1,
       aspectRatio: snapshot?.aspectRatio ?? (shot.ratio === "original" ? "1:1" : shot.ratio),
       useSetRatios: snapshot?.useSetRatios ?? false,
-      productPreservation: snapshot?.productPreservation ?? (snapshot?.editMode === "material" ? 50 : 100),
-      referenceStrength: snapshot?.referenceStrength ?? (snapshot?.editMode === "swap" ? 100 : 50),
+      productPreservation: normalizeProductPreservation(snapshot?.productPreservation ?? (snapshot?.editMode === "material" ? 50 : 100)),
+      referenceStrength: normalizeReferenceStrength(snapshot?.referenceStrength ?? (snapshot?.editMode === "swap" ? 100 : 50)),
+      referenceRole: snapshot?.referenceRole ?? legacyEditModeToRole(snapshot?.editMode ?? fallbackEditMode),
       quality: snapshot?.quality ?? fallbackQuality,
       ...(referenceImage && (snapshot?.editMode || fallbackEditMode) ? {
         editMode: snapshot?.editMode ?? fallbackEditMode,
@@ -481,6 +495,8 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
     const current = retryMetadata ? {
       ...baseState,
       ...retryMetadata.generationSettings,
+      referenceRole: retryMetadata.generationSettings?.referenceRole
+        ?? legacyEditModeToRole(retryMetadata.generationSettings?.editMode),
       productImage: retryMetadata.inputImages?.find(image => image.kind === "product")?.imageUrl
         ?? baseState.productImage,
       referenceImage: retryMetadata.inputImages?.find(image => image.kind === "reference")?.imageUrl
@@ -574,6 +590,7 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
               useSetRatios: current.useSetRatios,
               productPreservation: current.productPreservation,
               referenceStrength: current.referenceStrength,
+              referenceRole: current.referenceRole,
               quality: current.quality,
               ...(current.referenceImage ? { editMode: current.editMode } : {}),
               light: current.light,
@@ -628,6 +645,8 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
 
     const concurrency = FREE_GENERATION_CONCURRENCY;
 
+    // Each cut has its own prompt and retry state. A single edit request with n > 1
+    // would apply one shared prompt, so keep one API call per cut with bounded concurrency.
     await runGenerationQueue(generationShots, concurrency, async (shot) => {
       const prompt = { prompt: shot.metadata.finalPrompt };
 
