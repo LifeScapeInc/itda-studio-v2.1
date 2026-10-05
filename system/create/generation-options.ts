@@ -86,7 +86,7 @@ export const CONTENT_SET_OPTIONS: ContentSetOption[] = [
   },
   {
     id: "free",
-    label: "단건 · 여러 장 생성",
+    label: "생성 장 수 선택",
     description: "같은 설정으로 1–8장의 시안 생성",
     cutCount: null,
     icon: SlidersHorizontal,
