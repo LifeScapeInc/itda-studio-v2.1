@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Camera, Layers3, Settings2 } from "lucide-react";
+import { Camera, Settings2 } from "lucide-react";
 import styled from "styled-components";
 import { PanelResizeHandle } from "@/components/layout/panel-resize-handle";
 import {
@@ -11,12 +11,11 @@ import {
 import { useWorkspaceLayoutStore } from "@/stores/useWorkspaceLayoutStore";
 import { AngleVariationSelector } from "./angle-variation-selector";
 import { CollapsibleSection } from "./collapsible-section";
-import { ContentSetSelector } from "./content-set-selector";
 import { ExpertSettings } from "./expert-settings";
 import { GenerationAction } from "./generation-action";
+import { GenerationPromptInput } from "./generation-prompt-input";
+import { GenerationTopSettings } from "./generation-top-settings";
 import { PromptPreview } from "./prompt-preview";
-import { ImageRatioControl } from "./image-ratio-control";
-import { ImageQualityControl } from "./image-quality-control";
 import { ReferenceStrengthControl } from "./reference-strength-control";
 
 const Panel = styled.aside`
@@ -59,7 +58,6 @@ const Sections = styled.div`
 `;
 
 export function GenerationSettingsPanel() {
-  const [contentOpen, setContentOpen] = useState(true);
   const [angleOpen, setAngleOpen] = useState(false);
   const [expertOpen, setExpertOpen] = useState(false);
   const settingsPanelWidth = useWorkspaceLayoutStore(
@@ -70,7 +68,7 @@ export function GenerationSettingsPanel() {
   );
 
   return (
-    <Panel>
+    <Panel aria-label="생성 설정">
       <PanelResizeHandle
         edge="left"
         label="생성 설정 너비 조절"
@@ -80,22 +78,12 @@ export function GenerationSettingsPanel() {
         onResize={resizeSettingsPanel}
       />
       <Header>
-        <h2 className="type-xsmall-body">생성 설정</h2>
+        <GenerationTopSettings />
         <PromptPreview />
       </Header>
       <ScrollArea>
         <Sections>
-          <ImageRatioControl />
-          <ImageQualityControl />
           <ReferenceStrengthControl />
-          <CollapsibleSection
-            title="콘텐츠 세트 선택"
-            icon={<Layers3 size={16} />}
-            open={contentOpen}
-            onToggle={() => setContentOpen((open) => !open)}
-          >
-            <ContentSetSelector />
-          </CollapsibleSection>
           <CollapsibleSection
             title="앵글 변주"
             icon={<Camera size={16} />}
@@ -112,6 +100,7 @@ export function GenerationSettingsPanel() {
           >
             <ExpertSettings />
           </CollapsibleSection>
+          <GenerationPromptInput />
         </Sections>
       </ScrollArea>
       <GenerationAction />

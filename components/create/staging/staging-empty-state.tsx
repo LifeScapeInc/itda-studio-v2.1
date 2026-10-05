@@ -149,7 +149,7 @@ export function StagingEmptyState({
         </Material>
       </Materials>
       <p className="type-xsmall-thin">
-        우측에서 이미지 비율과 생성 옵션을 설정해 주세요.
+        우측 상단 설정 아이콘에서 이미지 비율·품질·콘텐츠 세트를 선택해 주세요.
       </p>
     </Empty>
   );

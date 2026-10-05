@@ -9,7 +9,6 @@ import { createGenerationShots } from "@/system/create/generation-shots";
 import type { GenerationRatio, ImageRatio } from "@/system/create/generation-ratios";
 import {
   legacyEditModeToRole,
-  normalizeProductPreservation,
   normalizeReferenceStrength,
   type ReferenceRole,
 } from "@/system/create/reference-controls";
@@ -53,8 +52,6 @@ export type GenerationPrompt = {
 const DEFAULT_ROLE = "a professional interior photographer and stylist";
 const PRODUCT_LOCK =
   "Keep the product from the first image exactly as it is — same shape, proportions, color, and material.";
-const PRODUCT_FORM_LOCK =
-  "Keep the product from the first image the same shape and proportions.";
 const PHOTOREAL =
   "Photorealistic, with believable scale and natural contact shadows.";
 const PRIORITY_RULES =
@@ -183,15 +180,6 @@ const PROP_PROMPTS: Record<string, string> = {
   "사이드 테이블": "a proportionate side table that does not obscure the main product",
 };
 
-function getProductLock(input: GenerationPromptInput): string {
-  const preservation = normalizeProductPreservation(input.productPreservation);
-  if (preservation === 100) return PRODUCT_LOCK;
-  if (preservation === 50) {
-    return `${PRODUCT_FORM_LOCK} Preserve recognizable construction and details, but allow subtle material and color adaptations to suit the styling direction.`;
-  }
-  return "Keep the core identity and function of the product from the first image recognizable. Allow creative changes to its color, finish, and styling, but retain its underlying structure.";
-}
-
 function getReferenceDirection(input: GenerationPromptInput): string {
   if (!input.referenceImage || normalizeReferenceStrength(input.referenceStrength) === 0) {
     return "Build a believable scene around the product in Image 1 from scratch. No reference scene is supplied.";
@@ -209,10 +197,9 @@ function getReferenceDirection(input: GenerationPromptInput): string {
     if (strength === 50) return `${intro} Borrow Image 2's lighting and palette for a newly composed scene. Do not copy its room layout or furniture.`;
     return `${intro} Strongly adapt Image 2's lighting, color palette, and atmosphere. Create a new composition; do not copy its room geometry or objects. Explicit styling settings take priority.`;
   }
-  const productLocked = normalizeProductPreservation(input.productPreservation) === 100;
   if (strength === 25) return `${intro} Borrow subtle material and color cues from Image 2 for the surrounding styling only.`;
-  if (strength === 50) return `${intro} Borrow Image 2's surface textures and palette ${productLocked ? "for the surroundings only; leave the product's own material and color unchanged" : "for compatible product finishes and surroundings while retaining the product's form"}. Do not copy its room layout.`;
-  return `${intro} Strongly adapt Image 2's material language and palette ${productLocked ? "in the surroundings only; the product's original material and color remain unchanged" : "to compatible product finishes and surrounding details while retaining recognizable construction"}. Do not copy its room layout or unrelated objects. Explicit styling settings take priority.`;
+  if (strength === 50) return `${intro} Borrow Image 2's surface textures and palette for the surroundings only; leave the product's own material and color unchanged. Do not copy its room layout.`;
+  return `${intro} Strongly adapt Image 2's material language and palette in the surroundings only; the product's original material and color remain unchanged. Do not copy its room layout or unrelated objects. Explicit styling settings take priority.`;
 }
 
 function getFormatInstruction(ratio: GenerationRatio): string {
@@ -247,7 +234,7 @@ function composePrompt(
     template.purpose
       ? `Act as ${template.role}. Create ${template.purpose}.`
       : `Act as ${template.role || DEFAULT_ROLE}.`,
-    getProductLock(input),
+    PRODUCT_LOCK,
     input.referenceImage
       ? getReferenceDirection(input)
       : "Build a believable interior scene around the product from scratch.",
@@ -300,7 +287,7 @@ function getAngleVariationPrompts(
       prompt: [
         `Act as ${ANGLE_ROLE}.`,
         ANGLE_BODY,
-        getProductLock(input),
+        PRODUCT_LOCK,
         getReferenceDirection(input),
         `This frame: ${option.shotRole}.`,
         `Camera: ${option.compositionPrompt}, ${option.techniquePrompt}.`,

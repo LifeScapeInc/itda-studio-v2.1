@@ -4,7 +4,6 @@ import { useId } from "react";
 import styled from "styled-components";
 import { useCreateStore } from "@/stores/useCreateStore";
 import {
-  PRODUCT_PRESERVATION_STEPS,
   REFERENCE_ROLE_OPTIONS,
   REFERENCE_STRENGTH_STEPS,
 } from "@/system/create/reference-controls";
@@ -67,13 +66,10 @@ const RoleHint = styled.p`
 export function ReferenceStrengthControl() {
   const id = useId();
   const reference = useCreateStore(state => state.referenceImage);
-  const preservation = useCreateStore(state => state.productPreservation);
   const strength = useCreateStore(state => state.referenceStrength);
   const referenceRole = useCreateStore(state => state.referenceRole);
-  const setPreservation = useCreateStore(state => state.setProductPreservation);
   const setStrength = useCreateStore(state => state.setReferenceStrength);
   const setReferenceRole = useCreateStore(state => state.setReferenceRole);
-  const preservationIndex = Math.max(0, PRODUCT_PRESERVATION_STEPS.findIndex(step => step.value === preservation));
   const strengthIndex = Math.max(0, REFERENCE_STRENGTH_STEPS.findIndex(step => step.value === strength));
   const roleDescription = REFERENCE_ROLE_OPTIONS.find(option => option.id === referenceRole)?.description;
   if (!reference) return null;
@@ -91,20 +87,12 @@ export function ReferenceStrengthControl() {
         <RoleHint>{roleDescription}합니다.</RoleHint>
       </div>
       <div>
-        <Heading><label htmlFor={`${id}-product`}>내 제품 유지</label><strong>{PRODUCT_PRESERVATION_STEPS[preservationIndex].label}</strong></Heading>
-        <Slider id={`${id}-product`} type="range" min={0} max={PRODUCT_PRESERVATION_STEPS.length - 1} step={1} value={preservationIndex}
-          aria-valuetext={PRODUCT_PRESERVATION_STEPS[preservationIndex].description}
-          onChange={event => setPreservation(PRODUCT_PRESERVATION_STEPS[Number(event.target.value)].value)} />
-        <Scale><span>창의적 변형</span><span>원형 충실</span></Scale>
-      </div>
-      <div>
         <Heading><label htmlFor={`${id}-reference`}>레퍼런스 반영</label><strong>{REFERENCE_STRENGTH_STEPS[strengthIndex].label}</strong></Heading>
         <Slider id={`${id}-reference`} type="range" min={0} max={REFERENCE_STRENGTH_STEPS.length - 1} step={1} value={strengthIndex}
           aria-valuetext={REFERENCE_STRENGTH_STEPS[strengthIndex].description}
           onChange={event => setStrength(REFERENCE_STRENGTH_STEPS[Number(event.target.value)].value)} />
         <Scale><span>사용 안 함</span><span>강하게</span></Scale>
       </div>
-      <p>각 눈금은 서로 다른 프롬프트 단계입니다. 정확한 복제율은 아니며, ‘사용 안 함’에서는 두 번째 사진을 API에 보내지 않습니다.</p>
     </Card>
   );
 }

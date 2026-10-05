@@ -49,15 +49,7 @@ const Option = styled.button<{ $selected: boolean }>`
 
   strong { font-size: 11px; }
   span { color: var(--color-label-studio-comment); font-size: 10px; }
-  small { color: var(--color-main-primary); font-size: 10px; }
   &:focus-visible { outline: 2px solid var(--color-main-primary); outline-offset: 2px; }
-`;
-
-const Note = styled.p`
-  margin: 9px 0 0;
-  color: var(--color-label-studio-comment);
-  font-size: 10px;
-  line-height: 1.45;
 `;
 
 export function ImageQualityControl() {
@@ -78,11 +70,9 @@ export function ImageQualityControl() {
           >
             <strong>{option.label}</strong>
             <span>{option.description}</span>
-            <small>약 ${option.squareOutputUsd.toFixed(3)}/장</small>
           </Option>
         ))}
       </Options>
-      <Note>표시 금액은 1:1(1024×1024) 이미지 출력분 예시입니다. 실제 비용은 비율과 입력 텍스트·참조 이미지에 따라 달라집니다.</Note>
     </Card>
   );
 }

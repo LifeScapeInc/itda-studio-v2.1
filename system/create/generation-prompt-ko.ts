@@ -4,7 +4,6 @@ import { createGenerationShots } from "@/system/create/generation-shots";
 import type { GenerationRatio } from "@/system/create/generation-ratios";
 import {
   legacyEditModeToRole,
-  normalizeProductPreservation,
   normalizeReferenceStrength,
 } from "@/system/create/reference-controls";
 
@@ -90,13 +89,6 @@ const PROPS: Record<string, string> = {
   "사이드 테이블": "주 제품을 가리지 않는 적절한 크기의 사이드 테이블",
 };
 
-function productRule(input: GenerationPromptInput): string {
-  const preservation = normalizeProductPreservation(input.productPreservation);
-  if (preservation === 100) return "첫 번째 이미지의 제품은 형태·비율·색상·소재까지 정확히 유지하세요.";
-  if (preservation === 50) return "첫 번째 이미지의 제품 형태와 비율, 알아볼 수 있는 구조와 디테일을 유지하되 스타일에 맞는 미세한 소재·색상 변경은 허용하세요.";
-  return "첫 번째 이미지 제품의 핵심 정체성·기능·기본 구조는 알아볼 수 있게 유지하고 색상·마감·스타일은 창의적으로 바꿀 수 있습니다.";
-}
-
 function referenceRule(input: GenerationPromptInput): string {
   const strength = normalizeReferenceStrength(input.referenceStrength);
   if (!input.referenceImage || strength === 0) {
@@ -114,14 +106,9 @@ function referenceRule(input: GenerationPromptInput): string {
     if (strength === 50) return intro + "채광과 색상 팔레트를 참고하여 새로운 장면을 구성하고 공간 배치나 가구는 복사하지 마세요.";
     return intro + "채광·색상 팔레트·분위기를 강하게 반영하되 구도는 새로 만들고 공간 구조나 물건은 복사하지 마세요. 명시한 스타일 설정이 우선합니다.";
   }
-  const locked = normalizeProductPreservation(input.productPreservation) === 100;
   if (strength === 25) return intro + "주변 연출에만 소재·색감의 가벼운 힌트를 적용하세요.";
-  if (strength === 50) return intro + (locked
-    ? "주변 공간에만 표면 질감과 색감 팔레트를 적용하고 제품 자체의 소재·색상은 유지하세요. 공간 배치는 복사하지 마세요."
-    : "제품의 형태를 유지하면서 어울리는 마감과 주변 공간에 질감·색감을 적용하세요. 공간 배치는 복사하지 마세요.");
-  return intro + (locked
-    ? "소재 느낌과 색감을 주변에 강하게 반영하되 제품의 원래 소재·색상은 유지하세요. 공간 배치나 무관한 물건은 복사하지 마세요. 명시한 스타일 설정이 우선합니다."
-    : "제품의 구조를 알아볼 수 있게 유지하면서 어울리는 제품 마감과 주변 디테일에 소재 느낌·색감을 강하게 반영하세요. 공간 배치나 무관한 물건은 복사하지 마세요. 명시한 스타일 설정이 우선합니다.");
+  if (strength === 50) return intro + "주변 공간에만 표면 질감과 색감 팔레트를 적용하고 제품 자체의 소재·색상은 유지하세요. 공간 배치는 복사하지 마세요.";
+  return intro + "소재 느낌과 색감을 주변에 강하게 반영하되 제품의 원래 소재·색상은 유지하세요. 공간 배치나 무관한 물건은 복사하지 마세요. 명시한 스타일 설정이 우선합니다.";
 }
 
 function formatRule(ratio: GenerationRatio): string {
@@ -157,7 +144,7 @@ export function buildKoreanPromptPreviews(input: GenerationPromptInput): Record<
     const lines = [
       intro,
       ...(angle ? ["첫 번째 이미지는 제품의 기준이며 공간으로 보존하지 마세요."] : []),
-      productRule(input),
+      "첫 번째 이미지의 제품은 형태·비율·색상·소재까지 정확히 유지하세요.",
       referenceRule(input),
       angle ? `이번 컷: ${angle[0]}` : SHOTS[shot.id],
       angle ? `카메라: ${angle[1]}` : "",
@@ -180,6 +167,7 @@ export function getKoreanPromptForShot(shot: LibraryGenerationShot): string | nu
   if (shot.metadata.koreanPrompt) return shot.metadata.koreanPrompt;
   const settings = shot.metadata.generationSettings;
   if (!settings) return null;
+  if (settings.productPreservation !== undefined && settings.productPreservation !== 100) return null;
   const input: GenerationPromptInput = {
     ...settings,
     referenceImage: shot.metadata.inputImages?.find(image => image.kind === "reference")?.imageUrl ?? null,

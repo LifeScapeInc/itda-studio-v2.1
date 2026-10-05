@@ -6,23 +6,12 @@ export const REFERENCE_ROLE_OPTIONS = [
 
 export type ReferenceRole = typeof REFERENCE_ROLE_OPTIONS[number]["id"];
 
-export const PRODUCT_PRESERVATION_STEPS = [
-  { value: 0, label: "창의적 변형", description: "제품 정체성은 남기고 마감 변경 허용" },
-  { value: 50, label: "형태 유지", description: "형태를 지키며 소재·색감만 조정" },
-  { value: 100, label: "원형 충실", description: "형태·색상·소재 유지" },
-] as const;
-
 export const REFERENCE_STRENGTH_STEPS = [
   { value: 0, label: "사용 안 함", description: "레퍼런스를 API에 보내지 않음" },
   { value: 25, label: "가볍게", description: "느낌만 참고" },
   { value: 50, label: "균형 있게", description: "선택한 역할의 핵심 요소 참고" },
   { value: 100, label: "강하게", description: "선택한 역할을 최대한 반영" },
 ] as const;
-
-export function normalizeProductPreservation(value: number | undefined): number {
-  if (value === undefined || !Number.isFinite(value)) return 100;
-  return value < 35 ? 0 : value < 75 ? 50 : 100;
-}
 
 export function normalizeReferenceStrength(value: number | undefined): number {
   if (value === undefined || !Number.isFinite(value)) return 50;

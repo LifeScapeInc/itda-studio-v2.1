@@ -29,7 +29,7 @@ const { buildKoreanPromptPreviews } = require("../system/create/generation-promp
 const { getKoreanPromptForShot } = require("../system/create/generation-prompt-ko.ts");
 const { createGenerationShots } = require("../system/create/generation-shots.ts");
 const { getCutCount } = require("../system/create/generation-options.ts");
-const { normalizeProductPreservation, normalizeReferenceStrength } = require("../system/create/reference-controls.ts");
+const { normalizeReferenceStrength } = require("../system/create/reference-controls.ts");
 const { runGenerationQueue, FREE_GENERATION_CONCURRENCY } = require("../system/create/generation-runner.ts");
 
 const base = {
@@ -50,7 +50,6 @@ const base = {
   prompt: "Keep a calm campaign look",
 };
 
-assert.deepEqual([0, 20, 40, 70, 100].map(normalizeProductPreservation), [0, 0, 50, 50, 100]);
 assert.deepEqual([0, 10, 40, 70, 100].map(normalizeReferenceStrength), [0, 25, 50, 50, 100]);
 
 let combinations = 0;
@@ -76,12 +75,15 @@ for (const role of ["space", "style", "material"]) {
         assert.equal(new Set(prompts.map(item => item.prompt)).size, prompts.length, "each cut needs a distinct prompt");
         for (const [index, prompt] of prompts.entries()) {
           assert.match(prompt.prompt, /first image|Image 1/i, "product source must be named");
+          assert.match(prompt.prompt, /same shape, proportions, color, and material/, "product preservation is always locked");
+          assert.doesNotMatch(prompt.prompt, /Allow creative changes|allow subtle material and color adaptations/);
           assert.match(prompt.prompt, /Final output aspect ratio: 4:5/, "requested ratio must be in prompt");
           if (strength === 0) assert.doesNotMatch(prompt.prompt, /Image 2|second image/i);
           if (strength > 0) assert.match(prompt.prompt, /Image 2/);
           assert.equal(shots[index].ratio, "4:5");
           assert.match(koreanPrompts[prompt.id], /최종 출력 비율은 4:5/);
           assert.match(koreanPrompts[prompt.id], /첫 번째 이미지/);
+          assert.match(koreanPrompts[prompt.id], /형태·비율·색상·소재까지 정확히 유지/);
           if (strength === 0) assert.doesNotMatch(koreanPrompts[prompt.id], /두 번째 이미지는 참고 자료/);
           if (strength > 0) assert.match(koreanPrompts[prompt.id], /두 번째 이미지는 참고 자료/);
           if (role !== "space") assert.doesNotMatch(prompt.prompt, /same room geometry|original room geometry/i);
@@ -120,7 +122,9 @@ const noReferenceAngle = buildGenerationPrompts({
 assert.match(noReferenceAngle, /Image 1 is the product, not a room/);
 assert.doesNotMatch(noReferenceAngle, /same room geometry|original room geometry/i);
 assert.equal(getCutCount(null, 8, ["closeup", "reverse"]), 1, "multi-angle legacy input has one output cut");
-assert.match(buildGenerationPrompts({ ...base, referenceRole: "material", referenceStrength: 100, productPreservation: 100 })[0].prompt, /product's original material and color remain unchanged/);
+for (const preservation of [0, 50, 100]) {
+  assert.match(buildGenerationPrompts({ ...base, referenceRole: "material", referenceStrength: 100, productPreservation: preservation })[0].prompt, /product's original material and color remain unchanged/);
+}
 
 (async () => {
   const shots = createGenerationShots(base);
@@ -195,9 +199,37 @@ assert.match(buildGenerationPrompts({ ...base, referenceRole: "material", refere
     assert.equal(apiCalls.length, 10);
     assert.ok(apiCalls.slice(8).every(call => call.referenceImages.length === 1));
     assert.ok(apiCalls.slice(8).every(call => call.prompt.includes("lighting and palette")));
+    const latest = useCreateStore.getState().generationHistory[0];
+    const failedShot = {
+      ...latest.shots[0],
+      status: "error",
+      metadata: {
+        ...latest.shots[0].metadata,
+        finalPrompt: "Allow creative changes to the product.",
+        generationSettings: { ...latest.shots[0].metadata.generationSettings, productPreservation: 0 },
+      },
+    };
+    useCreateStore.setState(state => ({
+      activeHistoryId: latest.id,
+      generationHistory: state.generationHistory.map(history => history.id === latest.id
+        ? { ...history, shots: [failedShot, ...history.shots.slice(1)] }
+        : history),
+    }));
+    const retry = await useCreateStore.getState().requestGeneration(true, true);
+    assert.equal(retry.completed, 1, "retry regenerates the failed cut");
+    assert.match(apiCalls.at(-1).prompt, /same shape, proportions, color, and material/);
+    assert.doesNotMatch(apiCalls.at(-1).prompt, /Allow creative changes/);
+    store.reuseGenerationSettings({
+      ...savedShot,
+      metadata: {
+        ...savedShot.metadata,
+        generationSettings: { ...savedShot.metadata.generationSettings, productPreservation: 0 },
+      },
+    });
+    assert.equal(useCreateStore.getState().productPreservation, 100, "old editable preservation settings restore as locked");
   } finally {
     global.fetch = originalFetch;
     delete global.window;
   }
-  console.log(`PASS ${combinations} role/strength/preservation/mode combinations, 54 ratio/mode mappings, exclusive mode toggles, cut uniqueness, ${requests.length} queued calls (peak ${peak}), and 10 store-to-API calls`);
+  console.log(`PASS ${combinations} role/strength/preservation/mode combinations, 54 ratio/mode mappings, exclusive mode toggles, cut uniqueness, ${requests.length} queued calls (peak ${peak}), and 11 store-to-API calls including a locked retry`);
 })().catch(error => { console.error(error); process.exitCode = 1; });

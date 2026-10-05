@@ -149,9 +149,9 @@ export const ANGLE_VARIATION_OPTIONS: AngleVariationOption[] = [
 ];
 
 export const QUALITY_OPTIONS = [
-  { id: "low", label: "Low", description: "빠른 시안", squareOutputUsd: 0.006 },
-  { id: "medium", label: "Medium", description: "균형 잡힌 품질", squareOutputUsd: 0.053 },
-  { id: "high", label: "High", description: "정교한 결과", squareOutputUsd: 0.211 },
+  { id: "low", label: "Low", description: "빠른 시안" },
+  { id: "medium", label: "Medium", description: "균형 잡힌 품질" },
+  { id: "high", label: "High", description: "정교한 결과" },
 ] as const;
 
 export const EDIT_MODE_OPTIONS = [

@@ -53,21 +53,6 @@ const Chip = styled.button<{ $selected: boolean }>`
   cursor: pointer;
 `;
 
-const Prompt = styled.textarea`
-  width: 100%;
-  height: 78px;
-  resize: none;
-  padding: var(--space-xs);
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  background: var(--color-surface);
-  font-size: 12px;
-  line-height: 1.5;
-  outline: none;
-
-  &:focus { border-color: var(--color-main-primary); }
-`;
-
 function ChipGroup({
   options,
   selected,
@@ -100,11 +85,9 @@ export function ExpertSettings() {
   const light = useCreateStore((state) => state.light);
   const mood = useCreateStore((state) => state.mood);
   const props = useCreateStore((state) => state.props);
-  const prompt = useCreateStore((state) => state.prompt);
   const setLight = useCreateStore((state) => state.setLight);
   const setMood = useCreateStore((state) => state.setMood);
   const toggleProp = useCreateStore((state) => state.toggleProp);
-  const setPrompt = useCreateStore((state) => state.setPrompt);
 
   return (
     <Fields>
@@ -115,14 +98,6 @@ export function ExpertSettings() {
       <Field><FieldLabel>인테리어 무드</FieldLabel><ChipGroup options={MOOD_OPTIONS} selected={[mood]} onSelect={setMood} /></Field>
       <Field><FieldLabel>연출 소품</FieldLabel><ChipGroup options={PROP_OPTIONS} selected={props} onSelect={toggleProp} multi /></Field>
       <Description>소품은 여러 개 선택할 수 있습니다. ‘소품 없음’은 다른 소품 선택을 해제합니다.</Description>
-      <Field>
-        <FieldLabel>추가 디렉션 (프롬프트)</FieldLabel>
-        <Prompt
-          value={prompt}
-          placeholder={'예) \'조명을 더 밝게\', \'바닥을 우드톤으로\''}
-          onChange={(event) => setPrompt(event.target.value)}
-        />
-      </Field>
     </Fields>
   );
 }

@@ -45,7 +45,6 @@ import { normalizeFreeCount } from "@/system/create/generation-options";
 import type { ImageRatio } from "@/system/create/generation-ratios";
 import {
   legacyEditModeToRole,
-  normalizeProductPreservation,
   normalizeReferenceStrength,
   type ReferenceRole,
 } from "@/system/create/reference-controls";
@@ -119,7 +118,6 @@ type CreateStore = {
   setFreeCount: (count: number) => void;
   setAspectRatio: (ratio: ImageRatio) => void;
   setUseSetRatios: (enabled: boolean) => void;
-  setProductPreservation: (strength: number) => void;
   setReferenceStrength: (strength: number) => void;
   setReferenceRole: (role: ReferenceRole) => void;
   setQuality: (quality: GenerationQuality) => void;
@@ -180,7 +178,7 @@ function captureWorkspace(state: CreateStore): CreateWorkspaceSnapshot {
     freeCount: state.freeCount,
     aspectRatio: state.aspectRatio,
     useSetRatios: state.useSetRatios,
-    productPreservation: state.productPreservation,
+    productPreservation: 100,
     referenceStrength: state.referenceStrength,
     referenceRole: state.referenceRole,
     quality: state.quality,
@@ -271,6 +269,7 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
 
     set({
       ...nextWorkspace,
+      productPreservation: 100,
       workspaceProjectId,
       workspaceSnapshots,
     });
@@ -303,9 +302,6 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
   },
   setAspectRatio: (aspectRatio) => set({ aspectRatio, useSetRatios: false }),
   setUseSetRatios: (useSetRatios) => set({ useSetRatios }),
-  setProductPreservation: (strength) => set({
-    productPreservation: normalizeProductPreservation(strength),
-  }),
   setReferenceStrength: (strength) => set({
     referenceStrength: normalizeReferenceStrength(strength),
   }),
@@ -398,7 +394,7 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
       freeCount: snapshot?.freeCount ?? 1,
       aspectRatio: snapshot?.aspectRatio ?? (shot.ratio === "original" ? "1:1" : shot.ratio),
       useSetRatios: snapshot?.useSetRatios ?? false,
-      productPreservation: normalizeProductPreservation(snapshot?.productPreservation ?? (snapshot?.editMode === "material" ? 50 : 100)),
+      productPreservation: 100,
       referenceStrength: normalizeReferenceStrength(snapshot?.referenceStrength ?? (snapshot?.editMode === "swap" ? 100 : 50)),
       referenceRole: snapshot?.referenceRole ?? legacyEditModeToRole(snapshot?.editMode ?? fallbackEditMode),
       quality: snapshot?.quality ?? fallbackQuality,
@@ -501,14 +497,20 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
         ?? baseState.productImage,
       referenceImage: retryMetadata.inputImages?.find(image => image.kind === "reference")?.imageUrl
         ?? null,
-    } : baseState;
+    } : { ...baseState };
+    current.productPreservation = 100;
     const runProjectId = current.workspaceProjectId;
+    const freshPrompts = buildGenerationPrompts(current);
+    const freshPromptByLabel = new Map(freshPrompts.map(item => [item.label, item]));
+    if (retryFailed && failedShots.some(shot => !freshPromptByLabel.has(shot.label))) {
+      return { ...emptyResult, error: "이전 결과의 생성 설정을 복원할 수 없습니다. 설정 다시 사용 후 새로 생성해 주세요." };
+    }
     const lastGenerationPrompts = retryFailed
-      ? failedShots.map(shot => ({ id: shot.id, label: shot.label, prompt: shot.metadata.finalPrompt }))
-      : buildGenerationPrompts(current);
+      ? failedShots.map(shot => ({ id: shot.id, label: shot.label, prompt: freshPromptByLabel.get(shot.label)?.prompt ?? "" }))
+      : freshPrompts;
     const runCreatedAt = new Date().toISOString();
     const runId = retryHistory?.id ?? `generation-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-    const editModeLabel = `제품 유지 ${current.productPreservation} · 레퍼런스 반영 ${current.referenceStrength}`;
+    const editModeLabel = `제품 유지 원형 충실 · 레퍼런스 반영 ${current.referenceStrength}`;
     const qualityLabel = QUALITY_OPTIONS.find(
       (option) => option.id === current.quality,
     )?.label ?? current.quality;
@@ -548,9 +550,24 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
       set({ isGenerating: false, generationMessage: message });
       return { ...emptyResult, failed: shotDrafts.length, error: message };
     }
-    const koreanPrompts = retryFailed ? {} : buildKoreanPromptPreviews(current);
+    const koreanPrompts = buildKoreanPromptPreviews(current);
     const generationShots: LibraryGenerationShot[] = retryFailed
-      ? failedShots.map(shot => ({ ...shot, status: "pending", error: undefined }))
+      ? failedShots.map(shot => {
+        const freshPrompt = freshPromptByLabel.get(shot.label);
+        return {
+          ...shot,
+          status: "pending",
+          error: undefined,
+          metadata: {
+            ...shot.metadata,
+            finalPrompt: freshPrompt?.prompt ?? "",
+            koreanPrompt: freshPrompt ? koreanPrompts[freshPrompt.id] : undefined,
+            generationSettings: shot.metadata.generationSettings
+              ? { ...shot.metadata.generationSettings, productPreservation: 100 }
+              : undefined,
+          },
+        };
+      })
       : shotDrafts
       .map((shot) => {
         const shotPrompt = lastGenerationPrompts.find((item) => item.id === shot.id)
@@ -590,7 +607,7 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
               freeCount: current.freeCount,
               aspectRatio: current.aspectRatio,
               useSetRatios: current.useSetRatios,
-              productPreservation: current.productPreservation,
+              productPreservation: 100,
               referenceStrength: current.referenceStrength,
               referenceRole: current.referenceRole,
               quality: current.quality,

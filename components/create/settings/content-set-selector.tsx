@@ -12,10 +12,19 @@ const Description = styled.p`
   line-height: 1.45;
 `;
 
-const List = styled.div`
-  display: flex;
+const List = styled.div<{ $grid: boolean }>`
+  display: ${({ $grid }) => $grid ? "grid" : "flex"};
+  grid-template-columns: ${({ $grid }) => $grid ? "repeat(2, minmax(0, 1fr))" : "none"};
   flex-direction: column;
   gap: var(--space-2xs);
+
+  @media (max-width: 700px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const Choice = styled.div<{ $featured: boolean; $grid: boolean }>`
+  grid-column: ${({ $featured, $grid }) => $featured && $grid ? "1 / -1" : "auto"};
 `;
 
 const CutCount = styled.span`
@@ -63,7 +72,7 @@ const CountChoices = styled.div`
   }
 `;
 
-export function ContentSetSelector() {
+export function ContentSetSelector({ layout = "list" }: { layout?: "list" | "grid" }) {
   const selectedSet = useCreateStore((state) => state.contentSet);
   const freeCount = useCreateStore((state) => state.freeCount);
   const setContentSet = useCreateStore((state) => state.setContentSet);
@@ -74,12 +83,12 @@ export function ContentSetSelector() {
       <Description>
         앵글 변주와 둘 중 하나만 선택합니다. 다시 누르면 해제됩니다.
       </Description>
-      <List role="group" aria-label="콘텐츠 세트">
+      <List role="group" aria-label="콘텐츠 세트" $grid={layout === "grid"}>
         {[...CONTENT_SET_OPTIONS].sort((a, b) => Number(b.id === "free") - Number(a.id === "free")).map((option) => {
           const selected = selectedSet === option.id;
           const Icon = option.icon;
           return (
-            <div key={option.id}>
+            <Choice key={option.id} $featured={option.id === "free"} $grid={layout === "grid"}>
               <GenerationOptionCard
                 selected={selected}
                 label={option.label}
@@ -122,7 +131,7 @@ export function ContentSetSelector() {
                 <Description style={{ marginTop: 6, marginBottom: 0 }}>최대 4장씩 동시에 생성합니다. 장 수에 따라 사용량이 늘어납니다.</Description>
                 </>
               ) : null}
-            </div>
+            </Choice>
           );
         })}
       </List>
