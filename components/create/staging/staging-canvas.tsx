@@ -47,7 +47,7 @@ const SplitStage = styled.div<{ $historyHeight: number }>`
   display: grid;
   min-height: 0;
   flex: 1;
-  grid-template-rows: minmax(0, 1fr) 28px ${({ $historyHeight }) => $historyHeight}px;
+  grid-template-rows: minmax(0, 1fr) 18px ${({ $historyHeight }) => $historyHeight}px;
 `;
 
 const CurrentArea = styled.div`
@@ -63,7 +63,7 @@ const CurrentArea = styled.div`
 const HISTORY_DEFAULT_HEIGHT = 260;
 const HISTORY_MIN_HEIGHT = 160;
 const CURRENT_MIN_HEIGHT = 180;
-const RESIZE_HANDLE_HEIGHT = 28;
+const RESIZE_HANDLE_HEIGHT = 18;
 
 export function StagingCanvas({
   projectId,

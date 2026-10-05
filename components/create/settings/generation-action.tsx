@@ -106,7 +106,7 @@ export function GenerationAction() {
     <Footer>
       <Summary>
         <span>{state.isGenerating ? "이미지 생성 중" : mockMode ? "미리보기 모드" : "생성할 이미지"}</span>
-        <strong>{state.isGenerating ? `${completed} / ${total}장 완료${failed ? ` · ${failed}장 실패` : ""}` : `${cutCount}장`}</strong>
+        <strong>{state.isGenerating ? `${completed} / ${total}장 완료${failed ? ` · ${failed}장 실패` : ""}` : cutCount ? `${cutCount}장` : "방식 미선택"}</strong>
       </Summary>
       {state.isGenerating ? <Progress aria-label="이미지 생성 진행률" max={Math.max(1, total)} value={completed + failed} /> : null}
       <PrimaryIconButton
@@ -120,7 +120,7 @@ export function GenerationAction() {
         disabled={!canGenerate || state.isGenerating}
         onClick={() => void generate()}
       >
-        {state.isGenerating ? "생성 중..." : `${cutCount}장 생성하기`}
+        {state.isGenerating ? "생성 중..." : cutCount ? `${cutCount}장 생성하기` : "생성 방식 선택"}
       </PrimaryIconButton>
       {failed > 0 ? <Retry type="button" disabled={state.isGenerating} onClick={() => void generate(true)}><RotateCcw size={13} />실패한 {failed}장만 다시 시도</Retry> : null}
       {toastVisible ? <Toast role="status" aria-live="polite">

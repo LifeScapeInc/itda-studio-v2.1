@@ -60,6 +60,9 @@ const RoleChoices = styled.div`
     font-weight: 700;
   }
 `;
+const RoleHint = styled.p`
+  margin-top: 7px;
+`;
 
 export function ReferenceStrengthControl() {
   const id = useId();
@@ -72,19 +75,20 @@ export function ReferenceStrengthControl() {
   const setReferenceRole = useCreateStore(state => state.setReferenceRole);
   const preservationIndex = Math.max(0, PRODUCT_PRESERVATION_STEPS.findIndex(step => step.value === preservation));
   const strengthIndex = Math.max(0, REFERENCE_STRENGTH_STEPS.findIndex(step => step.value === strength));
+  const roleDescription = REFERENCE_ROLE_OPTIONS.find(option => option.id === referenceRole)?.description;
   if (!reference) return null;
 
   return (
     <Card aria-label="이미지 참조 설정">
       <h3>이미지 참조 설정</h3>
       <div>
-        <Heading>두 번째 사진의 역할</Heading>
         <RoleChoices role="group" aria-label="두 번째 사진의 역할">
           {REFERENCE_ROLE_OPTIONS.map(option => (
             <button key={option.id} type="button" aria-pressed={referenceRole === option.id}
               title={option.description} onClick={() => setReferenceRole(option.id)}>{option.label}</button>
           ))}
         </RoleChoices>
+        <RoleHint>{roleDescription}합니다.</RoleHint>
       </div>
       <div>
         <Heading><label htmlFor={`${id}-product`}>내 제품 유지</label><strong>{PRODUCT_PRESERVATION_STEPS[preservationIndex].label}</strong></Heading>

@@ -113,7 +113,7 @@ export function ExpertSettings() {
   return (
     <Fields>
       <Description>
-        앵글과 함께 사용할 수 있어요. 원본 유지를 선택하면 해당 연출을 바꾸지 않습니다.
+        선택한 생성 방식에 공통 적용됩니다. ‘원본 유지’는 별도 지시를 넣지 않는다는 뜻이며, 레퍼런스의 영향은 남을 수 있어요.
       </Description>
       <Field>
         <FieldLabel>품질</FieldLabel>

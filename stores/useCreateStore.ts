@@ -147,7 +147,7 @@ function createEmptyWorkspace(): CreateWorkspaceSnapshot {
   return {
     productImage: null,
     referenceImage: null,
-    contentSet: "free",
+    contentSet: null,
     angleVariationIds: [],
     freeCount: 1,
     aspectRatio: "1:1",
@@ -229,7 +229,7 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
   workspaceSnapshots: {},
   productImage: null,
   referenceImage: null,
-  contentSet: "free",
+  contentSet: null,
   angleVariationIds: [],
   freeCount: 1,
   aspectRatio: "1:1",
@@ -280,20 +280,18 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
   setReferenceImage: (referenceImage) => {
     set({ referenceImage, generationRequested: false });
   },
-  setContentSet: (contentSet) => {
-    set({
-      contentSet,
-      angleVariationIds: [],
-      generationRequested: false,
-    });
-  },
+  setContentSet: (contentSet) => set((state) => ({
+    contentSet: state.contentSet === contentSet ? null : contentSet,
+    angleVariationIds: [],
+    generationRequested: false,
+  })),
   toggleAngleVariation: (angleVariation) => {
     set((state) => {
-      const angleVariationIds = state.angleVariationIds.includes(angleVariation)
-        ? state.angleVariationIds.filter((item) => item !== angleVariation)
-        : [...state.angleVariationIds, angleVariation];
+      const angleVariationIds = state.angleVariationIds[0] === angleVariation
+        ? []
+        : [angleVariation];
       return {
-        contentSet: angleVariationIds.length ? null : "free",
+        contentSet: null,
         angleVariationIds,
         generationRequested: false,
       };
@@ -388,13 +386,14 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
     const fallbackEditMode = EDIT_MODE_OPTIONS.find(
       (option) => option.id === metadata.editMode || option.label === metadata.editMode,
     )?.id;
+    const restoredAngles = snapshot?.angleVariationIds?.slice(0, 1)
+      ?? (fallbackAngle ? [fallbackAngle] : []);
 
     set((state) => ({
       productImage: productImage ?? state.productImage,
       referenceImage,
-      contentSet: snapshot?.contentSet ?? fallbackContentSet,
-      angleVariationIds: snapshot?.angleVariationIds
-        ?? (fallbackAngle ? [fallbackAngle] : []),
+      contentSet: restoredAngles.length ? null : snapshot?.contentSet ?? fallbackContentSet,
+      angleVariationIds: restoredAngles,
       freeCount: snapshot?.freeCount ?? 1,
       aspectRatio: snapshot?.aspectRatio ?? (shot.ratio === "original" ? "1:1" : shot.ratio),
       useSetRatios: snapshot?.useSetRatios ?? false,

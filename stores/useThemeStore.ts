@@ -20,7 +20,7 @@ function applyTheme(theme: StudioTheme): void {
 }
 
 export const useThemeStore = create<ThemeStore>((set, get) => ({
-  theme: "light",
+  theme: "dark",
   hydrated: false,
   hydrate: () => {
     if (get().hydrated) {
@@ -29,7 +29,7 @@ export const useThemeStore = create<ThemeStore>((set, get) => ({
 
     queueMicrotask(() => {
       const saved = window.localStorage.getItem(THEME_STORAGE_KEY);
-      const theme: StudioTheme = saved === "dark" ? "dark" : "light";
+      const theme: StudioTheme = saved === "light" ? "light" : "dark";
       applyTheme(theme);
       set({ theme, hydrated: true });
     });

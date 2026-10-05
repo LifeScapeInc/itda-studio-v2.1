@@ -27,9 +27,9 @@ export function AngleVariationSelector() {
   return (
     <>
       <Description>
-        같은 공간을 다른 시점으로 촬영합니다. 전문가 설정의 채광·소품도 함께 적용할 수 있어요.
+        콘텐츠 세트 대신 한 앵글만 선택합니다. 다시 누르면 해제됩니다.
       </Description>
-      <List aria-label="앵글 변주" aria-multiselectable="true">
+      <List role="group" aria-label="앵글 변주">
         {ANGLE_VARIATION_OPTIONS.map((option) => {
           const selected = selectedIds.includes(option.id);
 

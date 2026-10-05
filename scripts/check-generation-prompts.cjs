@@ -26,6 +26,7 @@ Module._extensions[".ts"] = function loadTypescript(module, filename) {
 
 const { buildGenerationPrompts } = require("../system/create/generation-prompt.ts");
 const { createGenerationShots } = require("../system/create/generation-shots.ts");
+const { getCutCount } = require("../system/create/generation-options.ts");
 const { normalizeProductPreservation, normalizeReferenceStrength } = require("../system/create/reference-controls.ts");
 const { runGenerationQueue, FREE_GENERATION_CONCURRENCY } = require("../system/create/generation-runner.ts");
 
@@ -65,6 +66,7 @@ for (const role of ["space", "style", "material"]) {
         };
         const shots = createGenerationShots(input);
         const prompts = buildGenerationPrompts(input);
+        if (mode === "angle") assert.equal(shots.length, 1, "angle mode accepts only the first selected angle");
         assert.equal(prompts.length, shots.length, `${role}/${strength}/${preservation}/${mode} count`);
         assert.deepEqual(prompts.map(item => item.id), shots.map(item => item.id));
         assert.equal(new Set(prompts.map(item => item.prompt)).size, prompts.length, "each cut needs a distinct prompt");
@@ -109,6 +111,7 @@ const noReferenceAngle = buildGenerationPrompts({
 })[0].prompt;
 assert.match(noReferenceAngle, /Image 1 is the product, not a room/);
 assert.doesNotMatch(noReferenceAngle, /same room geometry|original room geometry/i);
+assert.equal(getCutCount(null, 8, ["closeup", "reverse"]), 1, "multi-angle legacy input has one output cut");
 assert.match(buildGenerationPrompts({ ...base, referenceRole: "material", referenceStrength: 100, productPreservation: 100 })[0].prompt, /product's original material and color remain unchanged/);
 
 (async () => {
@@ -138,6 +141,24 @@ assert.match(buildGenerationPrompts({ ...base, referenceRole: "material", refere
   };
   try {
     const store = useCreateStore.getState();
+    assert.equal(store.contentSet, null, "no generation mode selected by default");
+    assert.deepEqual(store.angleVariationIds, []);
+    store.setContentSet("free");
+    assert.equal(useCreateStore.getState().contentSet, "free");
+    store.setContentSet("free");
+    assert.equal(useCreateStore.getState().contentSet, null, "reselecting a content set clears it");
+    store.setContentSet("sns");
+    store.toggleAngleVariation("reverse");
+    assert.equal(useCreateStore.getState().contentSet, null, "angle replaces content set");
+    assert.deepEqual(useCreateStore.getState().angleVariationIds, ["reverse"]);
+    store.toggleAngleVariation("closeup");
+    assert.deepEqual(useCreateStore.getState().angleVariationIds, ["closeup"], "angle choice is singular");
+    store.setContentSet("detail");
+    assert.deepEqual(useCreateStore.getState().angleVariationIds, [], "content set replaces angle");
+    store.toggleAngleVariation("closeup");
+    store.toggleAngleVariation("closeup");
+    assert.deepEqual(useCreateStore.getState().angleVariationIds, [], "reselecting an angle clears it");
+    store.setContentSet("free");
     store.setProductImage("data:image/png;base64,cHJvZHVjdA==");
     store.setReferenceImage("data:image/png;base64,cmVmZXJlbmNl");
     store.setFreeCount(8);
@@ -161,5 +182,5 @@ assert.match(buildGenerationPrompts({ ...base, referenceRole: "material", refere
     global.fetch = originalFetch;
     delete global.window;
   }
-  console.log(`PASS ${combinations} role/strength/preservation/mode combinations, 54 ratio/mode mappings, cut uniqueness, ${requests.length} queued calls (peak ${peak}), and 10 store-to-API calls`);
+  console.log(`PASS ${combinations} role/strength/preservation/mode combinations, 54 ratio/mode mappings, exclusive mode toggles, cut uniqueness, ${requests.length} queued calls (peak ${peak}), and 10 store-to-API calls`);
 })().catch(error => { console.error(error); process.exitCode = 1; });

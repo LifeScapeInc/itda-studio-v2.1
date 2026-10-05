@@ -1,33 +1,44 @@
 "use client";
 
 import { useRef, useState, type PointerEvent } from "react";
-import { ChevronsUpDown, GripHorizontal } from "lucide-react";
+import { GripHorizontal } from "lucide-react";
 import styled from "styled-components";
 
 const Handle = styled.div<{ $active: boolean }>`
   position: relative;
   z-index: 5;
   display: flex;
-  height: 28px;
+  height: 18px;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  border-block: 1px solid var(--color-border);
-  background: ${({ $active }) => $active ? "var(--color-main-neutral)" : "var(--color-main-neutral-light)"};
-  color: var(--color-label-studio-comment);
-  font-size: 10px;
-  font-weight: 500;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: ${({ $active }) => $active ? "var(--color-main-primary)" : "var(--color-label-studio-comment)"};
   cursor: row-resize;
   touch-action: none;
   user-select: none;
 
   &:hover, &:focus-visible {
     outline: none;
-    background: var(--color-main-neutral);
     color: var(--color-main-primary);
   }
 
   &:focus-visible { box-shadow: inset 0 0 0 2px var(--color-main-primary); }
+  &:hover span, &:focus-visible span {
+    border-color: var(--color-main-primary);
+    background: var(--color-main-neutral);
+  }
+`;
+const Grip = styled.span`
+  display: grid;
+  width: 54px;
+  height: 14px;
+  place-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-main-neutral-light);
+  transform: translateY(-1px);
+  transition: border-color 160ms ease, background-color 160ms ease;
 `;
 
 export function StagingAreaResizeHandle({
@@ -99,9 +110,7 @@ export function StagingAreaResizeHandle({
         }
       }}
     >
-      <GripHorizontal size={20} aria-hidden="true" />
-      <span>드래그하여 히스토리 높이 조절</span>
-      <ChevronsUpDown size={12} aria-hidden="true" />
+      <Grip aria-hidden="true"><GripHorizontal size={16} strokeWidth={1.8} /></Grip>
     </Handle>
   );
 }

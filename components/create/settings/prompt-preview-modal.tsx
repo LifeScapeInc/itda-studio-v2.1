@@ -210,7 +210,7 @@ export function PromptPreviewModal({
             ))
           ) : (
             <Empty className="type-xsmall-thin">
-              콘텐츠 세트를 선택하면 최종 프롬프트를 확인할 수 있습니다.
+              콘텐츠 세트 또는 앵글 변주를 선택하면 최종 프롬프트를 확인할 수 있습니다.
             </Empty>
           )}
         </Content>

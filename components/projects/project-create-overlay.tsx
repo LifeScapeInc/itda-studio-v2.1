@@ -23,7 +23,7 @@ const Backdrop = styled.div`
 `;
 const Overlay = styled.section`
   display: flex;
-  width: min(920px, 100%);
+  width: min(960px, 100%);
   max-height: calc(100dvh - 48px);
   flex-direction: column;
   overflow: hidden;
@@ -39,10 +39,9 @@ const Header = styled.header`
   flex: 0 0 auto;
   justify-content: space-between;
   gap: 24px;
-  padding: 28px 30px 24px;
+  padding: 28px 30px 20px;
 
   h2 { font-size: 24px; font-weight: 700; letter-spacing: -.6px; }
-  p { margin-top: 8px; color: var(--color-label-studio-comment); font-size: 13px; line-height: 1.5; }
 `;
 const Close = styled.button`
   display: grid;
@@ -69,8 +68,8 @@ const Sections = styled.div`
 `;
 const Section = styled.section`
   display: grid;
-  grid-template-columns: 190px minmax(0, 1fr);
-  gap: 24px;
+  grid-template-columns: 150px minmax(0, 1fr);
+  gap: 20px;
   padding: 24px 0;
   & + & { border-top: 1px solid var(--color-border); }
   @media (max-width: 680px) { grid-template-columns: 1fr; gap: 16px; }
@@ -81,9 +80,11 @@ const SectionTitle = styled.div`
   align-content: start;
   gap: 8px;
   padding-top: 2px;
+  padding-right: 12px;
+  border-right: 1px solid var(--color-border);
   > span { padding-top: 2px; color: var(--color-label-studio-comment); font-size: 11px; }
   h3 { margin: 0; font-size: 14px; font-weight: 650; }
-  p { grid-column: 2; color: var(--color-label-studio-comment); font-size: 12px; line-height: 1.6; }
+  @media (max-width: 680px) { border-right: 0; padding-right: 0; }
 `;
 const TypeOptions = styled.div`
   display: grid;
@@ -240,11 +241,10 @@ export function ProjectCreateOverlay({ onClose, onCreated }: { onClose: () => vo
 
   return (
     <Backdrop onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
-      <Overlay ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="project-create-title" aria-describedby="project-create-description">
+      <Overlay ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="project-create-title">
         <Header>
           <div>
             <h2 id="project-create-title">프로젝트 생성</h2>
-            <p id="project-create-description">새로운 아이디어를 시작할 공간을 준비하세요.</p>
           </div>
           <Close type="button" aria-label="프로젝트 생성 창 닫기" onClick={onClose}><X size={18} /></Close>
         </Header>
@@ -252,7 +252,7 @@ export function ProjectCreateOverlay({ onClose, onCreated }: { onClose: () => vo
           <Body>
             <Sections>
               <Section aria-labelledby="project-type-heading">
-                <SectionTitle><span>01</span><h3 id="project-type-heading">프로젝트 유형</h3><p>어떤 작업을 시작할까요?</p></SectionTitle>
+                <SectionTitle><span>01</span><h3 id="project-type-heading">프로젝트 유형</h3></SectionTitle>
                 <TypeOptions role="radiogroup" aria-labelledby="project-type-heading">
                   {WORK_TYPES.map(({ value, label, description: hint, icon: Icon }) => (
                     <TypeCard key={value} $selected={work === value}>
@@ -265,14 +265,14 @@ export function ProjectCreateOverlay({ onClose, onCreated }: { onClose: () => vo
                 </TypeOptions>
               </Section>
               <Section aria-labelledby="project-info-heading">
-                <SectionTitle><span>02</span><h3 id="project-info-heading">프로젝트 정보</h3><p>이름과 간단한 설명을 남겨 주세요.</p></SectionTitle>
+                <SectionTitle><span>02</span><h3 id="project-info-heading">프로젝트 정보</h3></SectionTitle>
                 <Fields>
                   <Field htmlFor="project-name"><span>프로젝트명 <em>*</em></span><input id="project-name" value={name} onChange={(event) => setName(event.target.value)} placeholder="프로젝트명을 입력하세요" required maxLength={100} autoFocus /></Field>
                   <Field htmlFor="project-description"><span>설명</span><textarea id="project-description" value={description} onChange={(event) => setDescription(event.target.value)} placeholder="프로젝트의 목적이나 작업 내용을 간단히 적어 주세요" maxLength={500} /><CharacterCount>{description.length}/500</CharacterCount></Field>
                 </Fields>
               </Section>
               <Section aria-labelledby="project-details-heading">
-                <SectionTitle><span>03</span><h3 id="project-details-heading">작업 관리</h3><p>담당자와 일정을 함께 기록하세요.<br />나머지 정보는 선택 사항입니다.</p></SectionTitle>
+                <SectionTitle><span>03</span><h3 id="project-details-heading">작업 관리</h3></SectionTitle>
                 <Fields>
                   <FieldPair>
                     <Field htmlFor="project-company"><span>회사 / 브랜드</span><input id="project-company" value={company} onChange={(event) => setCompany(event.target.value)} placeholder="회사 또는 브랜드명" maxLength={100} /></Field>

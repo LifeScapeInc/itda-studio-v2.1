@@ -12,7 +12,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko" suppressHydrationWarning>
+    <html lang="ko" className="dark" suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{
@@ -20,8 +20,8 @@ export default function RootLayout({
               (function () {
                 try {
                   var theme = localStorage.getItem('itda-studio-v2.1:theme');
-                  document.documentElement.classList.toggle('dark', theme === 'dark');
-                  document.documentElement.classList.toggle('light', theme !== 'dark');
+                  document.documentElement.classList.toggle('dark', theme !== 'light');
+                  document.documentElement.classList.toggle('light', theme === 'light');
                 } catch (error) {}
               })();
             `,

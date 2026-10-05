@@ -220,7 +220,7 @@ export function getCutCount(
   angleVariationIds: AngleVariationId[] = [],
 ): number {
   if (angleVariationIds.length > 0) {
-    return angleVariationIds.length;
+    return 1;
   }
 
   if (!contentSet) {

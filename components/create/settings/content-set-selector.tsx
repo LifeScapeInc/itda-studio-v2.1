@@ -72,9 +72,9 @@ export function ContentSetSelector() {
   return (
     <>
       <Description>
-        사용 목적에 맞는 이미지 구성을 선택합니다
+        앵글 변주와 둘 중 하나만 선택합니다. 다시 누르면 해제됩니다.
       </Description>
-      <List role="radiogroup" aria-label="콘텐츠 세트">
+      <List role="group" aria-label="콘텐츠 세트">
         {[...CONTENT_SET_OPTIONS].sort((a, b) => Number(b.id === "free") - Number(a.id === "free")).map((option) => {
           const selected = selectedSet === option.id;
           const Icon = option.icon;
@@ -90,8 +90,7 @@ export function ContentSetSelector() {
                     {option.cutCount ? `${option.cutCount}컷` : `${freeCount}컷`}
                   </CutCount>
                 )}
-                role="radio"
-                ariaChecked={selected}
+                ariaPressed={selected}
                 onClick={() => setContentSet(option.id)}
               />
               {option.id === "free" && selected ? (

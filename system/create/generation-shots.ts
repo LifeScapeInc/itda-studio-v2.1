@@ -60,7 +60,7 @@ function getAngleShots(
   angleVariationIds: AngleVariationId[],
 ): ShotDefinition[] {
   return ANGLE_VARIATION_OPTIONS
-    .filter((option) => angleVariationIds.includes(option.id))
+    .filter((option) => option.id === angleVariationIds[0])
     .map((option) => ({
       id: `angle-${option.id}`,
       label: option.label,

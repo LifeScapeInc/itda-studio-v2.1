@@ -57,6 +57,8 @@ const PRODUCT_FORM_LOCK =
   "Keep the product from the first image the same shape and proportions.";
 const PHOTOREAL =
   "Photorealistic, with believable scale and natural contact shadows.";
+const PRIORITY_RULES =
+  "If directions conflict, prioritize the product-preservation rule, then the selected camera and output frame, then explicit written or expert styling, and finally reference cues.";
 const ANGLE_ROLE = "the same photographer continuing the same shoot";
 const ANGLE_BODY =
   "Image 1 is the product, not a room to preserve. Re-photograph that product from the requested camera position. Keep its identity consistent across cuts.";
@@ -253,6 +255,7 @@ function composePrompt(
     getFormatInstruction(ratio),
     getStylePrompt(input),
     normalizeUserPrompt(input.prompt),
+    PRIORITY_RULES,
     PHOTOREAL,
   ];
 
@@ -290,7 +293,7 @@ function getAngleVariationPrompts(
     && normalizeReferenceStrength(input.referenceStrength) > 0
     && (input.referenceRole ?? legacyEditModeToRole(input.editMode)) === "space";
   return ANGLE_VARIATION_OPTIONS
-    .filter((option) => input.angleVariationIds.includes(option.id))
+    .filter((option) => option.id === input.angleVariationIds[0])
     .map((option) => ({
       id: `angle-${option.id}`,
       label: option.label,
@@ -304,6 +307,7 @@ function getAngleVariationPrompts(
         getFormatInstruction(ratios.get(`angle-${option.id}`) ?? "original"),
         getStylePrompt(input),
         normalizeUserPrompt(input.prompt),
+        PRIORITY_RULES,
         usesSpaceReference
           ? "Preserve visible fixed architecture from Image 2 where plausible, but the requested camera angle takes priority over its original framing. Photorealistic."
           : "Invent a coherent setting if needed; do not assume Image 1 contains a room or copy room geometry from a style/material reference. Photorealistic.",
