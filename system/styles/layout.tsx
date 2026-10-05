@@ -6,7 +6,7 @@ import { useWorkspaceLayoutStore } from "@/stores/useWorkspaceLayoutStore";
 
 const Shell = styled.div<{ $navigationCollapsed: boolean }>`
   --navigation-left-width: ${({ $navigationCollapsed }) => (
-    $navigationCollapsed ? "0px" : "203px"
+    $navigationCollapsed ? "34px" : "203px"
   )};
   height: 100vh;
   height: 100dvh;

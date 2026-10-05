@@ -1,7 +1,6 @@
 "use client";
 
 import { useRef, useState, type PointerEvent } from "react";
-import { GripHorizontal } from "lucide-react";
 import styled from "styled-components";
 
 const Handle = styled.div<{ $active: boolean }>`
@@ -25,20 +24,17 @@ const Handle = styled.div<{ $active: boolean }>`
 
   &:focus-visible { box-shadow: inset 0 0 0 2px var(--color-main-primary); }
   &:hover span, &:focus-visible span {
-    border-color: var(--color-main-primary);
-    background: var(--color-main-neutral);
+    background: var(--color-main-primary);
+    opacity: 1;
   }
 `;
 const Grip = styled.span`
-  display: grid;
-  width: 54px;
-  height: 14px;
-  place-items: center;
-  border: 1px solid var(--color-border);
+  width: 32px;
+  height: 3px;
   border-radius: 999px;
-  background: var(--color-main-neutral-light);
-  transform: translateY(-1px);
-  transition: border-color 160ms ease, background-color 160ms ease;
+  background: var(--color-label-studio-comment);
+  opacity: 0.65;
+  transition: background-color 160ms ease, opacity 160ms ease;
 `;
 
 export function StagingAreaResizeHandle({
@@ -110,7 +106,7 @@ export function StagingAreaResizeHandle({
         }
       }}
     >
-      <Grip aria-hidden="true"><GripHorizontal size={16} strokeWidth={1.8} /></Grip>
+      <Grip aria-hidden="true" />
     </Handle>
   );
 }

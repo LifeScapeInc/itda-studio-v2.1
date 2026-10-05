@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
-import { Moon, Settings, Sun, User } from "lucide-react";
+import { Moon, PanelLeftClose, PanelLeftOpen, Settings, Sun, User } from "lucide-react";
 import styled from "styled-components";
 import { useWorkspaceLayoutStore } from "@/stores/useWorkspaceLayoutStore";
 import { useCreateStore } from "@/stores/useCreateStore";
@@ -29,6 +29,45 @@ const Aside = styled.aside<{ $collapsed: boolean }>`
   pointer-events: ${({ $collapsed }) => ($collapsed ? "none" : "auto")};
   transform: translateX(${({ $collapsed }) => ($collapsed ? "-100%" : "0")});
   transition: transform 220ms ease;
+`;
+
+const CollapsedRail = styled.div`
+  position: fixed;
+  z-index: 10;
+  top: var(--header-height);
+  bottom: 0;
+  left: 0;
+  width: 34px;
+  border-right: 1px solid var(--color-border);
+  background: var(--color-surface);
+  pointer-events: none;
+`;
+
+const EdgeToggle = styled.button<{ $collapsed: boolean }>`
+  position: fixed;
+  z-index: 11;
+  top: calc(var(--header-height) + 12px);
+  left: ${({ $collapsed }) => ($collapsed ? "0px" : "170px")};
+  display: grid;
+  width: 33px;
+  height: 36px;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: ${({ $collapsed }) => ($collapsed ? "0 8px 8px 0" : "8px")};
+  background: var(--color-surface);
+  color: var(--color-label-studio-comment);
+  cursor: pointer;
+  transition: left 220ms ease, color 150ms ease, background-color 150ms ease;
+
+  &:hover,
+  &:focus-visible {
+    outline: none;
+    background: var(--color-main-neutral);
+    color: var(--color-main-primary);
+  }
+
+  &:focus-visible { box-shadow: 0 0 0 2px var(--color-main-primary); }
 `;
 
 const Groups = styled.nav`
@@ -186,6 +225,9 @@ export function NavigationLeft() {
   const navigationCollapsed = useWorkspaceLayoutStore(
     (state) => state.navigationCollapsed,
   );
+  const toggleNavigation = useWorkspaceLayoutStore(
+    (state) => state.toggleNavigation,
+  );
   const theme = useThemeStore((state) => state.theme);
   const hydrateTheme = useThemeStore((state) => state.hydrate);
   const toggleTheme = useThemeStore((state) => state.toggleTheme);
@@ -204,7 +246,8 @@ export function NavigationLeft() {
   }, [hydrateTheme]);
 
   return (
-    <Aside $collapsed={navigationCollapsed} aria-hidden={navigationCollapsed}>
+    <>
+      <Aside id="main-navigation" $collapsed={navigationCollapsed} aria-hidden={navigationCollapsed} inert={navigationCollapsed}>
       <Groups aria-label="주요 메뉴">
         {NAVIGATION_GROUPS.map((group) => (
           <Group key={group.label}>
@@ -287,6 +330,19 @@ export function NavigationLeft() {
           <ItemLabel>계정</ItemLabel>
         </BottomLink>
       </Bottom>
-    </Aside>
+      </Aside>
+      {navigationCollapsed ? <CollapsedRail aria-hidden="true" /> : null}
+      <EdgeToggle
+        type="button"
+        $collapsed={navigationCollapsed}
+        aria-label={navigationCollapsed ? "왼쪽 사이드바 열기" : "왼쪽 사이드바 닫기"}
+        aria-controls="main-navigation"
+        aria-expanded={!navigationCollapsed}
+        title={navigationCollapsed ? "사이드바 열기" : "사이드바 닫기"}
+        onClick={toggleNavigation}
+      >
+        {navigationCollapsed ? <PanelLeftOpen size={16} strokeWidth={1.8} /> : <PanelLeftClose size={16} strokeWidth={1.8} />}
+      </EdgeToggle>
+    </>
   );
 }
