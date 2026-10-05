@@ -16,6 +16,7 @@ import { ExpertSettings } from "./expert-settings";
 import { GenerationAction } from "./generation-action";
 import { PromptPreview } from "./prompt-preview";
 import { ImageRatioControl } from "./image-ratio-control";
+import { ImageQualityControl } from "./image-quality-control";
 import { ReferenceStrengthControl } from "./reference-strength-control";
 
 const Panel = styled.aside`
@@ -85,6 +86,7 @@ export function GenerationSettingsPanel() {
       <ScrollArea>
         <Sections>
           <ImageRatioControl />
+          <ImageQualityControl />
           <ReferenceStrengthControl />
           <CollapsibleSection
             title="콘텐츠 세트 선택"

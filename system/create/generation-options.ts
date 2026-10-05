@@ -149,16 +149,10 @@ export const ANGLE_VARIATION_OPTIONS: AngleVariationOption[] = [
 ];
 
 export const QUALITY_OPTIONS = [
-  { id: "low", label: "Draft", description: "빠른 시안" },
-  { id: "medium", label: "Normal", description: "기본 품질" },
-  { id: "high", label: "High", description: "고해상도" },
+  { id: "low", label: "Low", description: "빠른 시안", squareOutputUsd: 0.006 },
+  { id: "medium", label: "Medium", description: "균형 잡힌 품질", squareOutputUsd: 0.053 },
+  { id: "high", label: "High", description: "정교한 결과", squareOutputUsd: 0.211 },
 ] as const;
-
-export const QUALITY_COST: Record<GenerationQuality, number> = {
-  low: 60,
-  medium: 120,
-  high: 220,
-};
 
 export const EDIT_MODE_OPTIONS = [
   { id: "swap", label: "제품 교체" },
@@ -234,17 +228,4 @@ export function getCutCount(
   return CONTENT_SET_OPTIONS.find(
     (option) => option.id === contentSet,
   )?.cutCount ?? 0;
-}
-
-export function getEstimatedCost(
-  contentSet: ContentSetId | null,
-  freeCount: number,
-  quality: GenerationQuality,
-  angleVariationIds: AngleVariationId[] = [],
-): number {
-  return getCutCount(
-    contentSet,
-    freeCount,
-    angleVariationIds,
-  ) * QUALITY_COST[quality];
 }

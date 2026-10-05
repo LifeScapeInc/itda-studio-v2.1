@@ -6,8 +6,6 @@ import {
   LIGHT_OPTIONS,
   MOOD_OPTIONS,
   PROP_OPTIONS,
-  QUALITY_OPTIONS,
-  type GenerationQuality,
 } from "@/system/create/generation-options";
 
 const Description = styled.p`
@@ -99,12 +97,10 @@ function ChipGroup({
 }
 
 export function ExpertSettings() {
-  const quality = useCreateStore((state) => state.quality);
   const light = useCreateStore((state) => state.light);
   const mood = useCreateStore((state) => state.mood);
   const props = useCreateStore((state) => state.props);
   const prompt = useCreateStore((state) => state.prompt);
-  const setQuality = useCreateStore((state) => state.setQuality);
   const setLight = useCreateStore((state) => state.setLight);
   const setMood = useCreateStore((state) => state.setMood);
   const toggleProp = useCreateStore((state) => state.toggleProp);
@@ -115,22 +111,6 @@ export function ExpertSettings() {
       <Description>
         선택한 생성 방식에 공통 적용됩니다. ‘원본 유지’는 별도 지시를 넣지 않는다는 뜻이며, 레퍼런스의 영향은 남을 수 있어요.
       </Description>
-      <Field>
-        <FieldLabel>품질</FieldLabel>
-        <Chips>
-          {QUALITY_OPTIONS.map((option) => (
-            <Chip
-              type="button"
-              $selected={quality === option.id}
-              aria-pressed={quality === option.id}
-              onClick={() => setQuality(option.id as GenerationQuality)}
-              key={option.id}
-            >
-              {option.label}
-            </Chip>
-          ))}
-        </Chips>
-      </Field>
       <Field><FieldLabel>채광 및 시간대</FieldLabel><ChipGroup options={LIGHT_OPTIONS} selected={[light]} onSelect={setLight} /></Field>
       <Field><FieldLabel>인테리어 무드</FieldLabel><ChipGroup options={MOOD_OPTIONS} selected={[mood]} onSelect={setMood} /></Field>
       <Field><FieldLabel>연출 소품</FieldLabel><ChipGroup options={PROP_OPTIONS} selected={props} onSelect={toggleProp} multi /></Field>

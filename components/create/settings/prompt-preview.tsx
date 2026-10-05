@@ -8,6 +8,7 @@ import {
   buildGenerationPrompts,
   getGenerationModeLabel,
 } from "@/system/create/generation-prompt";
+import { buildKoreanPromptPreviews } from "@/system/create/generation-prompt-ko";
 import { PromptPreviewModal } from "./prompt-preview-modal";
 
 const PreviewButton = styled.button`
@@ -41,6 +42,7 @@ export function PromptPreview() {
   const [open, setOpen] = useState(false);
   const state = useCreateStore();
   const prompts = buildGenerationPrompts(state);
+  const koreanPrompts = open ? buildKoreanPromptPreviews(state) : {};
 
   return (
     <>
@@ -60,6 +62,7 @@ export function PromptPreview() {
           )}
           quality={state.quality}
           prompts={prompts}
+          koreanPrompts={koreanPrompts}
           onClose={() => setOpen(false)}
         />
       ) : null}

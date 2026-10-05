@@ -25,6 +25,8 @@ Module._extensions[".ts"] = function loadTypescript(module, filename) {
 };
 
 const { buildGenerationPrompts } = require("../system/create/generation-prompt.ts");
+const { buildKoreanPromptPreviews } = require("../system/create/generation-prompt-ko.ts");
+const { getKoreanPromptForShot } = require("../system/create/generation-prompt-ko.ts");
 const { createGenerationShots } = require("../system/create/generation-shots.ts");
 const { getCutCount } = require("../system/create/generation-options.ts");
 const { normalizeProductPreservation, normalizeReferenceStrength } = require("../system/create/reference-controls.ts");
@@ -66,9 +68,11 @@ for (const role of ["space", "style", "material"]) {
         };
         const shots = createGenerationShots(input);
         const prompts = buildGenerationPrompts(input);
+        const koreanPrompts = buildKoreanPromptPreviews(input);
         if (mode === "angle") assert.equal(shots.length, 1, "angle mode accepts only the first selected angle");
         assert.equal(prompts.length, shots.length, `${role}/${strength}/${preservation}/${mode} count`);
         assert.deepEqual(prompts.map(item => item.id), shots.map(item => item.id));
+        assert.deepEqual(Object.keys(koreanPrompts), shots.map(item => item.id), "each API prompt has a matching read-only translation");
         assert.equal(new Set(prompts.map(item => item.prompt)).size, prompts.length, "each cut needs a distinct prompt");
         for (const [index, prompt] of prompts.entries()) {
           assert.match(prompt.prompt, /first image|Image 1/i, "product source must be named");
@@ -76,6 +80,10 @@ for (const role of ["space", "style", "material"]) {
           if (strength === 0) assert.doesNotMatch(prompt.prompt, /Image 2|second image/i);
           if (strength > 0) assert.match(prompt.prompt, /Image 2/);
           assert.equal(shots[index].ratio, "4:5");
+          assert.match(koreanPrompts[prompt.id], /최종 출력 비율은 4:5/);
+          assert.match(koreanPrompts[prompt.id], /첫 번째 이미지/);
+          if (strength === 0) assert.doesNotMatch(koreanPrompts[prompt.id], /두 번째 이미지는 참고 자료/);
+          if (strength > 0) assert.match(koreanPrompts[prompt.id], /두 번째 이미지는 참고 자료/);
           if (role !== "space") assert.doesNotMatch(prompt.prompt, /same room geometry|original room geometry/i);
         }
         combinations += 1;
@@ -162,13 +170,22 @@ assert.match(buildGenerationPrompts({ ...base, referenceRole: "material", refere
     store.setProductImage("data:image/png;base64,cHJvZHVjdA==");
     store.setReferenceImage("data:image/png;base64,cmVmZXJlbmNl");
     store.setFreeCount(8);
+    store.setQuality("high");
     store.setAspectRatio("4:5");
     store.setReferenceStrength(0);
     const firstRun = await useCreateStore.getState().requestGeneration(true);
     assert.equal(firstRun.completed, 8);
+    const savedShot = useCreateStore.getState().generationHistory[0].shots[0];
+    assert.match(savedShot.metadata.koreanPrompt, /한국어|첫 번째 이미지/);
+    assert.equal(getKoreanPromptForShot({
+      ...savedShot,
+      metadata: { ...savedShot.metadata, koreanPrompt: undefined },
+    }), savedShot.metadata.koreanPrompt, "saved settings reconstruct translation for older history");
     assert.equal(apiCalls.length, 8, "one API call per distinct free cut");
     assert.equal(new Set(apiCalls.map(call => call.prompt)).size, 8);
     assert.ok(apiCalls.every(call => call.ratio === "4:5"));
+    assert.ok(apiCalls.every(call => call.quality === "high"), "selected quality reaches the API");
+    assert.ok(apiCalls.every(call => !JSON.stringify(call).includes("한국어 번역")), "read-only translation is not sent to the API");
     assert.ok(apiCalls.every(call => call.referenceImages.length === 0), "disabled reference omitted from API");
     useCreateStore.getState().setFreeCount(2);
     useCreateStore.getState().setReferenceStrength(50);

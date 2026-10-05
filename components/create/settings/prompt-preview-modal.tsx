@@ -7,8 +7,8 @@ import type { GenerationQuality } from "@/system/create/generation-options";
 import type { GenerationPrompt } from "@/system/create/generation-prompt";
 
 const QUALITY_LABELS: Record<GenerationQuality, string> = {
-  low: "Draft",
-  medium: "Normal",
+  low: "Low",
+  medium: "Medium",
   high: "High",
 };
 
@@ -125,6 +125,22 @@ const PromptText = styled.pre`
   overflow-wrap: anywhere;
 `;
 
+const Translation = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+  padding: 10px;
+  border-radius: 8px;
+  background: var(--color-main-neutral-light);
+`;
+
+const TranslationLabel = styled.span`
+  color: var(--color-label-studio-comment);
+  font-size: 11px;
+  font-weight: 700;
+`;
+
 const Empty = styled.div`
   display: grid;
   min-height: 220px;
@@ -137,11 +153,13 @@ export function PromptPreviewModal({
   contentSetLabel,
   quality,
   prompts,
+  koreanPrompts,
   onClose,
 }: {
   contentSetLabel: string;
   quality: GenerationQuality;
   prompts: GenerationPrompt[];
+  koreanPrompts: Record<string, string>;
   onClose: () => void;
 }) {
   useEffect(() => {
@@ -177,7 +195,7 @@ export function PromptPreviewModal({
               최종 생성 프롬프트
             </h2>
             <p className="type-xsmall-thin">
-              현재 설정으로 실제 생성 요청에 전달될 컷별 텍스트입니다.
+              영어 원문만 실제 생성 요청에 전달됩니다. 아래 한국어는 읽기용 번역이며 API에 전송되지 않습니다.
             </p>
             <Meta>
               <Badge>{contentSetLabel}</Badge>
@@ -206,6 +224,12 @@ export function PromptPreviewModal({
                   {index + 1}. {item.label}
                 </strong>
                 <PromptText>{item.prompt}</PromptText>
+                {koreanPrompts[item.id] ? (
+                  <Translation>
+                    <TranslationLabel>한국어 번역 · 확인용</TranslationLabel>
+                    <PromptText>{koreanPrompts[item.id]}</PromptText>
+                  </Translation>
+                ) : null}
               </PromptCard>
             ))
           ) : (

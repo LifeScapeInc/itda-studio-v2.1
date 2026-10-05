@@ -32,6 +32,7 @@ export type GenerationSettingsSnapshot = {
 
 export type GenerationImageMetadata = {
   finalPrompt: string;
+  koreanPrompt?: string;
   generatedAt: string;
   aiModel: string;
   variationType: string;

@@ -10,6 +10,7 @@ import {
   buildGenerationPrompts,
   type GenerationPrompt,
 } from "@/system/create/generation-prompt";
+import { buildKoreanPromptPreviews } from "@/system/create/generation-prompt-ko";
 import {
   createGenerationShots,
   type GenerationShot,
@@ -547,6 +548,7 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
       set({ isGenerating: false, generationMessage: message });
       return { ...emptyResult, failed: shotDrafts.length, error: message };
     }
+    const koreanPrompts = retryFailed ? {} : buildKoreanPromptPreviews(current);
     const generationShots: LibraryGenerationShot[] = retryFailed
       ? failedShots.map(shot => ({ ...shot, status: "pending", error: undefined }))
       : shotDrafts
@@ -559,6 +561,7 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
           bookmarked: false,
           metadata: {
             finalPrompt: shotPrompt?.prompt ?? "",
+            koreanPrompt: koreanPrompts[shot.id],
             generatedAt: runCreatedAt,
             aiModel: "gpt-image-2",
             variationType: `${variationType} · ${shot.label}`,

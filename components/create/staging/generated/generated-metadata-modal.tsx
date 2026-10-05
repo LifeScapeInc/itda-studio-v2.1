@@ -5,6 +5,7 @@ import Image from "next/image";
 import styled from "styled-components";
 import { GenerationInputImages } from "@/components/ui/generation-input-images";
 import type { LibraryGenerationShot } from "@/system/create/generation-library";
+import { getKoreanPromptForShot } from "@/system/create/generation-prompt-ko";
 
 const Backdrop = styled.div`
   position: fixed;
@@ -105,8 +106,10 @@ export function GeneratedMetadataModal({
   }, [onClose]);
 
   const metadata = shot.metadata;
+  const koreanPrompt = getKoreanPromptForShot(shot);
   const entries = [
     ["최종 프롬프트", metadata.finalPrompt],
+    ...(koreanPrompt ? [["한국어 번역 · 확인용", koreanPrompt]] : []),
     ["생성 시각", new Date(metadata.generatedAt).toLocaleString("ko-KR")],
     ["AI 모델", metadata.aiModel],
     ["생성 종류", metadata.variationType],
