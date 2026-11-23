@@ -15,7 +15,7 @@ import { isNavigationItemActive, NAVIGATION_GROUPS } from "./navigation-config";
 const Aside = styled.aside<{ $collapsed: boolean; }>`
   position: fixed; z-index: 10; top: 36px; bottom: 0; left: 0;
   width: ${({ $collapsed }) => $collapsed ? "54px" : "202px"};
-  display: flex; flex-direction: column; padding: 0 ${({ $collapsed }) => $collapsed ? "5px" : "12px"} 8px;
+  display: flex; flex-direction: column; padding: 0 5px 8px; overflow: hidden;
   background: var(--color-background-workspace); transition: width 180ms ease;
   .menu-label { display: ${({ $collapsed }) => $collapsed ? "none" : "inline"}; white-space: nowrap; }
   svg { width: 18px; height: 18px; flex: 0 0 18px; stroke-width: 1.6; }
