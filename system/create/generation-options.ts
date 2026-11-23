@@ -1,3 +1,4 @@
+import { LIGHT_PROMPTS, MOOD_PROMPTS, PROP_PROMPTS } from "./expert-style-prompts";
 import type { ComponentType } from "react";
 import {
   BookOpen,
@@ -171,26 +172,9 @@ export function normalizeFreeCount(freeCount: number): number {
   return Math.max(1, Math.floor(freeCount));
 }
 
-export const LIGHT_OPTIONS = [
-  "아침 햇살",
-  "노을빛",
-  "부드러운 스튜디오",
-  "드라마틱 대비",
-];
-
-export const MOOD_OPTIONS = [
-  "모던 미니멀",
-  "따뜻 포근",
-  "럭셔리",
-  "빈티지",
-];
-
-export const PROP_OPTIONS = [
-  "식물",
-  "러그",
-  "커피/책",
-  "벽 장식",
-];
+export const LIGHT_OPTIONS = Object.keys(LIGHT_PROMPTS);
+export const MOOD_OPTIONS = Object.keys(MOOD_PROMPTS);
+export const PROP_OPTIONS = Object.keys(PROP_PROMPTS);
 
 export function getCutCount(
   contentSet: ContentSetId | null,

@@ -1,6 +1,8 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { useState } from "react";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import styled from "styled-components";
 import { PanelResizeHandle } from "@/components/layout/panel-resize-handle";
 import { useWorkspaceLayoutStore } from "@/stores/useWorkspaceLayoutStore";
@@ -15,17 +17,18 @@ const Panel = styled.aside`
   min-width: ${MATERIAL_PANEL_MIN_WIDTH}px;
   min-height: 0;
   flex-direction: column;
-  border-right: 1px solid var(--color-border);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-panel);
   background: var(--color-surface);
 `;
 
 const Header = styled.header`
   display: flex;
-  height: 48px;
-  flex: 0 0 48px;
+  height: 40px;
+  flex: 0 0 40px;
   align-items: center;
   padding: 0 var(--space-md);
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 0;
 `;
 
 const Body = styled.div`
@@ -35,8 +38,8 @@ const Body = styled.div`
   flex-direction: column;
   align-items: stretch;
   justify-content: flex-start;
-  gap: var(--space-sm);
-  padding: var(--space-sm);
+  gap: 16px;
+  padding: 0 16px 16px;
   overflow-x: hidden;
   overflow-y: auto;
   scrollbar-width: none;
@@ -52,10 +55,9 @@ const Section = styled.section`
   flex: 0 0 auto;
   flex-direction: column;
   justify-content: flex-start;
-  gap: var(--space-2xs);
-  padding-bottom: var(--space-sm);
+  gap: 8px;
+  padding-bottom: 8px;
   border: 0;
-  border-bottom: 1px solid var(--color-border);
   border-radius: 0;
   background: var(--color-surface);
 `;
@@ -65,19 +67,9 @@ const SectionTitle = styled.div`
   flex: 0 0 auto;
   align-items: center;
   gap: var(--space-2xs);
-`;
-
-const Index = styled.span`
-  display: grid;
-  width: 22px;
-  height: 22px;
-  flex: 0 0 22px;
-  place-items: center;
-  border-radius: 50%;
-  background: var(--color-main-primary);
-  color: var(--color-surface);
-  font-size: 11px;
-  font-weight: 700;
+  min-height: 32px;
+  > button:first-child { display: flex; flex: 1; min-width: 0; align-items: center; gap: 8px; padding: 0; border: 0; background: transparent; text-align: left; font-size: 14px; font-weight: 400; cursor: pointer; }
+  svg { color: var(--color-label-studio-comment); }
 `;
 
 export function MaterialPreparationLayout({
@@ -96,7 +88,7 @@ export function MaterialPreparationLayout({
 
   return (
     <Panel>
-      <PanelResizeHandle
+      <PanelResizeHandle previewProperty="--material-width" gap={8}
         edge="right"
         label={`${title} 너비 조절`}
         value={materialPanelWidth}
@@ -113,21 +105,23 @@ export function MaterialPreparationLayout({
 }
 
 export function MaterialPreparationSection({
-  index,
   title,
   children,
+  actions,
 }: {
   index: number;
   title: string;
   children: ReactNode;
+  actions?: ReactNode;
 }) {
+  const [open, setOpen] = useState(true);
   return (
     <Section>
       <SectionTitle>
-        <Index>{index}</Index>
-        <span className="type-small-head">{title}</span>
+        <button type="button" aria-expanded={open} onClick={() => setOpen(value => !value)}>{open ? <ChevronDown size={14} /> : <ChevronRight size={14} />}{title}</button>
+        {actions}
       </SectionTitle>
-      {children}
+      {open && children}
     </Section>
   );
 }

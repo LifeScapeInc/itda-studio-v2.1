@@ -9,6 +9,7 @@ import {
 
 const Steps = styled.nav`
   display: grid;
+  flex: 0 0 auto;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   border-bottom: 1px solid var(--color-border);
   background: var(--color-surface);
@@ -18,13 +19,13 @@ const Step = styled.button<{ $active: boolean; $complete: boolean }>`
   position: relative;
   display: flex;
   min-width: 0;
-  height: 48px;
+  height: 40px;
   align-items: center;
   gap: var(--space-xs);
   padding: 0 var(--space-md);
   border: 0;
-  border-right: 1px solid var(--color-border);
-  background: var(--color-surface);
+  border-right: 0;
+  background: ${({ $active }) => $active ? "var(--color-main-neutral-light)" : "var(--color-surface)"};
   color: var(--color-label-studio-black);
   text-align: left;
   cursor: pointer;
@@ -60,17 +61,17 @@ const Index = styled.span<{ $active: boolean; $complete: boolean }>`
   border: 1px solid ${({ $active, $complete }) => (
     $active || $complete ? "transparent" : "var(--color-border)"
   )};
-  border-radius: 8px;
+  border-radius: 4px;
   background: ${({ $active, $complete }) => (
     $active
-      ? "var(--color-main-secondary)"
+      ? "var(--color-main-neutral)"
       : $complete
-        ? "var(--color-main-primary)"
+        ? "var(--color-main-neutral)"
         : "var(--color-surface)"
   )};
   color: ${({ $active, $complete }) => (
     $active || $complete
-      ? "var(--color-surface)"
+      ? "var(--color-label-studio-black)"
       : "inherit"
   )};
   font-size: 12px;

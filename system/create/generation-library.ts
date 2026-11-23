@@ -1,4 +1,5 @@
 import type { GenerationShot } from "@/system/create/generation-shots";
+import { cloneBatch, type BatchEntry } from "./generation-batch";
 import type {
   AngleVariationId,
   ContentSetId,
@@ -12,6 +13,7 @@ export type GenerationInputImage = {
 };
 
 export type GenerationSettingsSnapshot = {
+  batchEntries?: BatchEntry[];
   contentSet: ContentSetId | null;
   angleVariationIds: AngleVariationId[];
   freeCount: number;
@@ -59,6 +61,16 @@ export function belongsToProject(
   return (history.projectId ?? null) === projectId;
 }
 
+// Normalize retired free-generation presets when loading or saving older history.
+function normalizeHistory(history: GenerationHistorySet[]): GenerationHistorySet[] {
+  return history.map(set => ({ ...set, shots: set.shots.map(shot => {
+    const settings = shot.metadata.generationSettings;
+    return settings?.batchEntries ? { ...shot, metadata: { ...shot.metadata, generationSettings: {
+      ...settings, batchEntries: cloneBatch(settings.batchEntries),
+    } } } : shot;
+  }) }));
+}
+
 const DATABASE_NAME = "itda-studio-generation-library";
 const STORE_NAME = "library";
 const LIBRARY_KEY = "generation-history";
@@ -84,7 +96,7 @@ export async function loadGenerationHistory(): Promise<GenerationHistorySet[]> {
     const transaction = database.transaction(STORE_NAME, "readonly");
     const request = transaction.objectStore(STORE_NAME).get(LIBRARY_KEY);
     request.onsuccess = () => resolve(
-      Array.isArray(request.result) ? request.result as GenerationHistorySet[] : [],
+      Array.isArray(request.result) ? normalizeHistory(request.result as GenerationHistorySet[]) : [],
     );
     request.onerror = () => reject(request.error);
     transaction.oncomplete = () => database.close();
@@ -99,7 +111,7 @@ export async function saveGenerationHistory(
   const database = await openDatabase();
   await new Promise<void>((resolve, reject) => {
     const transaction = database.transaction(STORE_NAME, "readwrite");
-    transaction.objectStore(STORE_NAME).put(history, LIBRARY_KEY);
+    transaction.objectStore(STORE_NAME).put(normalizeHistory(history), LIBRARY_KEY);
     transaction.oncomplete = () => resolve();
     transaction.onerror = () => reject(transaction.error);
   });

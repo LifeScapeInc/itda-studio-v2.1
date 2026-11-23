@@ -102,7 +102,7 @@ const Metric = styled.div<{ $primary?: boolean }>`
   border: 1px solid ${({ $primary }) => $primary
     ? "var(--color-main-primary)"
     : "var(--color-border)"};
-  border-radius: 8px;
+  border-radius: var(--radius-panel);
   background: ${({ $primary }) => $primary
     ? "var(--color-main-neutral-light)"
     : "var(--color-surface)"};

@@ -6,11 +6,11 @@ import { GeneratedItem } from "./generated-item";
 
 const Grid = styled.div`
   display: grid;
-  width: min(100%, 940px);
+  width: 100%;
   min-height: 100%;
   margin: 0 auto;
   padding: var(--space-lg);
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
   align-content: start;
   align-items: start;
   gap: var(--space-sm);
@@ -18,23 +18,29 @@ const Grid = styled.div`
 
 export function GeneratedProgressGrid({
   shots,
-  selectedShotId,
+  selectedShotIds,
   onSelect,
   onOpenImage,
+  onRetry,
+  retryDisabled = false,
 }: {
   shots: GenerationShot[];
-  selectedShotId?: string | null;
-  onSelect?: (shotId: string) => void;
+  selectedShotIds: string[];
+  onSelect?: (shotId: string, modifiers?: { shiftKey?: boolean; ctrlKey?: boolean; metaKey?: boolean }) => void;
   onOpenImage?: (shot: GenerationShot) => void;
+  onRetry?: (shotId: string) => void;
+  retryDisabled?: boolean;
 }) {
   return (
     <Grid>
       {shots.map((shot) => (
         <GeneratedItem
           shot={shot}
-          selected={shot.id === selectedShotId}
+          selected={selectedShotIds.includes(shot.id)}
           onSelect={onSelect}
           onOpenImage={onOpenImage}
+          onRetry={onRetry}
+          retryDisabled={retryDisabled}
           key={shot.id}
         />
       ))}

@@ -1,9 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 import styled from "styled-components";
+import { useAppSettingsStore } from "@/stores/useAppSettingsStore";
 import { useCreateStore } from "@/stores/useCreateStore";
-import { getCutCount } from "@/system/create/generation-options";
 import {
   belongsToProject,
   type LibraryGenerationShot,
@@ -12,6 +12,7 @@ import { GenerationHistoryGallery } from "./history/generation-history-gallery";
 import { GeneratedImageLightbox } from "./generated/generated-image-lightbox";
 import { GeneratedMetadataModal } from "./generated/generated-metadata-modal";
 import { GeneratedNavigation } from "./generated/generated-navigation";
+import { GeneratedImageViewer } from "./generated/generated-image-viewer";
 import { GeneratedProgressGrid } from "./generated/generated-progress-grid";
 import { StagingAreaResizeHandle } from "./staging-area-resize-handle";
 import { StagingEmptyState } from "./staging-empty-state";
@@ -21,38 +22,44 @@ const Canvas = styled.section`
   min-width: 0;
   min-height: 0;
   flex-direction: column;
-  background: var(--color-surface);
+  background: transparent;
 `;
 
 const Header = styled.header`
+  position: relative;
   display: flex;
-  height: 48px;
-  flex: 0 0 48px;
+  min-height: 40px;
+  flex: 0 0 40px;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: var(--space-sm);
-  padding: 0 var(--space-md);
-  border-bottom: 1px solid var(--color-border);
+  padding: 0 6px;
+  border-bottom: 0;
   background: var(--color-surface);
 `;
 
 const HeaderText = styled.div`
+  position: absolute;
+  inset: 0;
   display: flex;
-  min-width: 0;
-  flex: 1 1 auto;
   align-items: center;
+  justify-content: center;
+  pointer-events: none;
 `;
 
 const SplitStage = styled.div<{ $historyHeight: number }>`
   display: grid;
   min-height: 0;
   flex: 1;
-  grid-template-rows: minmax(0, 1fr) 9px ${({ $historyHeight }) => $historyHeight}px;
+  grid-template-rows: minmax(0, 1fr) 8px ${({ $historyHeight }) => $historyHeight}px;
 `;
+
+const Stage = styled.div`display: flex; flex-direction: column; min-width: 0; min-height: 0; border: 1px solid var(--color-border); border-radius: 6px; background: var(--color-surface); overflow: hidden;`;
 
 const CurrentArea = styled.div`
   display: flex;
   min-height: 0;
+  flex: 1;
   align-items: stretch;
   justify-content: center;
   background: var(--color-surface);
@@ -60,12 +67,12 @@ const CurrentArea = styled.div`
   scrollbar-width: thin;
 `;
 
-const HISTORY_DEFAULT_HEIGHT = 182;
+const HISTORY_DEFAULT_HEIGHT = 220;
 const HISTORY_MIN_HEIGHT = 142;
 const CURRENT_MIN_HEIGHT = 180;
-const RESIZE_HANDLE_HEIGHT = 9;
+const RESIZE_HANDLE_HEIGHT = 8;
 
-export function StagingCanvas({
+export const StagingCanvas = memo(function StagingCanvas({
   projectId,
   projectName,
 }: {
@@ -73,19 +80,21 @@ export function StagingCanvas({
   projectName?: string;
 }) {
   const state = useCreateStore();
+  const mockMode = useAppSettingsStore(s => s.mockMode);
   const hydrateLibrary = state.hydrateLibrary;
   const splitStageRef = useRef<HTMLDivElement>(null);
   const [historyHeight, setHistoryHeight] = useState(HISTORY_DEFAULT_HEIGHT);
   const [maximumHistoryHeight, setMaximumHistoryHeight] = useState(
     HISTORY_DEFAULT_HEIGHT,
   );
-  const [metadataShot, setMetadataShot] = useState<LibraryGenerationShot | null>(
-    null,
-  );
+  const [metadataShots, setMetadataShots] = useState<LibraryGenerationShot[]>([]);
   const [lightboxImage, setLightboxImage] = useState<{
     imageUrl: string;
     alt: string;
   } | null>(null);
+
+  const [focusedImage, setFocusedImage] = useState<{ id: string; historyId: string | null } | null>(null);
+  const focusedShot = focusedImage?.historyId === state.activeHistoryId ? state.generationShots.find(shot => shot.id === focusedImage?.id && shot.imageUrl) : undefined;
 
   const resizeHistory = useCallback((delta: number) => {
     setHistoryHeight((current) => Math.min(
@@ -117,17 +126,7 @@ export function StagingCanvas({
     return () => observer.disconnect();
   }, []);
 
-  const cutCount = getCutCount(
-    state.contentSet,
-    state.freeCount,
-    state.angleVariationIds,
-  );
-  const hasGenerationMode = Boolean(
-    state.contentSet || state.angleVariationIds.length > 0,
-  );
-  const selectedShot = state.generationShots.find(
-    (shot) => shot.id === state.selectedShotId && shot.status === "done",
-  ) as LibraryGenerationShot | undefined;
+  const selectedShots = state.generationShots.filter(shot => state.selectedShotIds.includes(shot.id) && shot.status === "done" && shot.imageUrl) as LibraryGenerationShot[];
   const scopedHistory = state.generationHistory.filter(history => (
     belongsToProject(history, projectId)
   ));
@@ -137,6 +136,8 @@ export function StagingCanvas({
 
   return (
     <Canvas>
+      <SplitStage ref={splitStageRef} $historyHeight={historyHeight}>
+      <Stage>
       <Header>
         <HeaderText>
           <h2 className="type-xsmall-body">
@@ -145,29 +146,31 @@ export function StagingCanvas({
         </HeaderText>
         {state.generationRequested ? (
           <GeneratedNavigation
-            selectedShot={selectedShot}
+            detailView={Boolean(focusedShot?.imageUrl)}
+            hasActiveHistory={Boolean(activeSet)}
+            closeDisabled={false}
+            onClear={focusedShot ? () => setFocusedImage(null) : state.clearStaging}
+            selectedShots={selectedShots}
             shots={state.generationShots as LibraryGenerationShot[]}
             setTitle={activeSet?.title ?? "itda-image-set"}
-            onToggleBookmark={state.toggleBookmark}
-            onShowInfo={setMetadataShot}
+            onSetBookmarks={state.setBookmarks}
+            onShowInfo={setMetadataShots}
           />
-        ) : hasGenerationMode ? (
-          <span className="type-xsmall-thin">{cutCount}컷 예정</span>
         ) : null}
       </Header>
-      <SplitStage ref={splitStageRef} $historyHeight={historyHeight}>
-        <CurrentArea>
-          {state.generationRequested ? (
+        <CurrentArea onClick={event => { if (event.target === event.currentTarget) state.selectShot(null); }} onKeyDown={event => { if (event.key === "Escape") state.selectShot(null); }}>
+          {state.generationRequested ? focusedShot?.imageUrl ? (
+            <GeneratedImageViewer key={focusedShot.id} src={focusedShot.imageUrl} alt={`${focusedShot.label} 생성 결과`} onBack={() => setFocusedImage(null)} />
+          ) : (
             <GeneratedProgressGrid
               shots={state.generationShots}
-              selectedShotId={state.selectedShotId}
+              selectedShotIds={state.selectedShotIds}
               onSelect={state.selectShot}
+              onRetry={id => void state.retryShot(id, mockMode)}
               onOpenImage={(shot) => {
                 if (!shot.imageUrl) return;
-                setLightboxImage({
-                  imageUrl: shot.imageUrl,
-                  alt: `${shot.label} 생성 결과`,
-                });
+                state.selectShot(shot.id);
+                setFocusedImage({ id: shot.id, historyId: state.activeHistoryId });
               }}
             />
           ) : (
@@ -180,6 +183,7 @@ export function StagingCanvas({
             />
           )}
         </CurrentArea>
+      </Stage>
         <StagingAreaResizeHandle
           value={historyHeight}
           minimum={HISTORY_MIN_HEIGHT}
@@ -190,16 +194,14 @@ export function StagingCanvas({
           history={scopedHistory}
           projectName={projectName}
           activeHistoryId={state.activeHistoryId}
-          deleteDisabled={state.isGenerating}
-          onRestore={state.restoreHistory}
+          onRestore={id => { setFocusedImage(null); state.restoreHistory(id); }}
           onDelete={state.deleteHistory}
-          onClear={state.clearStaging}
         />
       </SplitStage>
-      {metadataShot ? (
+      {metadataShots.length ? (
         <GeneratedMetadataModal
-          shot={metadataShot}
-          onClose={() => setMetadataShot(null)}
+          shots={metadataShots}
+          onClose={() => setMetadataShots([])}
         />
       ) : null}
       {lightboxImage ? (
@@ -211,4 +213,4 @@ export function StagingCanvas({
       ) : null}
     </Canvas>
   );
-}
+});

@@ -8,7 +8,7 @@ const GroupHeading = styled.div`
   flex-direction: column;
   gap: var(--space-3xs);
   padding-bottom: var(--space-sm);
-  border-bottom: 3px solid var(--color-main-neutral);
+  border-bottom: 1px solid var(--color-border);
 
   p {
     color: var(--color-label-studio-comment);

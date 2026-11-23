@@ -20,7 +20,7 @@ const Dialog = styled.section`
   flex-direction: column;
   gap: var(--space-lg);
   padding: var(--space-xl);
-  border-radius: 16px;
+  border-radius: var(--radius-panel);
   background: var(--color-main-neutral-light);
   box-shadow: 0 16px 48px rgb(32 29 23 / 20%);
 `;
@@ -51,7 +51,7 @@ const Actions = styled.div`
     height: 44px;
     padding: 0 var(--space-md);
     border: 0;
-    border-radius: 8px;
+    border-radius: var(--radius-panel);
     color: var(--color-surface);
     cursor: pointer;
   }

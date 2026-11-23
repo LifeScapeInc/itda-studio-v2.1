@@ -12,6 +12,7 @@ const SIZE_BY_RATIO: Record<GenerationRatio, ImageSize> = {
   "4:5": "1024x1280",
   "9:16": "1152x2048",
   "16:9": "2048x1152",
+  "3:2": "1536x1024",
   original: "1536x1024",
 };
 

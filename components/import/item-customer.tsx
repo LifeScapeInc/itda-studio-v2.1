@@ -12,7 +12,7 @@ const Card = styled.button`
   gap: var(--space-md);
   padding: var(--space-md);
   border: 1px solid var(--color-border);
-  border-radius: 12px;
+  border-radius: var(--radius-panel);
   background: var(--color-surface);
   text-align: left;
   cursor: pointer;
@@ -20,11 +20,10 @@ const Card = styled.button`
     border-color 140ms ease,
     transform 140ms ease;
 
-  &:hover,
-  &:focus-visible {
+  &:hover {
     border-color: var(--color-main-primary);
     outline: none;
-    transform: translateY(-1px);
+    background: var(--color-main-neutral-light);
   }
 `;
 

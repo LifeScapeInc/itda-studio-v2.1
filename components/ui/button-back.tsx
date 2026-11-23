@@ -7,7 +7,7 @@ import styled, { css } from "styled-components";
 const sharedStyle = css`
   position: fixed;
   z-index: 12;
-  top: 78px;
+  top: 48px;
   left: calc(
     var(--navigation-left-width, 203px)
     + var(--space-2xl)
@@ -27,17 +27,12 @@ const sharedStyle = css`
     color 160ms ease,
     transform 160ms ease;
 
-  &:hover,
-  &:focus-visible {
+  &:hover {
     color: var(--color-label-studio-black);
     transform: translateX(-2px);
   }
 
-  &:focus-visible {
-    border-radius: 4px;
-    outline: 2px solid var(--color-main-primary);
-    outline-offset: 4px;
-  }
+
 `;
 
 const BackLink = styled(Link)`

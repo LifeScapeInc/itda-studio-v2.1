@@ -60,9 +60,9 @@ const Composer = styled.div<{
   min-height: 0;
   height: 100%;
   grid-template-columns:
-    ${({ $libraryWidth }) => $libraryWidth}px
+    var(--library-width, ${({ $libraryWidth }) => $libraryWidth}px)
     minmax(360px, 1fr)
-    ${({ $propertiesWidth }) => $propertiesWidth}px;
+    var(--properties-width, ${({ $propertiesWidth }) => $propertiesWidth}px);
   background: var(--color-surface);
   overflow: hidden;
 `;
@@ -193,7 +193,7 @@ const LibraryTile = styled.button<{ $dragging: boolean }>`
   touch-action: none;
 
   &:active { cursor: grabbing; }
-  &:hover, &:focus-visible { border-color: var(--color-main-primary); outline: none; }
+  &:hover { border-color: var(--color-main-primary); outline: none; }
 
   span {
     display: flex;
@@ -416,12 +416,14 @@ export function TemplateComposer() {
       onDragEnd={handleDragEnd}
     >
       <Composer
+        data-resize-layout
         $libraryWidth={libraryPanelWidth}
         $propertiesWidth={propertiesPanelWidth}
       >
         <LibraryPanel>
           <PanelResizeHandle
             edge="right"
+            previewProperty="--library-width"
             label="타일 목록 패널 너비 조절"
             value={libraryPanelWidth}
             minimum={DETAIL_TILE_LIBRARY_PANEL_MIN_WIDTH}
@@ -470,6 +472,7 @@ export function TemplateComposer() {
         <Panel>
           <PanelResizeHandle
             edge="left"
+            previewProperty="--properties-width"
             label="속성 패널 너비 조절"
             value={propertiesPanelWidth}
             minimum={DETAIL_TILE_PROPERTIES_PANEL_MIN_WIDTH}

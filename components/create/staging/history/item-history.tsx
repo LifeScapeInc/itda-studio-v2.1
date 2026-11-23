@@ -1,21 +1,23 @@
 "use client";
 
+import { EditableTitle } from "@/components/ui/editable-title";
+import { useCreateStore } from "@/stores/useCreateStore";
 import styled from "styled-components";
 import { LoadingImage } from "@/components/ui/loading-image";
 import type { GenerationHistorySet } from "@/system/create/generation-library";
 
-const Card = styled.button<{ $active: boolean }>`
+const Card = styled.div<{ $active: boolean }>`
   display: flex;
-  width: 176px;
-  height: 112px;
-  flex: 0 0 176px;
+  width: 188px;
+  height: 132px;
+  flex: 0 0 188px;
   flex-direction: column;
   gap: 6px;
-  padding: 6px;
+  padding: 8px;
   border: 1px solid ${({ $active }) => $active
     ? "var(--color-main-primary)"
     : "var(--color-border)"};
-  border-radius: 8px;
+  border-radius: 6px;
   background: ${({ $active }) => $active
     ? "var(--color-main-neutral-light)"
     : "var(--color-surface)"};
@@ -23,10 +25,7 @@ const Card = styled.button<{ $active: boolean }>`
   cursor: pointer;
   text-align: left;
 
-  &:focus-visible {
-    outline: 2px solid var(--color-main-primary);
-    outline-offset: 2px;
-  }
+
 `;
 
 const Preview = styled.span`
@@ -50,13 +49,16 @@ const PreviewImage = styled.span`
 `;
 
 const Copy = styled.span`
+  --editable-title-height: 20px;
   display: flex;
   min-width: 0;
   justify-content: space-between;
   gap: 4px;
-  font-size: 10px;
+  font-size: 11px;
 
   strong {
+    font-weight: 500;
+    font-size: 12px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -77,15 +79,18 @@ export function ItemHistory({
   active: boolean;
   onSelect: () => void;
 }) {
+  const renameHistory = useCreateStore(s => s.renameHistory);
   const previewShots = historySet.shots
     .filter((shot) => shot.imageUrl)
     .slice(0, 3);
 
   return (
     <Card
-      type="button"
+      role="button"
+      tabIndex={0}
       $active={active}
       aria-pressed={active}
+      onKeyDown={event => { if (event.target === event.currentTarget && ["Enter", " "].includes(event.key)) { event.preventDefault(); onSelect(); } }}
       aria-label={`${historySet.title} 이미지셋 복원`}
       onClick={onSelect}
     >
@@ -103,7 +108,7 @@ export function ItemHistory({
         )) : <PreviewImage />}
       </Preview>
       <Copy>
-        <strong>{historySet.title}</strong>
+        <strong><EditableTitle label="히스토리 제목" value={historySet.title} onSave={title => renameHistory(historySet.id, title)} /></strong>
         <time>
           {new Date(historySet.createdAt).toLocaleDateString(
             "ko-KR",

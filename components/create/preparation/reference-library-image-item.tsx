@@ -8,6 +8,8 @@ const Item = styled.button<{ $selected: boolean }>`
   position: relative;
   display: block;
   width: 100%;
+  min-width: 0;
+  height: auto;
   aspect-ratio: 4 / 5;
   padding: 0;
   border: 1px solid ${({ $selected }) => $selected
@@ -27,16 +29,14 @@ const Item = styled.button<{ $selected: boolean }>`
     transition: transform 260ms ease;
   }
 
-  &:hover,
-  &:focus-visible {
+  &:hover {
     border-color: var(--color-main-primary);
     outline: none;
     box-shadow: 0 8px 22px rgb(32 29 23 / 13%);
     transform: translateY(-2px);
   }
 
-  &:hover img,
-  &:focus-visible img {
+  &:hover img {
     transform: scale(1.025);
   }
 `;
@@ -47,8 +47,7 @@ const Shade = styled.span`
   background: rgb(32 29 23 / 0%);
   transition: background 200ms ease;
 
-  ${Item}:hover &,
-  ${Item}:focus-visible & {
+  ${Item}:hover & {
     background: rgb(32 29 23 / 12%);
   }
 `;
@@ -74,8 +73,7 @@ const SelectLabel = styled.span<{ $selected: boolean }>`
     opacity 200ms ease,
     transform 200ms ease;
 
-  ${Item}:hover &,
-  ${Item}:focus-visible & {
+  ${Item}:hover & {
     opacity: 1;
     transform: translate(-50%, -50%);
   }

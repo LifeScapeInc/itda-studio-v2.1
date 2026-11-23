@@ -10,7 +10,7 @@ const Screen = styled.main`
   min-height: 100dvh;
   place-items: center;
   padding: var(--space-xl);
-  background: var(--color-main-neutral);
+  background: var(--color-background-workspace);
 `;
 
 const LoginBox = styled.section`
@@ -19,6 +19,8 @@ const LoginBox = styled.section`
   flex-direction: column;
   gap: var(--space-xl);
   padding: var(--space-2xl);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-panel);
   background: var(--color-surface);
 `;
 
@@ -48,7 +50,7 @@ const Field = styled.label`
 
 const PasswordInput = styled.input`
   width: 100%;
-  height: 48px;
+  height: 36px;
   padding: 0 var(--space-sm);
   border: 1px solid var(--color-border);
   border-radius: 4px;
@@ -56,18 +58,11 @@ const PasswordInput = styled.input`
   background: var(--color-main-neutral-light);
   color: var(--color-label-studio-black);
 
-  &:focus {
-    border-color: var(--color-main-primary);
-    box-shadow: 0 0 0 3px color-mix(
-      in srgb,
-      var(--color-main-primary) 14%,
-      transparent
-    );
-  }
+
 `;
 
 const SubmitButton = styled.button`
-  height: 48px;
+  height: 36px;
   padding: 0 var(--space-md);
   border: 0;
   border-radius: 4px;

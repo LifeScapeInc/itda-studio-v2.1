@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400&family=Noto+Sans+KR:wght@700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Noto+Sans+KR:wght@400;500;700&display=swap");
 @import "tailwindcss";
 
 @font-face {
@@ -37,6 +37,10 @@
   --color-label-final-accent: #0159be;
   --color-surface: #ffffff;
   --color-border: #e4e4e3;
+  --color-background-workspace: rgb(98.61961007118225% 98.44706058502197% 97.75686264038086%);
+  --color-background-panel: #faf9f7;
+  --navigation-top-height: 36px;
+  --radius-panel: 7px;
   --space-3xs: 4px;
   --space-2xs: 8px;
   --space-xs: 12px;
@@ -65,6 +69,8 @@
   --color-label-final-accent: #77b8ff;
   --color-surface: #292722;
   --color-border: #46423a;
+  --color-background-workspace: #211f1b;
+  --color-background-panel: #24221e;
 }
 
 * { box-sizing: border-box; }
@@ -74,7 +80,8 @@ body {
   overflow: hidden;
   background: var(--color-main-neutral);
   color: var(--color-label-studio-black);
-  font-family: "Pretendard", "Noto Sans KR", sans-serif;
+  font-family: "Noto Sans KR", "Pretendard", sans-serif;
+  font-size: 13px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -95,9 +102,17 @@ img { display: block; }
 h1, h2, p { margin: 0; }
 
 .type-studio-logo { font-family: "Noto Sans KR", sans-serif; font-size: 24px; font-weight: 700; line-height: 1; letter-spacing: .15em; }
-.type-small-head { font-family: "Pretendard", sans-serif; font-size: 12px; font-weight: 700; line-height: 1; letter-spacing: .05em; }
-.type-medium-thin { font-family: "Pretendard", sans-serif; font-size: 16px; font-weight: 400; line-height: 1; }
-.type-medium-head { font-family: "Pretendard", sans-serif; font-size: 24px; font-weight: 700; line-height: 1; }
+.type-small-head { font-family: inherit; font-size: 13px; font-weight: 500; line-height: 1.4; }
+.type-medium-thin { font-family: inherit; font-size: 13px; font-weight: 400; line-height: 1.5; }
+.type-medium-head { font-family: inherit; font-size: 22px; font-weight: 500; line-height: 1.4; }
 .type-xsmall-thin { font-family: "Inter", sans-serif; font-size: 12px; font-weight: 400; line-height: 1; }
-.type-xsmall-body { font-family: "Pretendard", sans-serif; font-size: 16px; font-weight: 500; line-height: 1; }
-.type-small-body { font-family: "Pretendard", sans-serif; font-size: 20px; font-weight: 500; line-height: 1; }
+.type-xsmall-body { font-family: inherit; font-size: 14px; font-weight: 500; line-height: 1.4; }
+.type-small-body { font-family: inherit; font-size: 18px; font-weight: 500; line-height: 1.4; }
+
+button, input, select, textarea { font-family: inherit; }
+button:focus, a:focus, input:focus, select:focus, textarea:focus, [tabindex]:focus { outline: none; }
+input, textarea { caret-color: var(--color-main-primary); }
+::selection { color: var(--color-label-studio-black); background: var(--color-main-neutral); }
+* { scrollbar-width: thin; scrollbar-color: var(--color-label-disabled) transparent; }
+button { touch-action: manipulation; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; } }

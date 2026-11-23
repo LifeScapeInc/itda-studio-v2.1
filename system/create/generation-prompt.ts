@@ -1,3 +1,4 @@
+import { LIGHT_PROMPTS, MOOD_PROMPTS, PROP_PROMPTS } from "./expert-style-prompts";
 import {
   ANGLE_VARIATION_OPTIONS,
   CONTENT_SET_OPTIONS,
@@ -6,6 +7,7 @@ import {
   type ContentSetId,
   type GenerationQuality,
 } from "@/system/create/generation-options";
+import { composeMakePrompt, expandBatch, type BatchEntry } from "./generation-batch";
 
 type PromptShot = {
   id: string;
@@ -20,6 +22,7 @@ type PromptTemplate = {
 };
 
 export type GenerationPromptInput = {
+  batchEntries?: BatchEntry[];
   referenceImage: string | null;
   contentSet: ContentSetId | null;
   angleVariationIds: AngleVariationId[];
@@ -132,27 +135,6 @@ const CONTENT_PROMPT_TEMPLATES: Partial<
   },
 };
 
-const LIGHT_PROMPTS: Record<string, string> = {
-  "아침 햇살": "soft morning sunlight, fresh and airy",
-  노을빛: "warm golden-hour light, long soft shadows",
-  "부드러운 스튜디오": "soft diffused studio lighting",
-  "드라마틱 대비": "dramatic high-contrast lighting",
-};
-
-const MOOD_PROMPTS: Record<string, string> = {
-  "모던 미니멀": "modern minimal styling",
-  "따뜻 포근": "warm, cozy, lived-in",
-  럭셔리: "luxury boutique hotel",
-  빈티지: "vintage retro",
-};
-
-const PROP_PROMPTS: Record<string, string> = {
-  식물: "plants and greenery",
-  러그: "a textured rug",
-  "커피/책": "coffee, books, magazines",
-  "벽 장식": "framed art on the wall",
-};
-
 function getInputRelationship(
   hasReference: boolean,
   editMode: string,
@@ -194,10 +176,10 @@ function getStylePrompt(input: GenerationPromptInput): string {
   const tags = [
     LIGHT_PROMPTS[input.light],
     MOOD_PROMPTS[input.mood],
-    ...input.props.map((prop) => PROP_PROMPTS[prop]),
+    ...(input.props.includes("소품 없음") ? [PROP_PROMPTS["소품 없음"]] : input.props.map((prop) => PROP_PROMPTS[prop])),
   ].filter((value): value is string => Boolean(value));
 
-  return tags.length > 0 ? `Lean toward: ${tags.join(", ")}.` : "";
+  return tags.length > 0 ? `Requested styling changes: ${tags.join(", ")}. Apply these changes while preserving unmentioned scene elements.` : "";
 }
 
 function normalizeUserPrompt(value: string): string {
@@ -266,6 +248,21 @@ function getAngleVariationPrompts(
 export function buildGenerationPrompts(
   input: GenerationPromptInput,
 ): GenerationPrompt[] {
+  if (input.batchEntries) {
+    const relationship = input.referenceImage ? getInputRelationship(true, input.editMode) : null;
+    return expandBatch(input.batchEntries).map(shot => ({
+      id: shot.id,
+      label: `${shot.label} · ${shot.ratio}`,
+      prompt: [
+        composeMakePrompt(shot, relationship
+          ? `Act as a professional interior and product photographer. ${relationship.lock} ${relationship.body} Treat the resulting staged room as the scene for the selected purpose, composition, and ratio.`
+          : undefined,
+          relationship ? `${PHOTOREAL} Preserve the furniture and reference relationship specified above. Other than the selected editing mode and explicit expert adjustments, preserve the staged room and its spatial continuity. Render the photograph edge to edge without borders, graphic overlays, or newly generated text or logos.` : undefined),
+        getStylePrompt(input) ? `Explicit expert styling adjustments (change only the requested styling, preserving product geometry and room layout): ${getStylePrompt(input)}` : "",
+        normalizeUserPrompt(input.prompt),
+      ].filter(Boolean).join("\n\n"),
+    }));
+  }
   if (input.angleVariationIds.length > 0) {
     return getAngleVariationPrompts(input);
   }

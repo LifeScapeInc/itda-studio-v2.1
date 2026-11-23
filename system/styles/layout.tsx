@@ -6,14 +6,14 @@ import { useWorkspaceLayoutStore } from "@/stores/useWorkspaceLayoutStore";
 
 const Shell = styled.div<{ $navigationCollapsed: boolean }>`
   --navigation-left-width: ${({ $navigationCollapsed }) => (
-    $navigationCollapsed ? "0px" : "203px"
+    $navigationCollapsed ? "54px" : "202px"
   )};
   height: 100vh;
   height: 100dvh;
   min-height: 0;
-  min-width: 1024px;
+  min-width: 960px;
   overflow: hidden;
-  background: var(--color-main-neutral-light);
+  background: var(--color-background-workspace);
 `;
 
 export function StudioShell({ children }: PropsWithChildren) {
@@ -35,10 +35,10 @@ export const WorkspaceContent = styled.main<{ $surface?: boolean }>`
   min-height: 0;
   flex-direction: column;
   margin-left: var(--navigation-left-width, 203px);
-  padding: 104px var(--space-2xl) var(--space-2xl);
+  padding: 64px 28px 28px;
   overflow: hidden;
   background: ${({ $surface }) => (
-    $surface ? "var(--color-surface)" : "transparent"
+    $surface ? "var(--color-surface)" : "var(--color-background-workspace)"
   )};
   transition: margin-left 220ms ease;
 `;

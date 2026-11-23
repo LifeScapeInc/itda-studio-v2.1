@@ -38,7 +38,7 @@ const ModeOption = styled.label<{ $active: boolean }>`
   border: 1px solid ${({ $active }) => $active
     ? "var(--color-main-primary)"
     : "var(--color-border)"};
-  border-radius: 8px;
+  border-radius: var(--radius-panel);
   background: ${({ $active }) => $active
     ? "var(--color-main-neutral-light)"
     : "var(--color-surface)"};

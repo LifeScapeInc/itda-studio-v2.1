@@ -28,10 +28,7 @@ const Tile = styled.button<{ $item: MoodboardLayoutItem }>`
     transform: scale(1.04);
   }
 
-  &:focus-visible {
-    outline: 2px solid var(--color-main-primary);
-    outline-offset: 2px;
-  }
+
 
   @media (prefers-reduced-motion: reduce) {
     img {

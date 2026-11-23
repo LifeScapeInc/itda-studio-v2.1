@@ -24,7 +24,10 @@ const Stage = styled.section<{ $materialWidth: number }>`
   width: 100%;
   min-height: 0;
   flex: 1;
-  grid-template-columns: ${({ $materialWidth }) => $materialWidth}px minmax(0, 1fr);
+  grid-template-columns: var(--material-width, ${({ $materialWidth }) => $materialWidth}px) minmax(0, 1fr);
+  gap: 8px;
+  padding: 8px 8px 8px 0;
+  background: var(--color-background-workspace);
   overflow: hidden;
 `;
 
@@ -33,6 +36,8 @@ const PlanningArea = styled.div`
   min-width: 0;
   min-height: 0;
   flex-direction: column;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
   background: var(--color-surface);
   container-name: planning-area;
   container-type: inline-size;
@@ -41,10 +46,10 @@ const PlanningArea = styled.div`
 
 const Header = styled.header`
   display: flex;
-  height: 48px;
+  height: 40px;
   width: 100%;
   min-width: 0;
-  flex: 0 0 48px;
+  flex: 0 0 40px;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-lg);
@@ -185,8 +190,7 @@ const DirectionButton = styled.button`
   color: var(--color-label-studio-comment);
   cursor: pointer;
 
-  &:hover:not(:disabled),
-  &:focus-visible {
+  &:hover:not(:disabled) {
     color: var(--color-main-primary);
     outline: none;
   }
@@ -491,10 +495,7 @@ const Dot = styled.button<{ $active: boolean }>`
   )};
   cursor: pointer;
 
-  &:focus-visible {
-    outline: 2px solid var(--color-main-primary);
-    outline-offset: 3px;
-  }
+
 `;
 
 function linkFor(address: string): string | undefined {
@@ -586,7 +587,7 @@ export function PlanningStage() {
     : "요청서를 읽고 있습니다";
 
   return (
-    <Stage $materialWidth={materialPanelWidth}>
+    <Stage data-resize-layout $materialWidth={materialPanelWidth}>
       <DetailMaterialPreparationPanel />
       <PlanningArea>
         <Header>

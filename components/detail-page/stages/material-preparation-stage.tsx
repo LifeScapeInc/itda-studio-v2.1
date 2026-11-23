@@ -37,7 +37,7 @@ export function DetailMaterialPreparationPanel() {
   const disabled = state.isPlanning || (!mockMode && !ready);
 
   return (
-    <MaterialPreparationLayout title="재료 준비">
+    <MaterialPreparationLayout title="재료 탐색기">
       <MaterialPreparationSection index={1} title="내 제품">
         <ImageUploadCard
           image={state.furnitureImage}

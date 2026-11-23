@@ -22,11 +22,12 @@ const Workspace = styled.main<{
   height: 100%;
   min-height: 0;
   grid-template-columns:
-    ${({ $materialWidth }) => $materialWidth}px
+    var(--material-width, ${({ $materialWidth }) => $materialWidth}px)
     minmax(0, 1fr)
-    ${({ $settingsWidth }) => $settingsWidth}px;
+    var(--settings-width, ${({ $settingsWidth }) => $settingsWidth}px);
   margin-left: var(--navigation-left-width, 203px);
-  padding-top: 56px;
+  padding: 36px 8px 8px 0;
+  column-gap: 8px;
   overflow: hidden;
   transition: margin-left 220ms ease;
 `;
@@ -88,7 +89,7 @@ export function CreateWorkspace({
     <StudioShell>
       <NavigationTop />
       <NavigationLeft />
-      <Workspace
+      <Workspace data-resize-layout
         $materialWidth={materialPanelWidth}
         $settingsWidth={settingsPanelWidth}
       >

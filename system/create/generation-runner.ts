@@ -1,5 +1,18 @@
 export const FREE_GENERATION_CONCURRENCY = 4;
 
+// Shared FIFO slots for initial batches and later regeneration requests.
+let activeRequests = 0;
+const waiting: (() => void)[] = [];
+export async function scheduleGeneration<T>(run: () => Promise<T>): Promise<T> {
+  await new Promise<void>(resolve => {
+    const start = () => { activeRequests += 1; resolve(); };
+    if (activeRequests < FREE_GENERATION_CONCURRENCY) start();
+    else waiting.push(start);
+  });
+  try { return await run(); }
+  finally { activeRequests -= 1; waiting.shift()?.(); }
+}
+
 export async function runGenerationQueue<T>(
   items: T[],
   concurrency: number,
@@ -17,7 +30,7 @@ export async function runGenerationQueue<T>(
     while (nextIndex < items.length) {
       const index = nextIndex;
       nextIndex += 1;
-      await runItem(items[index], index);
+      await scheduleGeneration(() => runItem(items[index], index));
     }
   }
 

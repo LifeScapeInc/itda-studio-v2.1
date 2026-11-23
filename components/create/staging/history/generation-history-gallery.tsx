@@ -1,6 +1,9 @@
 "use client";
 
-import { History, Trash2, X } from "lucide-react";
+import { Trash2 } from "lucide-react";
+import { useState } from "react";
+import { useCreateStore } from "@/stores/useCreateStore";
+import { handleTabKeys } from "@/components/ui/workbench";
 import styled from "styled-components";
 import type { GenerationHistorySet } from "@/system/create/generation-library";
 import { ItemHistory } from "./item-history";
@@ -11,17 +14,20 @@ const Area = styled.section`
   min-height: 0;
   flex-direction: column;
   background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
   overflow: auto;
-  scrollbar-width: thin;
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
 `;
 
 const Header = styled.div`
   display: flex;
-  height: 42px;
-  flex: 0 0 42px;
+  height: 36px;
+  flex: 0 0 36px;
   align-items: center;
   justify-content: space-between;
-  padding: 0 var(--space-md);
+  padding: 0 4px;
   color: var(--color-label-studio-comment);
 
   h3 {
@@ -79,13 +85,14 @@ const Scroll = styled.div`
   min-width: 0;
   min-height: 0;
   flex: 1;
-  grid-template-columns: repeat(auto-fill, 176px);
+  grid-template-columns: repeat(auto-fill, 188px);
   align-content: start;
   gap: var(--space-2xs);
-  padding: 0 var(--space-md) var(--space-xs);
+  padding: 8px 12px 12px;
   overflow-x: hidden;
   overflow-y: auto;
-  scrollbar-width: thin;
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
 `;
 
 const Empty = styled.div`
@@ -97,6 +104,10 @@ const Empty = styled.div`
   color: var(--color-label-studio-comment);
 `;
 
+const Tabs = styled.div`display: flex; align-items: center; flex: 1; gap: 4px; min-width: 0;`;
+const Tab = styled.button<{ $active: boolean }>`height: 28px; padding: 0 8px; border: 0; border-radius: 4px; background: ${({ $active }) => $active ? "var(--color-main-neutral-light)" : "transparent"}; color: ${({ $active }) => $active ? "var(--color-label-studio-black)" : "var(--color-label-studio-comment)"}; font-size: 13px; font-weight: ${({ $active }) => $active ? 500 : 400}; cursor: pointer;`;
+const PromptInput = styled.textarea`flex: 1; min-height: 0; width: calc(100% - 24px); margin: 8px 12px 12px; padding: 12px; resize: none; border: 0; border-radius: 4px; background: var(--color-main-neutral-light); color: var(--color-label-studio-black); font: inherit; font-size: 13px; line-height: 1.7; &::placeholder { color: var(--color-label-studio-comment); }`;
+
 export function GenerationHistoryGallery({
   history,
   projectName,
@@ -104,7 +115,6 @@ export function GenerationHistoryGallery({
   deleteDisabled,
   onRestore,
   onDelete,
-  onClear,
 }: {
   history: GenerationHistorySet[];
   projectName?: string;
@@ -112,8 +122,10 @@ export function GenerationHistoryGallery({
   deleteDisabled?: boolean;
   onRestore: (historyId: string) => void;
   onDelete: (historyId: string) => void;
-  onClear: () => void;
 }) {
+  const [tab, setTab] = useState<"history" | "prompt">("history");
+  const prompt = useCreateStore(s => s.prompt);
+  const setPrompt = useCreateStore(s => s.setPrompt);
   const activeHistory = history.find(
     (historySet) => historySet.id === activeHistoryId,
   );
@@ -128,27 +140,17 @@ export function GenerationHistoryGallery({
   return (
     <Area aria-label="생성 히스토리">
       <Header>
-        <h3 className="type-xsmall-body">
-          <History size={15} />
-          히스토리
+        <Tabs role="tablist" aria-label="하단 작업 패널" onKeyDown={handleTabKeys}>
+          <Tab type="button" role="tab" aria-selected={tab === "history"} $active={tab === "history"} onClick={() => setTab("history")}>히스토리</Tab>
+          <Tab type="button" role="tab" aria-selected={tab === "prompt"} $active={tab === "prompt"} onClick={() => setTab("prompt")}>프롬프트</Tab>
           {projectName ? (
             <ProjectName className="type-xsmall-thin" title={projectName}>
               · {projectName}
             </ProjectName>
           ) : null}
-        </h3>
-        <HeaderActions>
+        </Tabs>
+        {tab === "history" && <HeaderActions>
           <span className="type-xsmall-thin">이미지셋 {history.length}개</span>
-          {activeHistory ? (
-            <ActionButton
-              type="button"
-              disabled={deleteDisabled}
-              onClick={onClear}
-            >
-              <X size={13} />
-              보기 닫기
-            </ActionButton>
-          ) : null}
           <ActionButton
             type="button"
             disabled={!activeHistory || deleteDisabled}
@@ -157,9 +159,9 @@ export function GenerationHistoryGallery({
             <Trash2 size={13} />
             선택 삭제
           </ActionButton>
-        </HeaderActions>
+        </HeaderActions>}
       </Header>
-      <Scroll>
+      {tab === "prompt" ? <PromptInput aria-label="추가 디렉션 입력" placeholder="추가 디렉션 입력 (예: 조명을 더 밝게, 바닥을 우드톤으로)" value={prompt} onChange={event => setPrompt(event.target.value)} /> : <Scroll role="tabpanel" aria-label="히스토리">
         {history.length ? history.map((historySet) => (
           <ItemHistory
             historySet={historySet}
@@ -174,7 +176,7 @@ export function GenerationHistoryGallery({
             </span>
           </Empty>
         )}
-      </Scroll>
+      </Scroll>}
     </Area>
   );
 }

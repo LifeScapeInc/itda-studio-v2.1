@@ -7,7 +7,7 @@ const Button = styled.button<{
   position: relative;
   display: grid;
   width: 187px;
-  height: 56px;
+  height: 36px;
   place-items: center;
   padding: 5px 0;
   border: 0;
@@ -34,10 +34,7 @@ const Button = styled.button<{
     z-index: 1;
   }
 
-  &:focus-visible {
-    outline: 2px solid var(--color-main-primary);
-    outline-offset: 2px;
-  }
+
 `;
 export function InputButton({
   children,

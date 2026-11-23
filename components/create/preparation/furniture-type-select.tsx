@@ -46,14 +46,7 @@ const Select = styled.select<{ $hasValue: boolean }>`
     );
   }
 
-  &:focus-visible {
-    border-color: var(--color-main-primary);
-    box-shadow: 0 0 0 3px color-mix(
-      in srgb,
-      var(--color-main-primary) 14%,
-      transparent
-    );
-  }
+
 `;
 
 const Arrow = styled(ChevronDown)`

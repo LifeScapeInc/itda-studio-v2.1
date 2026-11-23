@@ -77,8 +77,7 @@ const Close = styled.button`
   background: transparent;
   cursor: pointer;
 
-  &:hover,
-  &:focus-visible {
+  &:hover {
     background: rgb(32 29 23 / 5%);
     outline: none;
   }
@@ -148,7 +147,7 @@ const Actions = styled.div`
     place-items: center;
     padding: 0;
     border: 0;
-    border-radius: 8px;
+    border-radius: var(--radius-panel);
     color: var(--color-surface);
     cursor: pointer;
   }

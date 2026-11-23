@@ -28,9 +28,7 @@ const Card = styled.button`
     cursor: default;
   }
 
-  &:focus-visible {
-    outline: 2px solid var(--color-main-primary);
-  }
+
 `;
 
 const Preview = styled.div<{
@@ -144,6 +142,7 @@ function getAspectRatio(ratio: GenerationShot["ratio"]): string {
     "4:5": "4 / 5",
     "9:16": "9 / 16",
     "16:9": "16 / 9",
+    "3:2": "3 / 2",
     original: "4 / 3",
   };
 
@@ -172,7 +171,7 @@ function ShotStatus({
     return (
       <Status title={error}>
         <CircleAlert size={24} />
-        생성 실패
+        생성 실패 · 클릭하여 다시 생성
       </Status>
     );
   }
@@ -190,19 +189,23 @@ export function GeneratedItem({
   selected,
   onSelect,
   onOpenImage,
+  onRetry,
+  retryDisabled = false,
 }: {
   shot: GenerationShot;
   selected: boolean;
-  onSelect?: (shotId: string) => void;
+  onSelect?: (shotId: string, modifiers?: { shiftKey?: boolean; ctrlKey?: boolean; metaKey?: boolean }) => void;
   onOpenImage?: (shot: GenerationShot) => void;
+  onRetry?: (shotId: string) => void;
+  retryDisabled?: boolean;
 }) {
   return (
     <Card
       type="button"
-      disabled={shot.status !== "done"}
+      disabled={shot.status !== "done" && !(shot.status === "error" && onRetry && !retryDisabled)}
       aria-pressed={selected}
-      aria-label={`${shot.label}${shot.status === "done" ? " 선택" : ""}`}
-      onClick={() => onSelect?.(shot.id)}
+      aria-label={`${shot.label}${shot.status === "error" ? " 다시 생성" : shot.status === "done" ? " 선택" : ""}`}
+      onClick={event => shot.status === "error" ? onRetry?.(shot.id) : onSelect?.(shot.id, { shiftKey: event.shiftKey, ctrlKey: event.ctrlKey, metaKey: event.metaKey })}
       onDoubleClick={() => {
         if (shot.status === "done" && shot.imageUrl) onOpenImage?.(shot);
       }}

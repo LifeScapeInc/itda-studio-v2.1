@@ -22,8 +22,7 @@ const Card = styled.button`
     box-shadow 180ms ease,
     transform 180ms ease;
 
-  &:hover,
-  &:focus-visible {
+  &:hover {
     border-color: var(--color-main-primary);
     outline: none;
     box-shadow: 0 8px 22px rgb(32 29 23 / 10%);

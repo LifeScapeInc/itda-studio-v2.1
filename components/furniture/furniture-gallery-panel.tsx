@@ -14,10 +14,10 @@ import { HiddenScrollbar } from "@/system/styles/layout";
 const Panel = styled.aside<{ $width: number }>`
   position: relative;
   display: flex;
-  width: ${({ $width }) => $width}px;
+  width: var(--panel-width, ${({ $width }) => $width}px);
   min-width: ${FURNITURE_GALLERY_PANEL_MIN_WIDTH}px;
   min-height: 0;
-  flex: 0 0 ${({ $width }) => $width}px;
+  flex: 0 0 var(--panel-width, ${({ $width }) => $width}px);
   flex-direction: column;
   border-left: 1px solid var(--color-border);
   background: var(--color-surface);
@@ -39,13 +39,11 @@ const SearchField = styled.label`
   gap: var(--space-2xs);
   padding: 0 var(--space-xs);
   border: 1px solid var(--color-border);
-  border-radius: 8px;
+  border-radius: var(--radius-panel);
   background: var(--color-main-neutral-light);
   color: var(--color-label-studio-comment);
 
-  &:focus-within {
-    border-color: var(--color-main-primary);
-  }
+
 `;
 
 const SearchInput = styled.input`
@@ -83,7 +81,7 @@ const GalleryItem = styled.button<{ $selected: boolean }>`
   border: 2px solid ${({ $selected }) => (
     $selected ? "var(--color-main-primary)" : "transparent"
   )};
-  border-radius: 8px;
+  border-radius: var(--radius-panel);
   background: var(--color-main-neutral-light);
   overflow: hidden;
   cursor: pointer;
@@ -97,13 +95,10 @@ const GalleryItem = styled.button<{ $selected: boolean }>`
 
   &:hover {
     border-color: var(--color-main-primary);
-    transform: translateY(-1px);
+    background: var(--color-main-neutral-light);
   }
 
-  &:focus-visible {
-    outline: 2px solid var(--color-main-primary);
-    outline-offset: 2px;
-  }
+
 `;
 
 export function FurnitureGalleryPanel({
@@ -125,8 +120,8 @@ export function FurnitureGalleryPanel({
   );
 
   return (
-    <Panel $width={width} aria-label={`${name} 이미지 갤러리`}>
-      <PanelResizeHandle
+    <Panel data-resize-layout $width={width} aria-label={`${name} 이미지 갤러리`}>
+      <PanelResizeHandle previewProperty="--panel-width"
         edge="left"
         label="가구 이미지 갤러리 너비 조절"
         value={width}

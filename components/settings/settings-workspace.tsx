@@ -14,10 +14,10 @@ const Workspace = styled.main`
   display: flex;
   height: 100%;
   min-height: 0;
-  margin-left: var(--navigation-left-width, 203px);
-  padding: 104px var(--space-2xl) var(--space-2xl);
+  margin-left: var(--navigation-left-width, 54px);
+  padding: 64px 28px 28px;
   flex-direction: column;
-  background: var(--color-main-neutral-light);
+  background: var(--color-background-workspace);
   overflow: hidden;
   transition: margin-left 220ms ease;
 `;

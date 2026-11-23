@@ -30,9 +30,9 @@ const Field = styled.div`
 `;
 
 const FieldLabel = styled.span`
-  color: var(--color-label-studio-comment);
-  font-size: 11px;
-  font-weight: 700;
+  color: var(--color-label-studio-black);
+  font-size: 13px;
+  font-weight: 500;
 `;
 
 const Chips = styled.div`
@@ -42,45 +42,28 @@ const Chips = styled.div`
 `;
 
 const Chip = styled.button<{ $selected: boolean }>`
-  height: 30px;
+  height: 28px;
   padding: 0 var(--space-xs);
-  border: 1px solid ${({ $selected }) => (
-    $selected ? "var(--color-main-primary)" : "var(--color-border)"
-  )};
-  border-radius: 999px;
+  border: 0;
+  border-radius: 4px;
   background: ${({ $selected }) => (
-    $selected ? "var(--color-main-primary)" : "var(--color-surface)"
+    $selected ? "var(--color-main-neutral)" : "transparent"
   )};
-  color: ${({ $selected }) => ($selected ? "var(--color-surface)" : "inherit")};
-  font-size: 11px;
+  color: ${({ $selected }) => ($selected ? "var(--color-label-studio-black)" : "var(--color-label-studio-comment)")};
+  font-size: 12px;
   cursor: pointer;
 `;
 
 const Select = styled.select`
-  height: 34px;
+  height: 28px;
   padding: 0 var(--space-2xs);
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
+  border: 0;
+  border-radius: 4px;
   background: var(--color-surface);
   font-size: 12px;
   outline: none;
 
-  &:focus { border-color: var(--color-main-primary); }
-`;
-
-const Prompt = styled.textarea`
-  width: 100%;
-  height: 78px;
-  resize: none;
-  padding: var(--space-xs);
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  background: var(--color-surface);
-  font-size: 12px;
-  line-height: 1.5;
-  outline: none;
-
-  &:focus { border-color: var(--color-main-primary); }
+  &:hover { background: var(--color-main-neutral-light); }
 `;
 
 function ChipGroup({
@@ -118,19 +101,14 @@ export function ExpertSettings() {
   const light = useCreateStore((state) => state.light);
   const mood = useCreateStore((state) => state.mood);
   const props = useCreateStore((state) => state.props);
-  const prompt = useCreateStore((state) => state.prompt);
   const setQuality = useCreateStore((state) => state.setQuality);
   const setEditMode = useCreateStore((state) => state.setEditMode);
   const setLight = useCreateStore((state) => state.setLight);
   const setMood = useCreateStore((state) => state.setMood);
   const toggleProp = useCreateStore((state) => state.toggleProp);
-  const setPrompt = useCreateStore((state) => state.setPrompt);
 
   return (
     <Fields>
-      <Description>
-        품질과 조명, 무드 등 세부 생성 조건을 설정합니다
-      </Description>
       <Field>
         <FieldLabel>품질</FieldLabel>
         <Chips>
@@ -167,14 +145,6 @@ export function ExpertSettings() {
       <Field><FieldLabel>채광 및 시간대</FieldLabel><ChipGroup options={LIGHT_OPTIONS} selected={[light]} onSelect={setLight} /></Field>
       <Field><FieldLabel>인테리어 무드</FieldLabel><ChipGroup options={MOOD_OPTIONS} selected={[mood]} onSelect={setMood} /></Field>
       <Field><FieldLabel>연출 소품</FieldLabel><ChipGroup options={PROP_OPTIONS} selected={props} onSelect={toggleProp} multi /></Field>
-      <Field>
-        <FieldLabel>추가 디렉션 (프롬프트)</FieldLabel>
-        <Prompt
-          value={prompt}
-          placeholder={'예) \'조명을 더 밝게\', \'바닥을 우드톤으로\''}
-          onChange={(event) => setPrompt(event.target.value)}
-        />
-      </Field>
     </Fields>
   );
 }

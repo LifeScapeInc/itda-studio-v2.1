@@ -18,8 +18,8 @@ const Workspace = styled.main`
   display: flex;
   height: 100%;
   min-height: 0;
-  margin-left: var(--navigation-left-width, 203px);
-  padding-top: 56px;
+  margin-left: var(--navigation-left-width, 54px);
+  padding-top: 36px;
   flex-direction: column;
   background: var(--color-surface);
   overflow: hidden;

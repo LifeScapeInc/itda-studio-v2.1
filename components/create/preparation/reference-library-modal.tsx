@@ -1,465 +1,60 @@
 "use client";
 
-import Image from "next/image";
-import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Images, Search } from "lucide-react";
+import { useRef, useState } from "react";
+import { ChevronDown, ChevronRight, Images, Search, X } from "lucide-react";
 import styled from "styled-components";
-import type {
-  ReferenceLibraryData,
-  ReferenceLibraryTab,
-} from "@/system/create/reference-library";
-import { HiddenScrollbar } from "@/system/styles/layout";
-import { ReferenceLibraryCategoryItem } from "./reference-library-category-item";
+import type { ReferenceLibraryData, ReferenceLibraryTab } from "@/system/create/reference-library";
+import { useCreateStore } from "@/stores/useCreateStore";
 import { ReferenceLibraryImageItem } from "./reference-library-image-item";
+import { ModalCloseAction } from "@/components/ui/workbench";
+import { useDialogFocus } from "@/components/ui/use-dialog-focus";
 
-const TABS: Array<{
-  id: ReferenceLibraryTab;
-  label: string;
-}> = [
-  { id: "furniture", label: "가구 스튜디오 샷" },
-  { id: "mood", label: "인테리어 무드보드" },
-  { id: "bookmarks", label: "북마크 이미지" },
-];
-
-const Backdrop = styled.div`
-  position: fixed;
-  z-index: 100;
-  inset: 0;
+const Backdrop = styled.div`position: fixed; z-index: 100; inset: 0; display: grid; place-items: center; padding: 32px; background: rgb(32 29 23 / 32%);`;
+const Modal = styled.section`display: flex; width: min(1120px, 100%); height: min(720px, calc(100dvh - 64px)); min-height: 360px; flex-direction: column; border: 1px solid var(--color-border); border-radius: 7px; background: var(--color-surface); box-shadow: 0 16px 48px rgb(32 29 23 / 18%); overflow: hidden;`;
+const Header = styled.header`display: flex; min-height: 45px; flex: 0 0 45px; align-items: center; justify-content: space-between; padding: 0 16px; background: var(--color-main-neutral-light); border-bottom: 1px solid var(--color-border); h2 { font-size: 16px; font-weight: 500; }`;
+const SearchBox = styled.label`display: flex; height: 34px; flex: 0 0 34px; align-items: center; gap: 8px; margin: 16px; padding: 0 12px; border: 1px solid var(--color-border); border-radius: 4px; color: var(--color-label-studio-comment); input { flex: 1; min-width: 0; border: 0; background: transparent; font-size: 13px; outline: none; }`;
+const Body = styled.div`display: grid; min-height: 0; flex: 1; grid-template-columns: 208px minmax(0, 1fr); margin: 0 16px 16px;`;
+const Nav = styled.nav`min-height: 0; padding-right: 12px; overflow-y: auto; border-right: 1px solid var(--color-border);`;
+const Category = styled.button`display: flex; align-items: center; gap: 8px; width: 100%; height: 34px; padding: 0 8px; border: 0; border-radius: 4px; background: transparent; text-align: left; font-size: 14px; font-weight: 700; cursor: pointer; &:hover { background: var(--color-main-neutral-light); } svg { width: 14px; height: 14px; color: var(--color-label-studio-comment); }`;
+const Child = styled.button<{ $active: boolean; }>`display: block; width: 100%; min-height: 30px; padding: 6px 8px 6px 30px; border: 0; border-radius: 4px; background: ${({ $active }) => $active ? "var(--color-main-neutral)" : "transparent"}; color: ${({ $active }) => $active ? "var(--color-label-studio-black)" : "var(--color-label-studio-comment)"}; font-size: 13px; text-align: left; overflow-wrap: anywhere; cursor: pointer; &:hover { background: var(--color-main-neutral-light); }`;
+const Gallery = styled.div`display: flex; flex-direction: column; min-height: 0; padding-left: 24px;`;
+const GalleryHead = styled.div`display: flex; align-items: center; justify-content: space-between; min-height: 40px; padding-bottom: 12px; h3 { margin: 0; font-size: 18px; font-weight: 500; } span { color: var(--color-label-studio-comment); font-size: 11px; }`;
+const Grid = styled.div`
   display: grid;
-  place-items: center;
-  padding: var(--space-xl);
-  background: rgb(32 29 23 / 32%);
-`;
-
-const Modal = styled.section`
-  display: flex;
-  width: min(960px, 100%);
-  height: min(760px, calc(100vh - 64px));
-  min-height: 520px;
-  flex-direction: column;
-  background: var(--color-surface);
-  box-shadow: 0 20px 52px rgb(32 29 23 / 22%);
-  overflow: hidden;
-`;
-
-const Header = styled.header`
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  padding: var(--space-sm) var(--space-md) 0;
-  background: var(--color-main-neutral-light);
-`;
-
-const Close = styled.button`
-  display: grid;
-  width: 24px;
-  height: 24px;
-  flex: 0 0 24px;
-  margin: -6px -6px 0 0;
-  place-items: center;
-  padding: 0;
-  border: 0;
-  border-radius: 4px;
-  background: transparent;
-  cursor: pointer;
-
-  &:hover,
-  &:focus-visible {
-    background: rgb(32 29 23 / 5%);
-    outline: none;
-  }
-`;
-
-const Tabs = styled.div`
-  display: flex;
-  gap: var(--space-3xs);
-`;
-
-const Toolbar = styled.div`
-  display: flex;
-  min-height: 62px;
-  flex: 0 0 auto;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-lg);
-  padding: var(--space-xs) var(--space-lg);
-  border-bottom: 1px solid var(--color-border);
-  background: var(--color-main-neutral-light);
-`;
-
-const SearchField = styled.label`
-  position: relative;
-  display: flex;
-  width: min(280px, 34%);
-  min-width: 220px;
-  height: 38px;
-  flex: 0 0 auto;
-  align-items: center;
-
-  svg {
-    position: absolute;
-    left: var(--space-xs);
-    color: var(--color-label-studio-comment);
-    pointer-events: none;
-  }
-`;
-
-const SearchInput = styled.input`
-  width: 100%;
-  height: 100%;
-  padding: 0 var(--space-xs) 0 36px;
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  background: var(--color-surface);
-  color: var(--color-label-studio-black);
-  font-size: 12px;
-  outline: none;
-
-  &::placeholder {
-    color: var(--color-label-studio-comment);
-  }
-
-  &:focus {
-    border-color: var(--color-main-primary);
-    box-shadow: 0 0 0 3px color-mix(
-      in srgb,
-      var(--color-main-primary) 10%,
-      transparent
-    );
-  }
-`;
-
-const Tab = styled.button<{ $active: boolean }>`
-  height: 38px;
-  padding: 0 var(--space-md);
-  border: 1px solid ${({ $active }) => (
-    $active ? "var(--color-main-primary)" : "transparent"
-  )};
-  border-radius: 8px;
-  background: ${({ $active }) => (
-    $active ? "var(--color-main-primary)" : "transparent"
-  )};
-  color: ${({ $active }) => (
-    $active ? "var(--color-surface)" : "var(--color-label-studio-comment)"
-  )};
-  cursor: pointer;
-
-  &:hover,
-  &:focus-visible {
-    outline: none;
-    color: ${({ $active }) => (
-      $active ? "var(--color-surface)" : "var(--color-label-studio-black)"
-    )};
-  }
-`;
-
-const Content = styled.div`
-  display: flex;
-  min-height: 0;
   flex: 1;
-  flex-direction: column;
-  background: var(--color-main-neutral-light);
-`;
-
-const DepthHeader = styled.div`
-  display: flex;
-  min-height: 52px;
-  flex: 0 0 52px;
-  align-items: center;
-  gap: var(--space-xs);
-  padding: 0 var(--space-lg);
-  border-bottom: 1px solid var(--color-border);
-`;
-
-const Back = styled.button`
-  display: inline-flex;
-  height: 32px;
-  align-items: center;
-  gap: var(--space-3xs);
-  padding: 0 var(--space-2xs);
-  border: 0;
-  border-radius: 6px;
-  background: transparent;
-  color: var(--color-label-studio-comment);
-  cursor: pointer;
-
-  &:hover,
-  &:focus-visible {
-    background: var(--color-surface);
-    outline: none;
-    color: var(--color-label-studio-black);
-  }
-`;
-
-const Count = styled.span`
-  color: var(--color-label-studio-comment);
-  font-size: 12px;
-`;
-
-const Scroll = styled(HiddenScrollbar)`
   min-height: 0;
-  flex: 1;
-  padding: var(--space-lg);
-  overflow-x: hidden;
-  overflow-y: auto;
-`;
-
-const CategoryGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  align-content: start;
-  gap: var(--space-sm);
-
-  @media (max-width: 800px) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-`;
-
-const ImageGrid = styled.div`
-  display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-auto-rows: max-content;
   align-content: start;
-  gap: var(--space-sm);
-
-  @media (max-width: 800px) {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
+  align-items: start;
+  gap: 12px;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+  padding: 2px;
+  @media(max-width: 900px) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 `;
+const Empty = styled.div`display: flex; flex: 1; flex-direction: column; align-items: center; justify-content: center; gap: 16px; color: var(--color-label-studio-comment); font-size: 13px;`;
+const tabs = [{ id: "furniture", label: "가구" }, { id: "mood", label: "무드보드" }, { id: "bookmarks", label: "북마크" }] as const;
 
-const Empty = styled.div`
-  display: flex;
-  height: 100%;
-  min-height: 240px;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-xs);
-  color: var(--color-label-studio-comment);
-  text-align: center;
-
-  p {
-    line-height: 1.5;
-  }
-`;
-
-function findSelectedImage(
-  library: ReferenceLibraryData,
-  selectedImage?: string | null,
-): { tab: ReferenceLibraryTab; groupId: string } | null {
-  if (!selectedImage) return null;
-
-  for (const tab of TABS) {
-    const group = library[tab.id].find(
-      (item) => item.images.includes(selectedImage),
-    );
-    if (group) return { tab: tab.id, groupId: group.id };
-  }
-
-  return null;
-}
-
-export function ReferenceLibraryModal({
-  library,
-  selectedImage,
-  onClose,
-  onSelect,
-}: {
-  library: ReferenceLibraryData;
-  selectedImage?: string | null;
-  onClose: () => void;
-  onSelect: (image: string) => void;
-}) {
-  const selectedLocation = findSelectedImage(library, selectedImage);
-  const [activeTab, setActiveTab] = useState<ReferenceLibraryTab>(
-    selectedLocation?.tab ?? "furniture",
-  );
-  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(
-    selectedLocation?.groupId ?? null,
-  );
-  const [searchQuery, setSearchQuery] = useState("");
-  const groups = library[activeTab];
-  const filteredGroups = useMemo(() => {
-    const query = searchQuery.trim().toLocaleLowerCase("ko");
-
-    if (!query) {
-      return groups;
-    }
-
-    return groups.filter((group) => (
-      group.name.toLocaleLowerCase("ko").includes(query)
-    ));
-  }, [groups, searchQuery]);
-  const selectedGroup = useMemo(
-    () => groups.find((group) => group.id === selectedGroupId) ?? null,
-    [groups, selectedGroupId],
-  );
-
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        if (selectedGroupId) {
-          setSelectedGroupId(null);
-        } else {
-          onClose();
-        }
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [onClose, selectedGroupId]);
-
-  const changeTab = (tab: ReferenceLibraryTab) => {
-    setActiveTab(tab);
-    setSelectedGroupId(null);
-    setSearchQuery("");
-  };
-
-  return (
-    <Backdrop
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget) {
-          onClose();
-        }
-      }}
-    >
-      <Modal
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="reference-library-title"
-      >
-        <Header>
-            <h2
-              className="type-small-head"
-              id="reference-library-title"
-            >
-              레퍼런스 DB
-            </h2>
-          <Close
-            type="button"
-            aria-label="레퍼런스 DB 닫기"
-            onClick={onClose}
-          >
-            <Image
-              src="/assets/project-overlay-close.svg"
-              alt=""
-              width={12}
-              height={12}
-            />
-          </Close>
-        </Header>
-        {!selectedGroup ? (
-          <Toolbar>
-            <Tabs role="tablist" aria-label="레퍼런스 종류">
-              {TABS.map((tab) => (
-                <Tab
-                  type="button"
-                  role="tab"
-                  $active={activeTab === tab.id}
-                  aria-selected={activeTab === tab.id}
-                  onClick={() => changeTab(tab.id)}
-                  key={tab.id}
-                >
-                  <span className="type-xsmall-body">{tab.label}</span>
-                </Tab>
-              ))}
-            </Tabs>
-            {activeTab !== "bookmarks" ? (
-              <SearchField>
-                <Search
-                  size={15}
-                  strokeWidth={1.8}
-                  aria-hidden="true"
-                />
-                <SearchInput
-                  type="search"
-                  aria-label="레퍼런스 카테고리 검색"
-                  placeholder={
-                    activeTab === "furniture"
-                      ? "가구 카테고리 검색"
-                      : "무드보드 스타일 검색"
-                  }
-                  value={searchQuery}
-                  onChange={(event) => setSearchQuery(event.target.value)}
-                />
-              </SearchField>
-            ) : null}
-          </Toolbar>
-        ) : null}
-        <Content>
-          {selectedGroup ? (
-            <>
-              <DepthHeader>
-                <Back
-                  type="button"
-                  onClick={() => setSelectedGroupId(null)}
-                >
-                  <ArrowLeft size={15} />
-                  목록
-                </Back>
-                <strong className="type-xsmall-body">{selectedGroup.name}</strong>
-                <Count>{selectedGroup.images.length}장</Count>
-              </DepthHeader>
-              <Scroll>
-                {selectedGroup.images.length ? (
-                  <ImageGrid aria-label={`${selectedGroup.name} 이미지 목록`}>
-                    {selectedGroup.images.map((image, index) => (
-                      <ReferenceLibraryImageItem
-                        src={image}
-                        index={index}
-                        selected={image === selectedImage}
-                        onSelect={() => {
-                          onSelect(image);
-                          onClose();
-                        }}
-                        key={image}
-                      />
-                    ))}
-                  </ImageGrid>
-                ) : (
-                  <Empty>
-                    <Images size={40} strokeWidth={1.3} />
-                    <strong>등록된 이미지가 없습니다.</strong>
-                  </Empty>
-                )}
-              </Scroll>
-            </>
-          ) : (
-            <Scroll>
-              {filteredGroups.length ? (
-                <CategoryGrid aria-label={`${TABS.find((tab) => tab.id === activeTab)?.label} 목록`}>
-                  {filteredGroups.map((group) => (
-                    <ReferenceLibraryCategoryItem
-                      group={group}
-                      onClick={() => setSelectedGroupId(group.id)}
-                      key={group.id}
-                    />
-                  ))}
-                </CategoryGrid>
-              ) : (
-                <Empty>
-                  <Images size={40} strokeWidth={1.3} />
-                  <strong>
-                    {searchQuery
-                      ? "검색 결과가 없습니다."
-                      : activeTab === "bookmarks"
-                        ? "등록된 북마크 이미지가 없습니다."
-                        : "등록된 카테고리가 없습니다."}
-                  </strong>
-                  {!searchQuery && activeTab === "bookmarks" ? (
-                    <p className="type-xsmall-thin">
-                      북마크한 이미지가 생기면 이 탭에서 확인할 수 있습니다.
-                    </p>
-                  ) : null}
-                </Empty>
-              )}
-            </Scroll>
-          )}
-        </Content>
-      </Modal>
-    </Backdrop>
-  );
+export function ReferenceLibraryModal({ library, selectedImage, onClose, onSelect }: { library: ReferenceLibraryData; selectedImage?: string | null; onClose: () => void; onSelect: (image: string) => void; }) {
+  const ref = useRef<HTMLElement>(null);
+  useDialogFocus(ref, onClose);
+  const history = useCreateStore(s => s.generationHistory);
+  const bookmarks = history.flatMap(set => set.shots.filter(shot => shot.bookmarked && shot.status === "done" && shot.imageUrl).map(shot => ({ id: shot.id, name: shot.label, images: [shot.imageUrl!] })));
+  const data = { ...library, bookmarks: [...library.bookmarks, ...bookmarks] };
+  const initialTab = tabs.find(tab => data[tab.id].some(group => group.images.includes(selectedImage ?? "")))?.id ?? "furniture";
+  const [activeTab, setActiveTab] = useState<ReferenceLibraryTab>(initialTab);
+  const [groupId, setGroupId] = useState<string | null>(data[initialTab].find(group => group.images.includes(selectedImage ?? ""))?.id ?? null);
+  const [collapsed, setCollapsed] = useState<ReferenceLibraryTab[]>([]);
+  const [query, setQuery] = useState("");
+  const groups = data[activeTab].filter(group => group.name.toLowerCase().includes(query.trim().toLowerCase()));
+  const selected = groups.find(group => group.id === groupId);
+  const images = [...new Set((selected ? [selected] : groups).flatMap(group => group.images))];
+  return <Backdrop onMouseDown={event => { if (event.target === event.currentTarget) onClose(); }}><Modal ref={ref} role="dialog" aria-modal="true" aria-labelledby="reference-library-title">
+    <Header><h2 id="reference-library-title">레퍼런스 DB</h2><ModalCloseAction title="닫기" aria-label="레퍼런스 DB 닫기" onClick={onClose}><X /></ModalCloseAction></Header>
+    <SearchBox><Search size={15} /><input type="search" aria-label="레퍼런스 검색" placeholder="가구, 무드보드 또는 북마크 검색" value={query} onChange={e => setQuery(e.target.value)} /></SearchBox>
+    <Body><Nav aria-label="레퍼런스 탐색기">{tabs.map(tab => <section key={tab.id}><Category aria-expanded={!collapsed.includes(tab.id)} onClick={() => { setActiveTab(tab.id); setGroupId(null); setCollapsed(values => values.includes(tab.id) ? values.filter(v => v !== tab.id) : [...values, tab.id]); }}>{collapsed.includes(tab.id) ? <ChevronRight /> : <ChevronDown />}{tab.label}</Category>{!collapsed.includes(tab.id) && data[tab.id].filter(group => group.name.toLowerCase().includes(query.trim().toLowerCase())).map(group => <Child key={group.id} $active={activeTab === tab.id && groupId === group.id} onClick={() => { setActiveTab(tab.id); setGroupId(group.id); }}>{group.name}</Child>)}</section>)}</Nav>
+      <Gallery><GalleryHead><h3>{selected?.name ?? tabs.find(tab => tab.id === activeTab)?.label}</h3><span>{images.length}장</span></GalleryHead>{images.length ? <Grid aria-label="레퍼런스 사진">{images.map((image, index) => <ReferenceLibraryImageItem key={image} src={image} index={index} selected={image === selectedImage} onSelect={() => { onSelect(image); onClose(); }} />)}</Grid> : <Empty><Images size={32} />{query ? "검색 결과가 없습니다." : "등록된 이미지가 없습니다."}</Empty>}</Gallery>
+    </Body>
+  </Modal></Backdrop>;
 }

@@ -8,14 +8,17 @@ import { useCreateStore } from "@/stores/useCreateStore";
 import { useDetailPageStore } from "@/stores/useDetailPageStore";
 import { useProjectStore } from "@/stores/useProjectStore";
 import type { StudioProject } from "@/stores/useProjectStore";
+import { Plus } from "lucide-react";
 
 const Tabs = styled.nav`
   position: absolute;
   z-index: 1;
   top: 0;
-  right: 220px;
+  right: 12px;
   bottom: 0;
-  left: 203px;
+  left: 120px;
+  align-items: center;
+  gap: 4px;
   display: flex;
   min-width: 0;
   overflow-x: auto;
@@ -28,23 +31,20 @@ const Tabs = styled.nav`
 
 const Tab = styled.div<{ $active: boolean }>`
   display: flex;
-  width: 294px;
-  height: 56px;
+  width: 272px;
+  height: 28px;
   min-width: 180px;
-  flex: 0 1 294px;
+  flex: 0 1 272px;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-xs);
-  border-right: 1px solid var(--color-border);
-  border-bottom: 1px solid var(--color-border);
-  border-left: 1px solid var(--color-border);
+  border: 0;
+  border-radius: 4px;
   background: ${({ $active }) => (
-    $active ? "var(--color-surface)" : "var(--color-main-neutral)"
+    $active ? "var(--color-main-neutral)" : "transparent"
   )};
 
-  &:focus-within {
-    box-shadow: inset 0 -2px var(--color-main-primary);
-  }
+
 `;
 
 const OpenLink = styled(Link)`
@@ -53,15 +53,13 @@ const OpenLink = styled(Link)`
   height: 100%;
   flex: 1;
   align-items: center;
-  padding-left: 20px;
+  padding-left: 12px;
   color: var(--color-label-studio-black);
-  font-size: 16px;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 400;
   line-height: 1;
 
-  &:focus-visible {
-    outline: none;
-  }
+
 `;
 
 const Name = styled.span`
@@ -84,8 +82,7 @@ const Close = styled.button`
   background: transparent;
   cursor: pointer;
 
-  &:hover,
-  &:focus-visible {
+  &:hover {
     outline: none;
     background: var(--color-main-neutral);
   }
@@ -124,7 +121,6 @@ export function TabProject() {
     .map(id => projects.find(project => project.id === id))
     .filter(project => project !== undefined);
 
-  if (openProjects.length === 0) return null;
 
   const closeTab = (projectId: string) => {
     const currentIndex = openProjects.findIndex(project => project.id === projectId);
@@ -194,6 +190,7 @@ export function TabProject() {
           </Tab>
         );
       })}
+      <Link href="/projects" title="프로젝트 열기" aria-label="프로젝트 열기" style={{ padding: 6, flexShrink: 0 }}><Plus size={16} /></Link>
     </Tabs>
   );
 }

@@ -22,7 +22,7 @@ const Preview = styled.label<{ $hasValue: boolean }>`
   place-items: center;
   border: ${({ $hasValue }) => ($hasValue ? "1px solid" : "2px dashed")}
     var(--color-border);
-  border-radius: 12px;
+  border-radius: 8px;
   background: var(--color-main-neutral-light);
   overflow: hidden;
   cursor: pointer;
@@ -43,18 +43,9 @@ const Preview = styled.label<{ $hasValue: boolean }>`
       var(--color-main-primary) 8%,
       var(--color-surface)
     );
-    box-shadow: 0 8px 20px rgb(32 29 23 / 8%);
-    transform: translateY(-1px);
   }
 
-  &:focus-within {
-    border-color: var(--color-main-primary);
-    box-shadow: 0 0 0 3px color-mix(
-      in srgb,
-      var(--color-main-primary) 14%,
-      transparent
-    );
-  }
+
 `;
 
 const EmptyCopy = styled.span`
@@ -94,8 +85,8 @@ const Remove = styled.button`
   padding: 0;
   border: 0;
   border-radius: 50%;
-  background: rgb(32 29 23 / 70%);
-  color: var(--color-surface);
+  background: var(--color-surface);
+  color: var(--color-label-studio-black);
   cursor: pointer;
   transition: background 160ms ease;
 

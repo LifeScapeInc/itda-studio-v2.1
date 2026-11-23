@@ -41,7 +41,7 @@ type WorkspaceLayoutStore = {
 };
 
 export const useWorkspaceLayoutStore = create<WorkspaceLayoutStore>((set) => ({
-  navigationCollapsed: false,
+  navigationCollapsed: true,
   materialPanelWidth: MATERIAL_PANEL_DEFAULT_WIDTH,
   settingsPanelWidth: SETTINGS_PANEL_DEFAULT_WIDTH,
   furnitureGalleryPanelWidth: FURNITURE_GALLERY_PANEL_DEFAULT_WIDTH,

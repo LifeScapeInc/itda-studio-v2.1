@@ -28,9 +28,7 @@ const Input = styled.input`
   background: var(--color-main-neutral);
   outline: none;
 
-  &:focus {
-    border-bottom-width: 2px;
-  }
+
 `;
 export function InputString({
   label,

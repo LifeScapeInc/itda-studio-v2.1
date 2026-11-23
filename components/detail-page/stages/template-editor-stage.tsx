@@ -85,10 +85,7 @@ const FormatSelect = styled.select`
   color: var(--color-label-studio-black);
   cursor: pointer;
 
-  &:focus-visible {
-    border-color: var(--color-main-primary);
-    outline: none;
-  }
+
 `;
 
 const ExportError = styled.span`

@@ -6,7 +6,7 @@ import { InputButton } from "./input-button";
 const Row = styled.div`
   display: flex;
   width: 514px;
-  height: 56px;
+  height: 36px;
   align-items: center;
   gap: var(--space-md);
 `;

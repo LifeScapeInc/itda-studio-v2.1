@@ -23,7 +23,7 @@ const Card = styled.button<{
   border: 1px solid ${({
   $active
 }) => $active ? "var(--color-main-primary)" : "var(--color-border)"};
-  border-radius: 12px;
+  border-radius: var(--radius-panel);
   background: var(--color-surface);
   text-align: left;
   cursor: pointer;
@@ -38,11 +38,7 @@ const Card = styled.button<{
     transform: translateY(-3px);
   }
 
-  &:focus-visible {
-    border-color: var(--color-main-primary);
-    outline: 2px solid var(--color-main-primary);
-    outline-offset: 3px;
-  }
+
 
   & > span:last-child {
     right: 18px;
@@ -71,12 +67,11 @@ const DeleteButton = styled.button`
     color 150ms ease,
     transform 150ms ease;
 
-  &:hover,
-  &:focus-visible {
+  &:hover {
     border-color: #a33c2a;
     outline: none;
     color: #a33c2a;
-    transform: translateY(-1px);
+    background: var(--color-main-neutral-light);
   }
 `;
 const Previews = styled.span`
@@ -94,7 +89,7 @@ const Preview = styled.span`
   min-height: 0;
   flex: 1;
   overflow: hidden;
-  border-radius: 8px;
+  border-radius: var(--radius-panel);
   background: var(--color-main-neutral);
 `;
 const MainPreview = styled(Preview)`

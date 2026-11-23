@@ -27,9 +27,9 @@ const Workspace = styled.main`
   height: 100%;
   min-width: 0;
   min-height: 0;
-  margin-left: var(--navigation-left-width, 203px);
-  padding-top: 56px;
-  background: var(--color-main-neutral-light);
+  margin-left: var(--navigation-left-width, 54px);
+  padding-top: 36px;
+  background: var(--color-background-workspace);
   overflow: hidden;
   transition: margin-left 220ms ease;
 `;
@@ -59,9 +59,9 @@ const Grid = styled.section`
 const Details = styled.aside<{ $width: number }>`
   position: relative;
   display: flex;
-  width: ${({ $width }) => $width}px;
+  width: var(--panel-width, ${({ $width }) => $width}px);
   min-height: 0;
-  flex: 0 0 ${({ $width }) => $width}px;
+  flex: 0 0 var(--panel-width, ${({ $width }) => $width}px);
   flex-direction: column;
   border-left: 1px solid var(--color-border);
   background: var(--color-surface);
@@ -138,7 +138,7 @@ const Remove = styled.button`
   height: 40px;
   margin: var(--space-sm);
   border: 1px solid var(--color-border);
-  border-radius: 8px;
+  border-radius: var(--radius-panel);
   background: var(--color-surface);
   cursor: pointer;
 `;
@@ -237,8 +237,8 @@ export function BookmarksWorkspace() {
             )}
           </Grid>
         </Content>
-        <Details $width={detailsPanelWidth}>
-          <PanelResizeHandle
+        <Details data-resize-layout $width={detailsPanelWidth}>
+          <PanelResizeHandle previewProperty="--panel-width"
             edge="left"
             label="북마크 상세 너비 조절"
             value={detailsPanelWidth}

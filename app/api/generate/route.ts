@@ -30,6 +30,7 @@ function mockDimensions(ratio: GenerationApiRequest["ratio"]): [number, number] 
     "9:16": [720, 1280],
     "16:9": [1280, 720],
     original: [1200, 900],
+    "3:2": [1536, 1024],
   };
 
   return dimensions[ratio];

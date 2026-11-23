@@ -14,7 +14,7 @@ const Card = styled.button<{ $active: boolean }>`
   border: 1px solid ${({ $active }) => $active
     ? "var(--color-main-primary)"
     : "var(--color-border)"};
-  border-radius: 12px;
+  border-radius: var(--radius-panel);
   background: var(--color-surface);
   overflow: hidden;
   cursor: pointer;
@@ -30,17 +30,14 @@ const Card = styled.button<{ $active: boolean }>`
     transform: translateY(-3px);
   }
 
-  &:focus-visible {
-    outline: 2px solid var(--color-main-primary);
-    outline-offset: 3px;
-  }
+
 `;
 
 const Thumbnail = styled.div`
   position: relative;
   min-height: 0;
   flex: 1;
-  border-radius: 8px;
+  border-radius: var(--radius-panel);
   background: var(--color-main-neutral);
   overflow: hidden;
 

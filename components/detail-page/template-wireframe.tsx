@@ -158,7 +158,7 @@ const Description = styled.textarea`
   line-height: 1.5;
   scrollbar-width: thin;
 
-  &:focus { border-color: var(--color-main-primary); outline: none; }
+
 `;
 
 const LayoutDescription = styled(Description)`

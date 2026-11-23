@@ -80,8 +80,7 @@ const NodeSummary = styled.button`
   text-align: left;
   cursor: pointer;
 
-  &:hover,
-  &:focus-visible {
+  &:hover {
     background: var(--color-main-neutral-light);
     outline: none;
   }

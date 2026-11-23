@@ -4,6 +4,7 @@ import {
   type AngleVariationId,
   type ContentSetId,
 } from "@/system/create/generation-options";
+import { expandBatch, type BatchEntry } from "./generation-batch";
 
 export type GenerationRatio =
   | "1:1"
@@ -11,6 +12,7 @@ export type GenerationRatio =
   | "4:5"
   | "9:16"
   | "16:9"
+  | "3:2"
   | "original";
 
 export type GenerationShotStatus = "pending" | "generating" | "done" | "error";
@@ -54,6 +56,7 @@ const CONTENT_SET_SHOTS: Partial<Record<ContentSetId, ShotDefinition[]>> = {
 };
 
 export type GenerationShotInput = {
+  batchEntries?: BatchEntry[];
   contentSet: ContentSetId | null;
   freeCount: number;
   angleVariationIds: AngleVariationId[];
@@ -86,6 +89,9 @@ function getFreeShots(freeCount: number): ShotDefinition[] {
 export function createGenerationShots(
   input: GenerationShotInput,
 ): GenerationShot[] {
+  if (input.batchEntries) {
+    return expandBatch(input.batchEntries).map(shot => ({ ...shot, status: "pending" }));
+  }
   let definitions: ShotDefinition[] = [];
 
   if (input.angleVariationIds.length > 0) {

@@ -1,13 +1,13 @@
 "use client";
 
-import { Bookmark, Download, Images, Info, SlidersHorizontal } from "lucide-react";
+import { Bookmark, Download, Images, Info, X } from "lucide-react";
+import { useState } from "react";
 import styled from "styled-components";
 import {
-  downloadGenerationImage,
   downloadGenerationSet,
 } from "@/system/create/download-images";
 import type { LibraryGenerationShot } from "@/system/create/generation-library";
-import { useCreateStore } from "@/stores/useCreateStore";
+import { TooltipIconAction } from "@/components/ui/tooltip-icon-action";
 
 const Actions = styled.div`
   display: flex;
@@ -20,103 +20,105 @@ const Actions = styled.div`
   scrollbar-width: none;
 `;
 
-const ActionButton = styled.button<{ $active?: boolean }>`
-  display: inline-flex;
-  height: 34px;
-  flex: 0 0 auto;
-  align-items: center;
-  gap: 6px;
-  padding: 0 var(--space-xs);
-  border: 1px solid ${({ $active }) => $active
-    ? "var(--color-main-primary)"
-    : "var(--color-border)"};
-  border-radius: 8px;
+const ActionButton = styled(TooltipIconAction)<{ $active?: boolean }>`
   background: ${({ $active }) => $active
-    ? "var(--color-main-tertiary)"
+    ? "var(--color-main-neutral)"
     : "var(--color-surface)"};
   color: ${({ $active }) => $active
     ? "var(--color-main-primary)"
     : "var(--color-label-studio-black)"};
-  font-size: 12px;
+  font-size: 11px;
   cursor: pointer;
 
   &:hover {
-    border-color: var(--color-main-primary);
+    background: var(--color-main-neutral-light);
   }
 `;
 
 export function GeneratedNavigation({
-  selectedShot,
+  selectedShots,
   shots,
   setTitle,
-  onToggleBookmark,
+  onSetBookmarks,
   onShowInfo,
+  hasActiveHistory,
+  closeDisabled,
+  onClear,
+  detailView = false,
 }: {
-  selectedShot?: LibraryGenerationShot;
+  detailView?: boolean;
+  hasActiveHistory: boolean;
+  closeDisabled: boolean;
+  onClear: () => void;
+  selectedShots: LibraryGenerationShot[];
   shots: LibraryGenerationShot[];
   setTitle: string;
-  onToggleBookmark: (shotId: string) => void;
-  onShowInfo: (shot: LibraryGenerationShot) => void;
+  onSetBookmarks: (shotIds: string[], bookmarked: boolean) => void;
+  onShowInfo: (shots: LibraryGenerationShot[]) => void;
 }) {
-  const reuseGenerationSettings = useCreateStore(
-    (state) => state.reuseGenerationSettings,
-  );
+  const [downloading, setDownloading] = useState(false);
+  const [downloadError, setDownloadError] = useState("");
+  const download = async (images: LibraryGenerationShot[]) => {
+    if (downloading) return;
+    setDownloading(true);
+    setDownloadError("");
+    try { await downloadGenerationSet(images, setTitle); }
+    catch (error) { setDownloadError(error instanceof Error ? error.message : "다운로드를 준비하지 못했습니다. 다시 시도해 주세요."); }
+    finally { setDownloading(false); }
+  };
   const downloadableShots = shots.filter(
     (shot) => shot.status === "done" && shot.imageUrl,
   );
 
-  if (!downloadableShots.length) return null;
+  const allBookmarked = selectedShots.length > 0 && selectedShots.every(shot => shot.bookmarked);
+  const multiple = selectedShots.length > 1;
+
+  if (!downloadableShots.length && !hasActiveHistory) return null;
 
   return (
     <Actions>
-      {selectedShot ? (
-        <ActionButton
-          type="button"
-          onClick={() => reuseGenerationSettings(selectedShot)}
-        >
-          <SlidersHorizontal size={14} />
-          해당 정보로 생성 설정
-        </ActionButton>
-      ) : null}
-      <ActionButton
+      {!detailView && !multiple && downloadableShots.length > 0 && <ActionButton
         type="button"
-        title="현재 이미지셋의 완료된 이미지를 모두 다운로드"
-        onClick={() => downloadGenerationSet(downloadableShots, setTitle)}
+        caption={downloading ? "다운로드 준비 중" : "전체 다운로드"}
+        disabled={downloading}
+        onClick={() => void download(downloadableShots)}
       >
         <Images size={14} />
-        전체 다운로드
-      </ActionButton>
-      {selectedShot ? (
+      </ActionButton>}
+      {selectedShots.length > 0 ? (
         <>
           <ActionButton
             type="button"
-            onClick={() => downloadGenerationImage(selectedShot)}
+            caption={downloading ? "다운로드 준비 중" : multiple ? "선택한 이미지 다운로드" : "다운로드"}
+            disabled={downloading}
+            onClick={() => void download(selectedShots)}
           >
             <Download size={14} />
-            다운로드
           </ActionButton>
           <ActionButton
             type="button"
-            $active={selectedShot.bookmarked}
-            aria-pressed={selectedShot.bookmarked}
-            onClick={() => onToggleBookmark(selectedShot.id)}
+            caption={allBookmarked ? "북마크 해제" : "북마크"}
+            $active={allBookmarked}
+            aria-pressed={allBookmarked}
+            onClick={() => onSetBookmarks(selectedShots.map(shot => shot.id), !allBookmarked)}
           >
             <Bookmark
               size={14}
-              fill={selectedShot.bookmarked ? "currentColor" : "none"}
+              fill={allBookmarked ? "currentColor" : "none"}
             />
-            {selectedShot.bookmarked ? "북마크됨" : "북마크"}
           </ActionButton>
           <ActionButton
             type="button"
+            caption="정보보기"
             aria-haspopup="dialog"
-            onClick={() => onShowInfo(selectedShot)}
+            onClick={() => onShowInfo(selectedShots)}
           >
             <Info size={14} />
-            정보보기
           </ActionButton>
         </>
       ) : null}
+      {hasActiveHistory && <ActionButton type="button" caption={detailView ? "목록으로 돌아가기" : "보기 닫기"} disabled={closeDisabled && !detailView} onClick={onClear}><X size={14} /></ActionButton>}
+      {downloadError && <span role="alert" style={{ fontSize: 12 }}>{downloadError}</span>}
     </Actions>
   );
 }

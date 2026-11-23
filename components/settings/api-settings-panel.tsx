@@ -54,7 +54,7 @@ const SourceOption = styled.label<{ $selected: boolean }>`
   border: 1px solid ${({ $selected }) => $selected
     ? "var(--color-main-primary)"
     : "var(--color-border)"};
-  border-radius: 8px;
+  border-radius: var(--radius-panel);
   background: ${({ $selected }) => $selected
     ? "var(--color-main-neutral-light)"
     : "var(--color-surface)"};
@@ -103,7 +103,7 @@ const StatusBox = styled.div<{ $connected: boolean }>`
   border: 1px solid ${({ $connected }) => $connected
     ? "var(--color-main-primary)"
     : "var(--color-border)"};
-  border-radius: 8px;
+  border-radius: var(--radius-panel);
   background: var(--color-main-neutral-light);
 
   svg {
@@ -147,26 +147,19 @@ const Input = styled.input`
   flex: 1;
   padding: 0 var(--space-xs);
   border: 1px solid var(--color-border);
-  border-radius: 8px;
+  border-radius: var(--radius-panel);
   background: var(--color-surface);
   color: var(--color-label-studio-black);
   outline: none;
 
-  &:focus {
-    border-color: var(--color-main-primary);
-    box-shadow: 0 0 0 3px color-mix(
-      in srgb,
-      var(--color-main-primary) 12%,
-      transparent
-    );
-  }
+
 `;
 
 const PrimaryButton = styled.button`
   height: 42px;
   padding: 0 var(--space-md);
   border: 0;
-  border-radius: 8px;
+  border-radius: var(--radius-panel);
   background: var(--color-main-primary);
   color: var(--color-surface);
   cursor: pointer;
@@ -189,7 +182,7 @@ const ResetButton = styled.button`
   gap: var(--space-3xs);
   padding: 0 var(--space-xs);
   border: 1px solid var(--color-border);
-  border-radius: 8px;
+  border-radius: var(--radius-panel);
   background: transparent;
   color: var(--color-label-studio-comment);
   cursor: pointer;

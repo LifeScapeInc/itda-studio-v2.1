@@ -19,16 +19,11 @@ const Button = styled.button`
 
   ${floatingButtonEffect}
 
-  &:hover,
-  &:focus-visible {
+  &:hover {
     outline: none;
   }
 
-  &:focus-visible {
-    box-shadow:
-      0 0 0 3px var(--color-main-tertiary),
-      4px 4px 16px rgb(32 29 23 / 16%);
-  }
+
 
   img {
     position: absolute;

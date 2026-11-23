@@ -11,19 +11,21 @@ import styled from "styled-components";
 const Handle = styled.div<{ $active: boolean }>`
   position: relative;
   z-index: 5;
-  height: 9px;
+  height: 8px;
   outline: none;
-  background: var(--color-surface);
+  background: transparent;
   cursor: row-resize;
   touch-action: none;
 
   &::before {
     position: absolute;
-    top: 4px;
-    right: 0;
-    left: 0;
-    height: 1px;
-    background: var(--color-border);
+    top: 50%;
+    left: 50%;
+    width: 32px;
+    height: 2px;
+    border-radius: 2px;
+    transform: translate(-50%, -50%);
+    background: var(--color-label-disabled);
     content: "";
   }
 
@@ -39,8 +41,7 @@ const Handle = styled.div<{ $active: boolean }>`
     transition: opacity 140ms ease;
   }
 
-  &:hover::after,
-  &:focus-visible::after {
+  &:hover::after {
     opacity: 1;
   }
 `;

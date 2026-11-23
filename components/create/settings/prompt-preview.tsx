@@ -6,26 +6,25 @@ import styled from "styled-components";
 import { useCreateStore } from "@/stores/useCreateStore";
 import {
   buildGenerationPrompts,
-  getGenerationModeLabel,
 } from "@/system/create/generation-prompt";
 import { PromptPreviewModal } from "./prompt-preview-modal";
+import { getBatchLabel } from "@/system/create/generation-batch";
 
 const PreviewButton = styled.button`
   display: flex;
-  height: 32px;
+  height: 28px;
   align-items: center;
   gap: var(--space-3xs);
   padding: 0 var(--space-xs);
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  background: var(--color-surface);
+  border: 0;
+  border-radius: 4px;
+  background: var(--color-main-neutral-light);
   color: var(--color-label-studio-comment);
   font-size: 11px;
   white-space: nowrap;
   cursor: pointer;
 
-  &:hover,
-  &:focus-visible {
+  &:hover {
     border-color: var(--color-main-primary);
     color: var(--color-label-studio-black);
     outline: none;
@@ -54,10 +53,7 @@ export function PromptPreview() {
       </PreviewButton>
       {open ? (
         <PromptPreviewModal
-          contentSetLabel={getGenerationModeLabel(
-            state.contentSet,
-            state.angleVariationIds,
-          )}
+          contentSetLabel={getBatchLabel(state.batchEntries)}
           quality={state.quality}
           prompts={prompts}
           onClose={() => setOpen(false)}

@@ -17,7 +17,7 @@ const Root = styled.button<{
   gap: var(--space-2xs);
   padding: 0 var(--space-lg);
   border: 0;
-  border-radius: 8px;
+  border-radius: var(--radius-panel);
   background: var(--color-main-primary);
   color: var(--color-surface);
   cursor: pointer;
@@ -41,7 +41,7 @@ type PrimaryIconButtonProps = Omit<
   ButtonHTMLAttributes<HTMLButtonElement>,
   "children"
 > & {
-  icon: LucideIcon;
+  icon?: LucideIcon;
   iconClassName?: string;
   iconPosition?: "start" | "end";
   iconSize?: number;
@@ -62,13 +62,13 @@ export function PrimaryIconButton({
   children,
   ...buttonProps
 }: PrimaryIconButtonProps) {
-  const vector = (
+  const vector = Icon ? (
     <Icon
       size={iconSize}
       className={iconClassName}
       aria-hidden="true"
     />
-  );
+  ) : null;
 
   return (
     <Root $fullWidth={fullWidth} $height={height} {...buttonProps}>

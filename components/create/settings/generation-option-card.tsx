@@ -27,8 +27,7 @@ const Option = styled.button<{ $selected: boolean; $hasPreview: boolean }>`
   text-align: left;
   cursor: pointer;
 
-  &:hover,
-  &:focus-visible {
+  &:hover {
     border-color: var(--color-main-primary);
     outline: none;
   }

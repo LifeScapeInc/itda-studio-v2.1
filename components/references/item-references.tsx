@@ -11,7 +11,7 @@ const Card = styled.button`
   flex-direction: column;
   padding: var(--space-xs);
   border: 1px solid var(--color-border);
-  border-radius: 12px;
+  border-radius: var(--radius-panel);
   background: var(--color-surface);
   overflow: hidden;
   cursor: pointer;
@@ -23,14 +23,10 @@ const Card = styled.button`
 
   &:hover {
     border-color: var(--color-main-primary);
-    box-shadow: 0 10px 26px rgb(32 29 23 / 10%);
-    transform: translateY(-3px);
+    background: var(--color-main-neutral-light);
   }
 
-  &:focus-visible {
-    outline: 2px solid var(--color-main-primary);
-    outline-offset: 3px;
-  }
+
 `;
 
 const Collage = styled.div`
@@ -46,7 +42,7 @@ const Frame = styled.div`
   display: grid;
   min-height: 0;
   place-items: center;
-  border-radius: 8px;
+  border-radius: 4px;
   background: var(--color-main-neutral);
   color: var(--color-label-studio-comment);
   overflow: hidden;

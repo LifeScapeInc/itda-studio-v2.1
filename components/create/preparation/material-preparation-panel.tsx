@@ -1,8 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { memo, useRef, useState } from "react";
 import { Database, Upload } from "lucide-react";
-import styled from "styled-components";
 import { useCreateStore } from "@/stores/useCreateStore";
 import { readImageFile } from "@/system/create/image-files";
 import type { ReferenceLibraryData } from "@/system/create/reference-library";
@@ -12,42 +11,9 @@ import {
   MaterialPreparationSection,
 } from "./material-preparation-layout";
 import { ReferenceLibraryModal } from "./reference-library-modal";
+import { TooltipIconAction } from "@/components/ui/tooltip-icon-action";
 
-const Actions = styled.div`
-  display: flex;
-  flex: 0 0 auto;
-  justify-content: center;
-  gap: var(--space-2xs);
-`;
-
-const ActionButton = styled.button`
-  display: inline-flex;
-  height: 32px;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-3xs);
-  padding: 0 var(--space-xs);
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  background: var(--color-surface);
-  color: var(--color-label-studio-black);
-  font-size: 11px;
-  cursor: pointer;
-  transition:
-    border-color 160ms ease,
-    background 160ms ease;
-
-  &:hover {
-    border-color: var(--color-main-primary);
-    background: color-mix(
-      in srgb,
-      var(--color-main-primary) 5%,
-      var(--color-surface)
-    );
-  }
-`;
-
-export function MaterialPreparationPanel({
+export const MaterialPreparationPanel = memo(function MaterialPreparationPanel({
   library,
 }: {
   library: ReferenceLibraryData;
@@ -59,7 +25,7 @@ export function MaterialPreparationPanel({
   const setProductImage = useCreateStore((state) => state.setProductImage);
   const setReferenceImage = useCreateStore((state) => state.setReferenceImage);
   return (
-    <MaterialPreparationLayout title="재료 준비">
+    <MaterialPreparationLayout title="재료 탐색기">
         <MaterialPreparationSection index={1} title="내 제품">
           <ImageUploadCard
             image={productImage}
@@ -68,28 +34,18 @@ export function MaterialPreparationPanel({
           />
         </MaterialPreparationSection>
 
-        <MaterialPreparationSection index={2} title="레퍼런스">
+        <MaterialPreparationSection index={2} title="레퍼런스" actions={<>
+          <TooltipIconAction type="button" caption="레퍼런스 DB 열기" onClick={() => setLibraryOpen(true)}><Database size={14} /></TooltipIconAction>
+          <TooltipIconAction type="button" caption="PC에서 업로드" onClick={() => referenceInput.current?.click()}><Upload size={14} /></TooltipIconAction>
+        </>}>
           <ImageUploadCard
             image={referenceImage}
             emptyLabel="레퍼런스 DB 열기"
             onChange={setReferenceImage}
             onPreviewClick={() => setLibraryOpen(true)}
           />
-          <Actions>
-            <ActionButton
-              type="button"
-              onClick={() => setLibraryOpen(true)}
-            >
-              <Database size={13} />
-              DB 열기
-            </ActionButton>
-            <ActionButton
-              type="button"
-              onClick={() => referenceInput.current?.click()}
-            >
-              <Upload size={13} />
-              PC에서 업로드
-            </ActionButton>
+
+        </MaterialPreparationSection>
             <input
               ref={referenceInput}
               hidden
@@ -103,8 +59,6 @@ export function MaterialPreparationPanel({
                 event.target.value = "";
               }}
             />
-          </Actions>
-        </MaterialPreparationSection>
       {libraryOpen ? (
         <ReferenceLibraryModal
           library={library}
@@ -115,4 +69,4 @@ export function MaterialPreparationPanel({
       ) : null}
     </MaterialPreparationLayout>
   );
-}
+});
