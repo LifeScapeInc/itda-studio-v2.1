@@ -1,6 +1,7 @@
 import {
   Armchair,
   Bookmark,
+  Building2,
   FileDown,
   FileText,
   FolderKanban,
@@ -46,6 +47,11 @@ export const NAVIGATION_GROUPS: Array<{
         label: "가구",
         href: "/furniture",
         icon: Armchair,
+      },
+      {
+        label: "브랜드",
+        href: "/brand",
+        icon: Building2,
       },
       {
         label: "북마크",

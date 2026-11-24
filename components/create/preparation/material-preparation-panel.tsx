@@ -5,6 +5,7 @@ import { Database, Upload } from "lucide-react";
 import { useCreateStore } from "@/stores/useCreateStore";
 import { readImageFile } from "@/system/create/image-files";
 import type { ReferenceLibraryData } from "@/system/create/reference-library";
+import { BrandAssignment } from "./brand-assignment";
 import { ImageUploadCard } from "./image-upload-card";
 import {
   MaterialPreparationLayout,
@@ -46,6 +47,7 @@ export const MaterialPreparationPanel = memo(function MaterialPreparationPanel({
           />
 
         </MaterialPreparationSection>
+        <BrandAssignment />
             <input
               ref={referenceInput}
               hidden

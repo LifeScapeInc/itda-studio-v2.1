@@ -1,6 +1,7 @@
 "use client";
 
 import styled from "styled-components";
+import type { ReactNode } from "react";
 
 const Header = styled.header`
   display: flex;
@@ -25,7 +26,7 @@ export function ReferenceDetailTitle({
   title,
   description,
 }: {
-  title: string;
+  title: ReactNode;
   description: string;
 }) {
   return (

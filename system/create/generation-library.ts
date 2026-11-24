@@ -1,3 +1,4 @@
+import type { BrandSelection } from "@/system/brand/brand-library";
 import type { GenerationShot } from "@/system/create/generation-shots";
 import { cloneBatch, type BatchEntry } from "./generation-batch";
 import type {
@@ -13,6 +14,7 @@ export type GenerationInputImage = {
 };
 
 export type GenerationSettingsSnapshot = {
+  brandSelection?: BrandSelection | null;
   batchEntries?: BatchEntry[];
   contentSet: ContentSetId | null;
   angleVariationIds: AngleVariationId[];

@@ -1,6 +1,7 @@
 "use client";
 
 import { create } from "zustand";
+import type { BrandSelection } from "@/system/brand/brand-library";
 import type {
   AngleVariationId,
   ContentSetId,
@@ -54,6 +55,7 @@ type CreateWorkspaceSnapshot = {
   batchEntries: BatchEntry[];
   productImage: string | null;
   referenceImage: string | null;
+  brandSelection: BrandSelection | null;
   contentSet: ContentSetId | null;
   angleVariationIds: AngleVariationId[];
   freeCount: number;
@@ -93,6 +95,7 @@ type CreateStore = {
   workspaceSnapshots: Record<string, CreateWorkspaceSnapshot>;
   productImage: string | null;
   referenceImage: string | null;
+  brandSelection: BrandSelection | null;
   contentSet: ContentSetId | null;
   angleVariationIds: AngleVariationId[];
   freeCount: number;
@@ -116,6 +119,7 @@ type CreateStore = {
   setProjectContext: (projectId: string | null) => void;
   setProductImage: (image: string | null) => void;
   setReferenceImage: (image: string | null) => void;
+  setBrandSelection: (brand: BrandSelection | null) => void;
   setContentSet: (contentSet: ContentSetId) => void;
   toggleAngleVariation: (angleVariation: AngleVariationId) => void;
   setFreeCount: (count: number) => void;
@@ -150,6 +154,7 @@ function createEmptyWorkspace(): CreateWorkspaceSnapshot {
     batchEntries: [newMake("initial")],
     productImage: null,
     referenceImage: null,
+    brandSelection: null,
     contentSet: null,
     angleVariationIds: [],
     freeCount: 1,
@@ -174,6 +179,7 @@ function captureWorkspace(state: CreateStore): CreateWorkspaceSnapshot {
     batchEntries: cloneBatch(state.batchEntries),
     productImage: state.productImage,
     referenceImage: state.referenceImage,
+    brandSelection: state.brandSelection ? { ...state.brandSelection } : null,
     contentSet: state.contentSet,
     angleVariationIds: [...state.angleVariationIds],
     freeCount: state.freeCount,
@@ -256,6 +262,7 @@ function historySettings(shot: LibraryGenerationShot): Partial<CreateWorkspaceSn
       })(),
       productImage,
       referenceImage,
+      brandSelection: snapshot?.brandSelection ? { ...snapshot.brandSelection } : null,
       contentSet: snapshot?.contentSet ?? fallbackContentSet,
       angleVariationIds: snapshot?.angleVariationIds
         ?? (fallbackAngle ? [fallbackAngle] : []),
@@ -327,6 +334,7 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
   workspaceSnapshots: {},
   productImage: null,
   referenceImage: null,
+  brandSelection: null,
   contentSet: null,
   angleVariationIds: [],
   freeCount: 1,
@@ -370,6 +378,7 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
   setProductImage: (productImage) => {
     set({ productImage, generationRequested: false });
   },
+  setBrandSelection: (brandSelection) => set({ brandSelection }),
   setReferenceImage: (referenceImage) => {
     set({ referenceImage, generationRequested: false });
   },
@@ -670,6 +679,7 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
               }] : []),
             ],
             generationSettings: {
+              brandSelection: current.brandSelection ? { ...current.brandSelection } : null,
               batchEntries: cloneBatch(current.batchEntries),
               contentSet: current.contentSet,
               angleVariationIds: [...current.angleVariationIds],

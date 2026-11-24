@@ -154,10 +154,13 @@ check("Project switches preserve independent batches and quantities", () => {
   store.getState().clearEntries(); store.getState().addPreset("sns");
   const id = store.getState().batchEntries[0].id;
   store.getState().setEntryQuantity(id, 3);
+  store.getState().setBrandSelection({ id: "brand-a", name: "브랜드 A", version: 3 });
   store.getState().setProjectContext("test-project-b");
+  assert.equal(store.getState().brandSelection, null);
   assert.equal(batch.getBatchCount(store.getState().batchEntries), 1);
   store.getState().setProjectContext("test-project-a");
   assert.equal(batch.getBatchCount(store.getState().batchEntries), 12);
+  assert.deepEqual(store.getState().brandSelection, { id: "brand-a", name: "브랜드 A", version: 3 });
   store.getState().setEntryQuantity(id, NaN); assert.equal(store.getState().batchEntries[0].quantity, 1);
   store.getState().setEntryQuantity(id, -5); assert.equal(store.getState().batchEntries[0].quantity, 1);
 });
@@ -201,6 +204,7 @@ check("Navigation defaults to compact, expands and returns", () => {
     const id = store.getState().batchEntries[0].id;
     store.getState().setEntryQuantity(id, 2);
     store.getState().setProductImage("data:image/png;base64,fixture");
+    store.getState().setBrandSelection({ id: "brand-fixture", name: "Brand fixture", version: 2 });
     const [result, duplicate] = await Promise.all([store.getState().requestGeneration(true), store.getState().requestGeneration(true)]);
     assert.equal(duplicate.completed, 0);
     assert.equal(requests.length, 6); assert.equal(result.completed, 6);
@@ -209,13 +213,14 @@ check("Navigation defaults to compact, expands and returns", () => {
     const [shot] = store.getState().generationShots;
     assert.deepEqual(shot.fidelity, { status: "scored", score: 72.6, modelVersion: "test-v1" });
     assert.equal(shot.metadata.generationSettings.batchEntries[0].quantity, 2);
+    assert.deepEqual(shot.metadata.generationSettings.brandSelection, { id: "brand-fixture", name: "Brand fixture", version: 2 });
     store.getState().selectShot(shot.id); assert.equal(store.getState().selectedShotId, shot.id);
     store.getState().toggleBookmark(shot.id); assert.equal(store.getState().generationShots[0].bookmarked, true);
     assert.equal(store.getState().generationPanelTab, "evaluation");
     const historyId = store.getState().activeHistoryId;
     const original = store.getState();
-    const expected = Object.fromEntries(["batchEntries", "productImage", "referenceImage", "quality", "editMode", "light", "mood", "props", "prompt"].map(key => [key, structuredClone(original[key])]));
-    store.setState({ batchEntries: [], productImage: "/different.jpg", referenceImage: "/other.jpg", quality: "high", editMode: "material", light: "different", mood: "different", props: ["different"], prompt: "different", generationPanelTab: "evaluation" });
+    const expected = Object.fromEntries(["brandSelection", "batchEntries", "productImage", "referenceImage", "quality", "editMode", "light", "mood", "props", "prompt"].map(key => [key, structuredClone(original[key])]));
+    store.setState({ brandSelection: null, batchEntries: [], productImage: "/different.jpg", referenceImage: "/other.jpg", quality: "high", editMode: "material", light: "different", mood: "different", props: ["different"], prompt: "different", generationPanelTab: "evaluation" });
     store.getState().restoreHistory(historyId);
     const restored = store.getState();
     for (const [key, value] of Object.entries(expected)) assert.deepEqual(restored[key], value, `history restores ${key}`);
