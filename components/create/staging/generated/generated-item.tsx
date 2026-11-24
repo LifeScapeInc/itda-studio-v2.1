@@ -201,6 +201,7 @@ export function GeneratedItem({
 }) {
   return (
     <Card
+      data-shot-id={shot.id}
       type="button"
       disabled={shot.status !== "done" && !(shot.status === "error" && onRetry && !retryDisabled)}
       aria-pressed={selected}

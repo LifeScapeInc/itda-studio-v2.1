@@ -98,6 +98,6 @@ export const GenerationSettingsPanel = memo(function GenerationSettingsPanel() {
         const score = label === "객체 무결성" ? fidelityScore : undefined;
         return <section key={label}><div className="score-row"><EvaluationTitle><h3>{label}</h3><TooltipIconAction type="button" multiline aria-label={`${label} 설명`} caption={description}><CircleHelp /></TooltipIconAction></EvaluationTitle><span>{score === undefined ? "—" : score.toFixed(1)} <span className="out-of">/ 100</span></span></div><div className="gauge" aria-label={score === undefined ? `${label} 점수 없음` : `${label} ${score.toFixed(1)}점`}>{score !== undefined && <div className="gauge-fill" style={{ width: `${score}%` }} />}</div><div className="range"><span>0</span><span>100</span></div></section>;
       })}
-    </Evaluation> : <Empty role="tabpanel" id="evaluation-content" aria-labelledby="evaluation-tab">선택된 생성물이 없습니다</Empty>}{fidelity?.status !== "unavailable" && <RegenerationAction />}</>}
+    </Evaluation> : <Empty role="tabpanel" id="evaluation-content" aria-labelledby="evaluation-tab">선택된 생성물이 없습니다</Empty>}<RegenerationAction /></>}
   </Panel>;
 });

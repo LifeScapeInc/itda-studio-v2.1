@@ -265,6 +265,30 @@ check("Navigation defaults to compact, expands and returns", () => {
     assert.deepEqual(store.getState().generationShots[0].fidelity, { status: "unavailable", reason: "evaluation offline" });
     assert.equal(store.getState().generationShots[0].label, successful.label);
     checks++; console.log("PASS Evaluation regeneration replaces a completed image on success and preserves it on failure");
+    let releaseEvaluation;
+    const evaluationCalls = [];
+    global.fetch = async (url, options) => {
+      evaluationCalls.push({ url, body: JSON.parse(options.body) });
+      await new Promise(resolve => { releaseEvaluation = resolve; });
+      return { ok: true, json: async () => ({ fidelity: { status: "scored", score: 88.5, modelVersion: "test" } }) };
+    };
+    const evaluating = store.getState().reevaluateShot(successful.id);
+    await store.getState().reevaluateShot(successful.id);
+    assert.equal(evaluationCalls.length, 1);
+    assert.equal(evaluationCalls[0].url, "/api/evaluate");
+    assert.equal(evaluationCalls[0].body.generatedImage, "new-result");
+    assert.ok(store.getState().reevaluatingIds.includes(successful.id));
+    releaseEvaluation(); await evaluating;
+    assert.equal(store.getState().generationShots[0].fidelity.score, 88.5);
+    assert.equal(store.getState().generationHistory[0].shots[0].fidelity.score, 88.5);
+    assert.equal(store.getState().generationShots[0].imageUrl, "new-result");
+    assert.equal(store.getState().reevaluatingIds.length, 0);
+    const stale = store.getState().reevaluateShot(successful.id);
+    store.setState({ generationShots: store.getState().generationShots.map(shot => ({ ...shot, imageUrl: "replaced" })), generationHistory: store.getState().generationHistory.map(history => ({ ...history, shots: history.shots.map(shot => ({ ...shot, imageUrl: "replaced" })) })) });
+    releaseEvaluation(); await stale;
+    assert.equal(store.getState().generationShots[0].imageUrl, "replaced");
+    checks++; console.log("PASS Re-evaluation refreshes and persists scores without generation, blocks duplicates and ignores replaced images");
+
     store.setState({ isGenerating: true, activeHistoryId: historyId });
     store.getState().clearStaging(); assert.equal(store.getState().activeHistoryId, null);
     store.getState().reuseGenerationSettings(successful); assert.equal(store.getState().productImage, successful.metadata.inputImages[0].imageUrl);

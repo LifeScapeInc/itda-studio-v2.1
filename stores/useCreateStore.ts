@@ -74,6 +74,8 @@ type CreateWorkspaceSnapshot = {
 };
 
 type CreateStore = {
+  reevaluatingIds: string[];
+  reevaluateShot: (id: string) => Promise<void>;
   draftTitle: string;
   renameDraft: (title: string) => void;
   renameHistory: (id: string, title: string) => void;
@@ -274,6 +276,29 @@ const queuedRetries = new Set<string>();
 let batchRunning = false;
 
 export const useCreateStore = create<CreateStore>((set, get) => ({
+  reevaluatingIds: [],
+  reevaluateShot: async id => {
+    const state = get();
+    if (state.reevaluatingIds.includes(id)) return;
+    const history = state.generationHistory.find(item => item.shots.some(shot => shot.id === id));
+    const shot = history?.shots.find(shot => shot.id === id && shot.status === "done" && shot.imageUrl);
+    if (!shot) return;
+    const original = shot.metadata.inputImages?.find(image => image.kind === "product")?.imageUrl;
+    set(current => ({ reevaluatingIds: [...current.reevaluatingIds, id] }));
+    let fidelity: NonNullable<GenerationShot["fidelity"]>;
+    try {
+      if (!original) throw new Error("원본 제품 이미지가 없어 재평가할 수 없습니다.");
+      const response = await fetch("/api/evaluate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ originalImage: original, generatedImage: shot.imageUrl }) });
+      const result = await response.json();
+      if (!response.ok || !result.fidelity) throw new Error(result.error ?? "재평가에 실패했습니다.");
+      fidelity = result.fidelity;
+    } catch (error) { fidelity = { status: "unavailable", reason: error instanceof Error ? error.message : "재평가에 실패했습니다." }; }
+    set(current => {
+      const update = <T extends GenerationShot>(image: T): T => image.id === id && image.status === "done" && image.imageUrl === shot.imageUrl ? { ...image, fidelity } : image;
+      return { generationHistory: current.generationHistory.map(item => ({ ...item, shots: item.shots.map(update) })), generationShots: current.generationShots.map(update), reevaluatingIds: current.reevaluatingIds.filter(value => value !== id) };
+    });
+    await saveGenerationHistory(get().generationHistory);
+  },
   draftTitle: "새 생성",
   renameDraft: title => { if (title.trim()) set({ draftTitle: title.trim() }); },
   renameHistory: (id, title) => {
@@ -535,12 +560,12 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
       } : {}) };
     });
     if (!product || !shot.metadata.finalPrompt) {
-      updateShot({ error: "재생성에 필요한 원본 이미지 또는 프롬프트가 저장되어 있지 않습니다." }, "재생성에 필요한 원본 정보를 찾지 못했습니다.");
+      updateShot({ error: "다시 생성에 필요한 원본 이미지 또는 프롬프트가 저장되어 있지 않습니다." }, "다시 생성에 필요한 원본 정보를 찾지 못했습니다.");
       return;
     }
     queuedRetries.add(shotId);
     set({ isGenerating: true });
-    updateShot({ status: "pending", error: undefined }, `${shot.label} 재생성 대기 중…`);
+    updateShot({ status: "pending", error: undefined }, `${shot.label} 다시 생성 대기 중…`);
     await scheduleGeneration(async () => {
     updateShot({ status: "generating", error: undefined }, `${shot.label} 다시 생성 중…`);
     try {
@@ -557,7 +582,7 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
         model: result.metadata?.model ?? "unknown-image-model", contentSet: shot.metadata.generationSettings?.contentSet ?? null,
         shotId, shotLabel: shot.label, ratio: shot.ratio, quality, hasReference: Boolean(referenceImage),
       }));
-      updateShot({ status: "done", imageUrl: result.images[0], fidelity: result.fidelityEvaluations?.[0], error: undefined, metadata: { ...shot.metadata, generatedAt: new Date().toISOString() } }, "재생성이 완료되었습니다.");
+      updateShot({ status: "done", imageUrl: result.images[0], fidelity: result.fidelityEvaluations?.[0], error: undefined, metadata: { ...shot.metadata, generatedAt: new Date().toISOString() } }, "다시 생성이 완료되었습니다.");
     } catch (error) {
       const message = error instanceof Error ? error.message : "이미지를 다시 생성하지 못했습니다.";
       updateShot({ status: shot.imageUrl ? "done" : "error", error: message }, message);

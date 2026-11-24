@@ -7,6 +7,7 @@ import { useAppSettingsStore } from "@/stores/useAppSettingsStore";
 import { getBatchCount } from "@/system/create/generation-batch";
 
 const Footer = styled.footer`
+  display: flex; gap: 8px; > button { flex: 1; min-width: 0; }
   padding: var(--space-sm);
   border-top: 0;
   background: var(--color-surface);
@@ -43,9 +44,11 @@ export function RegenerationAction() {
   const selected = useCreateStore(state => state.generationShots.find(shot => shot.id === selectedId));
   const retryShot = useCreateStore(state => state.retryShot);
   const mockMode = useAppSettingsStore(state => state.mockMode);
+  const reevaluateShot = useCreateStore(state => state.reevaluateShot);
+  const reevaluating = useCreateStore(state => Boolean(selectedId && state.reevaluatingIds.includes(selectedId)));
   const canRegenerate = selected?.status === "done" && Boolean(selected.imageUrl);
   return <Footer><PrimaryIconButton type="button" fullWidth height={42} labelClassName="type-xsmall-body"
     disabled={!canRegenerate} onClick={() => { if (selectedId) void retryShot(selectedId, mockMode, true); }}>
-    {selected?.status === "generating" ? "재생성 중..." : "재생성"}
-  </PrimaryIconButton></Footer>;
+    {selected?.status === "generating" ? "다시 생성 중..." : "다시 생성"}
+  </PrimaryIconButton><PrimaryIconButton type="button" fullWidth height={42} labelClassName="type-xsmall-body" disabled={!canRegenerate || reevaluating} onClick={() => { if (selectedId) void reevaluateShot(selectedId); }}>{reevaluating ? "재평가 중..." : "재평가"}</PrimaryIconButton></Footer>;
 }

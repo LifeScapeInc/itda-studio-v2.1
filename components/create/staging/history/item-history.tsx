@@ -1,5 +1,6 @@
 "use client";
 
+import type { MouseEvent } from "react";
 import { EditableTitle } from "@/components/ui/editable-title";
 import { useCreateStore } from "@/stores/useCreateStore";
 import styled from "styled-components";
@@ -74,10 +75,12 @@ export function ItemHistory({
   historySet,
   active,
   onSelect,
+  onContextMenu,
 }: {
   historySet: GenerationHistorySet;
   active: boolean;
   onSelect: () => void;
+  onContextMenu: (event: MouseEvent<HTMLDivElement>) => void;
 }) {
   const renameHistory = useCreateStore(s => s.renameHistory);
   const previewShots = historySet.shots
@@ -93,6 +96,7 @@ export function ItemHistory({
       onKeyDown={event => { if (event.target === event.currentTarget && ["Enter", " "].includes(event.key)) { event.preventDefault(); onSelect(); } }}
       aria-label={`${historySet.title} 이미지셋 복원`}
       onClick={onSelect}
+      onContextMenu={onContextMenu}
     >
       <Preview>
         {previewShots.length ? previewShots.map((shot) => (

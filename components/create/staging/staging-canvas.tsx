@@ -12,6 +12,7 @@ import { GenerationHistoryGallery } from "./history/generation-history-gallery";
 import { GeneratedImageLightbox } from "./generated/generated-image-lightbox";
 import { GeneratedMetadataModal } from "./generated/generated-metadata-modal";
 import { GeneratedNavigation } from "./generated/generated-navigation";
+import { ResultContextMenuController, type ResultContextMenuHandle } from "./generated/result-context-menu-controller";
 import { GeneratedImageViewer } from "./generated/generated-image-viewer";
 import { GeneratedProgressGrid } from "./generated/generated-progress-grid";
 import { StagingAreaResizeHandle } from "./staging-area-resize-handle";
@@ -87,6 +88,7 @@ export const StagingCanvas = memo(function StagingCanvas({
   const [maximumHistoryHeight, setMaximumHistoryHeight] = useState(
     HISTORY_DEFAULT_HEIGHT,
   );
+  const contextMenuRef = useRef<ResultContextMenuHandle>(null);
   const [metadataShots, setMetadataShots] = useState<LibraryGenerationShot[]>([]);
   const [lightboxImage, setLightboxImage] = useState<{
     imageUrl: string;
@@ -158,7 +160,13 @@ export const StagingCanvas = memo(function StagingCanvas({
           />
         ) : null}
       </Header>
-        <CurrentArea onClick={event => { if (event.target === event.currentTarget) state.selectShot(null); }} onKeyDown={event => { if (event.key === "Escape") state.selectShot(null); }}>
+        <CurrentArea onContextMenu={event => {
+          const id = (event.target as HTMLElement).closest<HTMLElement>("[data-shot-id]")?.dataset.shotId ?? focusedShot?.id;
+          const shot = state.generationShots.find(item => item.id === id && item.status === "done" && item.imageUrl);
+          if (!shot) return;
+          event.preventDefault();
+          contextMenuRef.current?.open(shot.id, event.clientX, event.clientY);
+        }} onClick={event => { if (event.target === event.currentTarget) state.selectShot(null); }} onKeyDown={event => { if (event.key === "Escape") state.selectShot(null); }}>
           {state.generationRequested ? focusedShot?.imageUrl ? (
             <GeneratedImageViewer key={focusedShot.id} src={focusedShot.imageUrl} alt={`${focusedShot.label} 생성 결과`} onBack={() => setFocusedImage(null)} />
           ) : (
@@ -198,6 +206,7 @@ export const StagingCanvas = memo(function StagingCanvas({
           onDelete={state.deleteHistory}
         />
       </SplitStage>
+      <ResultContextMenuController ref={contextMenuRef} onShowInfo={setMetadataShots} />
       {metadataShots.length ? (
         <GeneratedMetadataModal
           shots={metadataShots}

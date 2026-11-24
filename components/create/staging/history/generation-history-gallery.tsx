@@ -1,11 +1,12 @@
 "use client";
 
 import { Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useCreateStore } from "@/stores/useCreateStore";
 import { handleTabKeys } from "@/components/ui/workbench";
 import styled from "styled-components";
 import type { GenerationHistorySet } from "@/system/create/generation-library";
+import { HistoryContextMenuController, type HistoryContextMenuHandle } from "./history-context-menu-controller";
 import { ItemHistory } from "./item-history";
 
 const Area = styled.section`
@@ -123,6 +124,7 @@ export function GenerationHistoryGallery({
   onRestore: (historyId: string) => void;
   onDelete: (historyId: string) => void;
 }) {
+  const contextMenuRef = useRef<HistoryContextMenuHandle>(null);
   const [tab, setTab] = useState<"history" | "prompt">("history");
   const prompt = useCreateStore(s => s.prompt);
   const setPrompt = useCreateStore(s => s.setPrompt);
@@ -167,6 +169,7 @@ export function GenerationHistoryGallery({
             historySet={historySet}
             active={historySet.id === activeHistoryId}
             onSelect={() => onRestore(historySet.id)}
+            onContextMenu={event => { event.preventDefault(); contextMenuRef.current?.open(historySet.id, event.clientX, event.clientY); }}
             key={historySet.id}
           />
         )) : (
@@ -177,6 +180,7 @@ export function GenerationHistoryGallery({
           </Empty>
         )}
       </Scroll>}
+      <HistoryContextMenuController ref={contextMenuRef} onRestore={onRestore} onDelete={onDelete} deleteDisabled={deleteDisabled} />
     </Area>
   );
 }
