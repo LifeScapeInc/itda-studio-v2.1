@@ -53,7 +53,7 @@ function resolvePublicPath(source: string): string {
   return filePath;
 }
 
-async function resolveImage(
+export async function resolveImage(
   source: string,
   name: string,
 ): Promise<Awaited<ReturnType<typeof toFile>>> {

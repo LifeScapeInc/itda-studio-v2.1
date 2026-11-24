@@ -5,6 +5,7 @@ import {
   type ContentSetId,
 } from "@/system/create/generation-options";
 import { expandBatch, type BatchEntry } from "./generation-batch";
+import type { FidelityEvaluation } from "./fidelity-evaluation";
 
 export type GenerationRatio =
   | "1:1"
@@ -24,6 +25,7 @@ export type GenerationShot = {
   resolution: string;
   status: GenerationShotStatus;
   imageUrl?: string;
+  fidelity?: FidelityEvaluation;
   error?: string;
 };
 

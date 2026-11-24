@@ -193,7 +193,7 @@ check("Navigation defaults to compact, expands and returns", () => {
   global.window = { setTimeout: callback => { callback(); return 0; } };
   global.fetch = async (_url, options) => {
     requests.push(JSON.parse(options.body));
-    return { ok: true, json: async () => ({ images: ["data:image/png;base64,test"], mock: true, note: "mock result" }) };
+    return { ok: true, json: async () => ({ images: ["data:image/png;base64,test"], fidelityEvaluations: [{ status: "scored", score: 72.6, modelVersion: "test-v1" }], mock: true, note: "mock result" }) };
   };
   try {
     store.getState().setProjectContext(null);
@@ -207,6 +207,7 @@ check("Navigation defaults to compact, expands and returns", () => {
     assert.ok(requests.every(request => request.mockMode === true));
     assert.equal(store.getState().selectedShotId, null);
     const [shot] = store.getState().generationShots;
+    assert.deepEqual(shot.fidelity, { status: "scored", score: 72.6, modelVersion: "test-v1" });
     assert.equal(shot.metadata.generationSettings.batchEntries[0].quantity, 2);
     store.getState().selectShot(shot.id); assert.equal(store.getState().selectedShotId, shot.id);
     store.getState().toggleBookmark(shot.id); assert.equal(store.getState().generationShots[0].bookmarked, true);
@@ -222,6 +223,7 @@ check("Navigation defaults to compact, expands and returns", () => {
     assert.equal(restored.selectedShotId, null);
     assert.equal(restored.activeHistoryId, historyId);
     assert.ok(restored.generationShots.length);
+    assert.deepEqual(restored.generationShots[0].fidelity, shot.fidelity);
     restored.batchEntries[0].quantity = 19;
     assert.notEqual(restored.generationHistory.find(h => h.id === historyId).shots[0].metadata.generationSettings.batchEntries[0].quantity, 19);
     restored.restoreHistory(historyId);
@@ -257,9 +259,10 @@ check("Navigation defaults to compact, expands and returns", () => {
     await store.getState().retryShot(successful.id, true, true);
     assert.equal(store.getState().generationShots[0].status, "done");
     assert.equal(store.getState().generationShots[0].imageUrl, "old-result");
-    global.fetch = async () => ({ ok: true, json: async () => ({ images: ["new-result"], mock: true }) });
+    global.fetch = async () => ({ ok: true, json: async () => ({ images: ["new-result"], fidelityEvaluations: [{ status: "unavailable", reason: "evaluation offline" }], mock: true }) });
     await store.getState().retryShot(successful.id, true, true);
     assert.equal(store.getState().generationShots[0].imageUrl, "new-result");
+    assert.deepEqual(store.getState().generationShots[0].fidelity, { status: "unavailable", reason: "evaluation offline" });
     assert.equal(store.getState().generationShots[0].label, successful.label);
     checks++; console.log("PASS Evaluation regeneration replaces a completed image on success and preserves it on failure");
     store.setState({ isGenerating: true, activeHistoryId: historyId });

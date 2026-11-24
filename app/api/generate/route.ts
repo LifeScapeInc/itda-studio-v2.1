@@ -5,6 +5,7 @@ import type {
 import { getOpenAIApiKey } from "@/system/server/app-settings";
 import { imageResponseTokenUsage } from "@/system/usage/token-usage";
 import { runOpenAIImageEdit } from "@/system/server/openai-image";
+import { evaluateFidelity } from "@/system/server/fidelity-evaluation";
 
 export const maxDuration = 300;  // static configuration of Next.js Route Handler
 
@@ -154,6 +155,7 @@ export async function POST(request: Request): Promise<Response> {
       mock: true,
       prompt: body.prompt,
       images: [mockImage(body)],
+      fidelityEvaluations: [{ status: "not_applicable", reason: "목업 이미지는 평가하지 않습니다." }],
       note: body.mockMode
         ? "설정에서 목업 모드를 사용해 생성했습니다."
         : "API 키가 연결되지 않아 목업으로 생성했습니다.",
@@ -163,10 +165,14 @@ export async function POST(request: Request): Promise<Response> {
 
   try {
     const result = await runOpenAIImageEdit(body, apiKey);
+    const fidelityEvaluations = await Promise.all(
+      result.images.map(image => evaluateFidelity(body.productImage, image)),
+    );
     const response: GenerationApiResponse = {
       mock: false,
       prompt: body.prompt,
       images: result.images,
+      fidelityEvaluations,
       tokenUsage: imageResponseTokenUsage(result.usage),
       metadata: { model: result.model },
       note: `실제 생성 완료 · ${result.quality} · ${result.size}`,

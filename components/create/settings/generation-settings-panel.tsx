@@ -37,6 +37,7 @@ const Evaluation = styled.div`
   .score-row { display: flex; align-items: center; justify-content: space-between; }
   .score-row h3 { margin: 0; }
   .gauge { height: 8px; margin-top: 12px; border-radius: 4px; background: var(--color-main-neutral); }
+  .gauge-fill { height: 100%; border-radius: 4px; background: var(--color-primary, #608b70); }
   .range { display: flex; justify-content: space-between; margin-top: 6px; font-size: 11px; color: var(--color-label-studio-comment); }
   p { color: var(--color-label-studio-comment); font-size: 11px; }
 `;
@@ -70,6 +71,14 @@ export const GenerationSettingsPanel = memo(function GenerationSettingsPanel() {
   const renameHistory = useCreateStore(s => s.renameHistory);
   const renameShot = useCreateStore(s => s.renameShot);
   const activeHistory = history.find(item => item.id === activeHistoryId);
+  const fidelity = selected?.fidelity;
+  const fidelityScore = fidelity?.status === "scored" ? fidelity.score : undefined;
+  const scoreLabel = fidelityScore === undefined ? "—" : fidelityScore.toFixed(1);
+  const evaluationMessage = fidelity?.status === "not_applicable"
+      ? fidelity.reason
+      : fidelity?.status === "scored"
+        ? "객체 무결성 점수를 표시합니다."
+        : "평가 점수가 없습니다.";
   return <Panel aria-label="생성 측면 패널">
     <PanelResizeHandle previewProperty="--settings-width" gap={8} edge="left" label="생성 설정 너비 조절" value={width} minimum={SETTINGS_PANEL_MIN_WIDTH} maximum={SETTINGS_PANEL_MAX_WIDTH} onResize={resize} />
     <PanelTabs role="tablist" aria-label="측면 패널" onKeyDown={handleTabKeys}>
@@ -82,10 +91,13 @@ export const GenerationSettingsPanel = memo(function GenerationSettingsPanel() {
       <Divider />
       <SettingsSection><WorkbenchSectionHeader><button type="button" aria-expanded={expertOpen} onClick={() => setExpertOpen(value => !value)}>{expertOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}전문가 설정 (선택)</button></WorkbenchSectionHeader>
       {expertOpen && <ExpertBody><ExpertSettings /></ExpertBody>}</SettingsSection>
-    </Scroll><GenerationAction /></> : <>{selected ? <Evaluation role="tabpanel" id="evaluation-content" aria-labelledby="evaluation-tab">
+    </Scroll><GenerationAction /></> : <>{fidelity?.status === "unavailable" ? <Empty role="tabpanel" id="evaluation-content" aria-labelledby="evaluation-tab">서버가 정상적으로 연결되어 있지 않습니다</Empty> : selected ? <Evaluation role="tabpanel" id="evaluation-content" aria-labelledby="evaluation-tab">
       <ImageHeading><TooltipIconAction caption="이전 이미지" disabled={currentIndex <= 0} onClick={() => navigateSelection(-1)}><ChevronLeft /></TooltipIconAction><h3><EditableTitle key={selected.id} label="이미지 제목" value={selected.label} onSave={title => renameShot(selected.id, title)} /></h3><TooltipIconAction caption="다음 이미지" disabled={currentIndex < 0 || currentIndex >= selectedShots.length - 1} onClick={() => navigateSelection(1)}><ChevronRight /></TooltipIconAction></ImageHeading>
-      <section><EvaluationTitle><h3>종합 점수</h3><TooltipIconAction type="button" multiline aria-label="종합 점수 설명" caption="제품의 원형 유지, 이미지 품질, 브랜드와의 어울림을 종합해 실제로 활용하기에 얼마나 적합한 이미지인지 보여줍니다."><CircleHelp /></TooltipIconAction></EvaluationTitle><span className="score">—</span><span className="out-of">/ 100</span><p>평가 점수 준비 중</p></section>
-      {EVALUATION_ITEMS.map(({ label, description }) => <section key={label}><div className="score-row"><EvaluationTitle><h3>{label}</h3><TooltipIconAction type="button" multiline aria-label={`${label} 설명`} caption={description}><CircleHelp /></TooltipIconAction></EvaluationTitle><span>— <span className="out-of">/ 100</span></span></div><div className="gauge" aria-label={`${label} 평가 대기`} /><div className="range"><span>0</span><span>100</span></div></section>)}
-    </Evaluation> : <Empty role="tabpanel" id="evaluation-content" aria-labelledby="evaluation-tab">선택된 생성물이 없습니다</Empty>}<RegenerationAction /></>}
+      <section><EvaluationTitle><h3>종합 점수</h3><TooltipIconAction type="button" multiline aria-label="종합 점수 설명" caption="현재는 객체 무결성 점수를 종합 점수로 표시합니다."><CircleHelp /></TooltipIconAction></EvaluationTitle><span className="score">{scoreLabel}</span><span className="out-of">/ 100</span><p>{evaluationMessage}</p></section>
+      {EVALUATION_ITEMS.map(({ label, description }) => {
+        const score = label === "객체 무결성" ? fidelityScore : undefined;
+        return <section key={label}><div className="score-row"><EvaluationTitle><h3>{label}</h3><TooltipIconAction type="button" multiline aria-label={`${label} 설명`} caption={description}><CircleHelp /></TooltipIconAction></EvaluationTitle><span>{score === undefined ? "—" : score.toFixed(1)} <span className="out-of">/ 100</span></span></div><div className="gauge" aria-label={score === undefined ? `${label} 점수 없음` : `${label} ${score.toFixed(1)}점`}>{score !== undefined && <div className="gauge-fill" style={{ width: `${score}%` }} />}</div><div className="range"><span>0</span><span>100</span></div></section>;
+      })}
+    </Evaluation> : <Empty role="tabpanel" id="evaluation-content" aria-labelledby="evaluation-tab">선택된 생성물이 없습니다</Empty>}{fidelity?.status !== "unavailable" && <RegenerationAction />}</>}
   </Panel>;
 });

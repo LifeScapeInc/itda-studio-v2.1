@@ -557,7 +557,7 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
         model: result.metadata?.model ?? "unknown-image-model", contentSet: shot.metadata.generationSettings?.contentSet ?? null,
         shotId, shotLabel: shot.label, ratio: shot.ratio, quality, hasReference: Boolean(referenceImage),
       }));
-      updateShot({ status: "done", imageUrl: result.images[0], error: undefined, metadata: { ...shot.metadata, generatedAt: new Date().toISOString() } }, "재생성이 완료되었습니다.");
+      updateShot({ status: "done", imageUrl: result.images[0], fidelity: result.fidelityEvaluations?.[0], error: undefined, metadata: { ...shot.metadata, generatedAt: new Date().toISOString() } }, "재생성이 완료되었습니다.");
     } catch (error) {
       const message = error instanceof Error ? error.message : "이미지를 다시 생성하지 못했습니다.";
       updateShot({ status: shot.imageUrl ? "done" : "error", error: message }, message);
@@ -792,6 +792,7 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
                 ...item,
                 status: "done",
                 imageUrl: result.images[0],
+                fidelity: result.fidelityEvaluations?.[0],
               }
             : item,
           ) as LibraryGenerationShot[];

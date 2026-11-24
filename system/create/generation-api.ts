@@ -1,6 +1,7 @@
 import type { GenerationQuality } from "@/system/create/generation-options";
 import type { GenerationRatio } from "@/system/create/generation-shots";
 import type { TokenUsage } from "@/system/usage/token-usage";
+import type { FidelityEvaluation } from "./fidelity-evaluation";
 
 export type GenerationApiRequest = {
   productImage: string;
@@ -15,6 +16,7 @@ export type GenerationApiResponse = {
   mock: boolean;
   prompt: string;
   images: string[];
+  fidelityEvaluations?: FidelityEvaluation[];
   note: string;
   tokenUsage?: TokenUsage;
   metadata?: {
