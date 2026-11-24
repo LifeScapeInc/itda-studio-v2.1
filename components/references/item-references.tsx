@@ -17,12 +17,10 @@ const Card = styled.button`
   cursor: pointer;
   text-align: left;
   transition:
-    border-color 180ms ease,
     box-shadow 180ms ease,
     transform 180ms ease;
 
   &:hover {
-    border-color: var(--color-main-primary);
     background: var(--color-main-neutral-light);
   }
 

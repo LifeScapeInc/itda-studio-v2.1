@@ -7,7 +7,8 @@ const Header = styled.header`
   min-width: 0;
   flex: 0 0 auto;
   flex-direction: row;
-  align-items: end;
+  align-items: baseline;
+  flex-wrap: wrap;
   gap: var(--space-xs);
 
   h1,
@@ -29,7 +30,7 @@ export function ReferenceDetailTitle({
 }) {
   return (
     <Header>
-      <h1 className="type-medium-head">{title}</h1>
+      <h1 className="type-small-body">{title}</h1>
       <p className="type-xsmall-thin pb-0.5">{description}</p>
     </Header>
   );

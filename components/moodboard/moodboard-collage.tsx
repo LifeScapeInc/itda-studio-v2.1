@@ -14,7 +14,7 @@ const Root = styled.div`
   min-height: 0;
   align-items: center;
   justify-content: center;
-  background: white;
+  background: var(--color-background-workspace);
   overflow: hidden;
 `;
 
@@ -23,7 +23,7 @@ const Canvas = styled.div`
   width: min(100%, calc((100vh - 190px) * 16 / 9));
   max-width: 1600px;
   aspect-ratio: 16 / 9;
-  background: white;
+  background: var(--color-background-workspace);
 `;
 
 export function MoodboardCollage({

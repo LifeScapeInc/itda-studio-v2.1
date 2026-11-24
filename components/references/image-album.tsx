@@ -13,7 +13,7 @@ const Album = styled.section<{ $overlay: boolean }>`
   flex: 1;
   flex-direction: column;
   background: ${({ $overlay }) => (
-    $overlay ? "transparent" : "var(--color-main-neutral-light)"
+    $overlay ? "transparent" : "var(--color-background-workspace)"
   )};
   overflow: hidden;
 `;
@@ -23,7 +23,7 @@ const Viewport = styled.div<{ $overlay: boolean }>`
   min-height: 0;
   flex: 1;
   background: ${({ $overlay }) => (
-    $overlay ? "transparent" : "var(--color-main-neutral-light)"
+    $overlay ? "transparent" : "var(--color-background-workspace)"
   )};
   overflow: hidden;
 `;
@@ -43,7 +43,7 @@ const Slide = styled.figure<{ $overlay: boolean }>`
   flex: 0 0 100%;
   margin: 0;
   background: ${({ $overlay }) => (
-    $overlay ? "transparent" : "var(--color-main-neutral-light)"
+    $overlay ? "transparent" : "var(--color-background-workspace)"
   )};
 
   img {
@@ -60,14 +60,14 @@ const DirectionButton = styled.button<{
   top: 50%;
   ${({ $side }) => ($side === "left" ? "left: 20px;" : "right: 20px;")}
   display: grid;
-  width: 44px;
-  height: 44px;
+  width: 32px;
+  height: 32px;
   place-items: center;
   padding: 0;
   border: 0;
-  border-radius: ${({ $overlay }) => ($overlay ? "0" : "50%")};
+  border-radius: ${({ $overlay }) => ($overlay ? "0" : "var(--radius-panel)")};
   background: ${({ $overlay }) => (
-    $overlay ? "transparent" : "rgb(255 255 255 / 90%)"
+    $overlay ? "transparent" : "var(--color-surface)"
   )};
   color: ${({ $overlay }) => (
     $overlay ? "white" : "var(--color-label-studio-black)"
@@ -77,7 +77,7 @@ const DirectionButton = styled.button<{
     $overlay ? "drop-shadow(0 2px 5px rgb(0 0 0 / 58%))" : "none"
   )};
   box-shadow: ${({ $overlay }) => (
-    $overlay ? "none" : "0 6px 18px rgb(32 29 23 / 10%)"
+    $overlay ? "none" : "none"
   )};
   transform: translateY(-50%);
   transition:
@@ -86,7 +86,7 @@ const DirectionButton = styled.button<{
 
   &:hover:not(:disabled) {
     background: ${({ $overlay }) => (
-      $overlay ? "transparent" : "var(--color-main-neutral-light)"
+      $overlay ? "transparent" : "var(--color-background-workspace)"
     )};
     opacity: ${({ $overlay }) => ($overlay ? "0.72" : "1")};
   }
@@ -106,7 +106,7 @@ const Footer = styled.div<{ $overlay: boolean }>`
   gap: var(--space-sm);
   padding: var(--space-xs) var(--space-sm);
   background: ${({ $overlay }) => (
-    $overlay ? "transparent" : "var(--color-main-neutral-light)"
+    $overlay ? "transparent" : "var(--color-background-workspace)"
   )};
 `;
 
@@ -147,7 +147,7 @@ const Thumbnail = styled.button<{ $active: boolean; $overlay: boolean }>`
   )};
   border-radius: 8px;
   background: ${({ $overlay }) => (
-    $overlay ? "transparent" : "var(--color-main-neutral-light)"
+    $overlay ? "transparent" : "var(--color-background-workspace)"
   )};
   overflow: hidden;
   cursor: pointer;

@@ -2,8 +2,7 @@
 
 import styled from "styled-components";
 import { ImageAlbum } from "@/components/references/image-album";
-import { ReferenceDetailTitle } from "@/components/references/reference-detail-title";
-import { ButtonBack } from "@/components/ui/button-back";
+import { LibraryDetailHeader } from "@/components/references/library-detail-header";
 import type { FurnitureCategory } from "@/system/furniture/furniture-catalog";
 
 const Content = styled.section`
@@ -13,8 +12,8 @@ const Content = styled.section`
   flex: 1;
   flex-direction: column;
   gap: var(--space-sm);
-  padding: 48px var(--space-2xl) var(--space-2xl);
-  background: var(--color-main-neutral-light);
+  padding: 24px 28px 28px;
+  background: var(--color-background-workspace);
   overflow: hidden;
 `;
 
@@ -23,6 +22,7 @@ const AlbumArea = styled.div`
   min-width: 0;
   min-height: 0;
   flex: 1;
+  border-radius: var(--radius-panel);
   overflow: hidden;
 `;
 
@@ -39,8 +39,7 @@ export function FurnitureViewer({
 
   return (
     <Content>
-      <ButtonBack href="/furniture" label="가구 목록" />
-      <ReferenceDetailTitle
+      <LibraryDetailHeader href="/furniture" backLabel="가구 목록"
         title={category.name}
         description={description}
       />

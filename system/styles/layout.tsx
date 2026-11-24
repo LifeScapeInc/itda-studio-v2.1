@@ -51,3 +51,8 @@ export const HiddenScrollbar = styled.div`
     display: none;
   }
 `;
+
+export const LibraryDetailWorkspace = styled(WorkspaceContent)`
+ padding: 36px 0 0;
+ background: var(--color-background-workspace);
+`;

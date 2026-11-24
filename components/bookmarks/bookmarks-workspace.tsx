@@ -1,20 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Bookmark, ImageIcon, X } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { LibraryDetailHeader } from "@/components/references/library-detail-header";
+import { ImageIcon } from "lucide-react";
 import styled from "styled-components";
-import { PanelResizeHandle } from "@/components/layout/panel-resize-handle";
 import { NavigationLeft } from "@/components/layout/navigation-left";
 import { NavigationTop } from "@/components/layout/navigation-top";
 import { LabelTitle } from "@/components/ui/label-title";
 import { LoadingImage } from "@/components/ui/loading-image";
 import { GenerationInputImages } from "@/components/ui/generation-input-images";
 import { useCreateStore } from "@/stores/useCreateStore";
-import { useWorkspaceLayoutStore } from "@/stores/useWorkspaceLayoutStore";
-import {
-  BOOKMARK_DETAILS_PANEL_MAX_WIDTH,
-  BOOKMARK_DETAILS_PANEL_MIN_WIDTH,
-} from "@/system/layout/workspace-layout";
 import {
   getBookmarkedImages,
   type LibraryGenerationShot,
@@ -24,6 +20,7 @@ import { ItemBookmark } from "./item-bookmark";
 
 const Workspace = styled.main`
   display: flex;
+  flex-direction: column;
   height: 100%;
   min-width: 0;
   min-height: 0;
@@ -40,7 +37,7 @@ const Content = styled.section`
   min-height: 0;
   flex: 1;
   flex-direction: column;
-  padding: var(--space-3xl) var(--space-2xl) var(--space-lg);
+  padding: 24px 28px 16px;
   overflow: hidden;
 `;
 
@@ -48,7 +45,7 @@ const Grid = styled.section`
   display: grid;
   min-height: 0;
   flex: 1;
-  margin-top: var(--space-xl);
+  margin-top: 24px;
   padding-block: var(--space-3xs);
   grid-template-columns: repeat(auto-fill, minmax(280px, 336px));
   align-content: start;
@@ -56,26 +53,27 @@ const Grid = styled.section`
   overflow-y: auto;
 `;
 
-const Details = styled.aside<{ $width: number }>`
-  position: relative;
+const Details = styled.section`
   display: flex;
-  width: var(--panel-width, ${({ $width }) => $width}px);
+  min-width: 0;
   min-height: 0;
-  flex: 0 0 var(--panel-width, ${({ $width }) => $width}px);
+  flex: 1;
   flex-direction: column;
-  border-left: 1px solid var(--color-border);
+  margin: 0 28px 28px;
+  border-radius: var(--radius-panel);
   background: var(--color-surface);
   overflow: hidden;
 `;
 
 const DetailHeader = styled.div`
   display: flex;
-  height: 48px;
-  flex: 0 0 48px;
+  flex: 0 0 auto;
   align-items: center;
   justify-content: space-between;
-  padding: 0 var(--space-sm);
-  border-bottom: 1px solid var(--color-border);
+  padding: 24px 28px 16px;
+
+
+  strong { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; font-weight: 500; }
 
   button {
     border: 0;
@@ -87,56 +85,56 @@ const DetailHeader = styled.div`
 const DetailPreview = styled.div`
   position: relative;
   width: 100%;
-  min-width: 0;
-  min-height: 0;
-  background: var(--color-main-neutral);
-
-  img {
-    object-fit: contain;
-  }
+  height: 100%;
+  min-height: 180px;
+  flex-shrink: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-panel);
+  background: var(--color-main-neutral-light);
+  overflow: hidden;
+  img { object-fit: contain; }
+  @media (max-width: 900px) { height: 300px; }
 `;
-
 const DetailBody = styled.div`
-  display: grid;
-  min-height: 0;
-  flex: 1;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  display: grid; min-height: 0; flex: 1;
+  grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr);
+  gap: 24px; padding: 16px 20px; overflow: hidden;
+  @media (max-width: 900px) { grid-template-columns: 1fr; overflow-y: auto; }
 `;
-
-const MetadataColumn = styled.div`
-  display: flex;
+const MetadataContent = styled.div`
+  display: flex; min-width: 0; min-height: 0; flex-direction: column; gap: 24px;
+  overflow-y: auto; padding-right: 8px;
+  @media (max-width: 900px) { overflow: visible; }
+`;
+const MetadataSection = styled.section`
   min-width: 0;
-  min-height: 0;
-  flex-direction: column;
-  border-left: 1px solid var(--color-border);
+  h3 { margin: 0 0 12px; font-size: 13px; font-weight: 500; }
 `;
-
+const Inputs = styled.div`
+  > div { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  figure { width: 100%; gap: 6px; }
+  figure > div { width: 100%; height: 132px; aspect-ratio: auto; border-radius: 4px; background: var(--color-main-neutral-light); }
+  img { object-fit: contain; }
+  figcaption { font-size: 11px; line-height: 1.5; }
+`;
 const Metadata = styled.dl`
-  display: grid;
-  min-height: 0;
-  flex: 1;
-  margin: 0;
-  padding: var(--space-sm);
-  grid-template-columns: 92px minmax(0, 1fr);
-  align-content: start;
-  gap: var(--space-xs) var(--space-2xs);
-  overflow-y: auto;
-  font-size: 12px;
-
-  dt {
-    color: var(--color-label-studio-comment);
-  }
-
-  dd {
-    margin: 0;
-    line-height: 1.45;
-    overflow-wrap: anywhere;
-  }
+  display: grid; margin: 0; grid-template-columns: 104px minmax(0, 1fr);
+  align-content: start; gap: 12px 16px; font-size: 12px; line-height: 1.6;
+  dt { color: var(--color-label-studio-comment); }
+  dd { min-width: 0; margin: 0; overflow-wrap: anywhere; white-space: pre-wrap; }
 `;
+const PromptDetails = styled.details`
+  border-top: 1px solid var(--color-border); padding-top: 16px;
+  summary { cursor: pointer; font-size: 13px; font-weight: 500; }
+  pre { margin: 12px 0 0; padding: 12px; border-radius: 4px; background: var(--color-main-neutral-light); white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; font-size: 12px; line-height: 1.7; }
+`;
+const DetailFooter = styled.div`display: flex; justify-content: flex-end; flex-shrink: 0; border-top: 1px solid var(--color-border);`;
 
 const Remove = styled.button`
-  height: 40px;
-  margin: var(--space-sm);
+  display: block;
+  width: 160px;
+  height: 32px;
+  margin: 8px 16px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-panel);
   background: var(--color-surface);
@@ -157,7 +155,6 @@ const Empty = styled.div`
 function MetadataList({ shot }: { shot: LibraryGenerationShot }) {
   const metadata = shot.metadata;
   const entries = [
-    ["최종 프롬프트", metadata.finalPrompt],
     ["생성 시각", new Date(metadata.generatedAt).toLocaleString("ko-KR")],
     ["AI 모델", metadata.aiModel],
     ["생성 종류", metadata.variationType],
@@ -171,41 +168,32 @@ function MetadataList({ shot }: { shot: LibraryGenerationShot }) {
   ];
 
   return (
-    <Metadata>
-      {metadata.inputImages?.length ? (
-        <div style={{ display: "contents" }}>
-          <dt>입력 이미지</dt>
-          <dd>
-            <GenerationInputImages images={metadata.inputImages} />
-          </dd>
-        </div>
-      ) : null}
+    <>
+      {metadata.inputImages?.length ? <MetadataSection><h3>입력 이미지</h3><Inputs><GenerationInputImages images={metadata.inputImages} /></Inputs></MetadataSection> : null}
+      <MetadataSection><h3>생성 정보</h3><Metadata>
       {entries.map(([label, value]) => (
         <div style={{ display: "contents" }} key={label}>
           <dt>{label}</dt>
           <dd>{value}</dd>
         </div>
       ))}
-    </Metadata>
+    </Metadata></MetadataSection>
+      <PromptDetails><summary>최종 프롬프트</summary><pre>{metadata.finalPrompt}</pre></PromptDetails>
+    </>
   );
 }
 
-export function BookmarksWorkspace() {
+export function BookmarksWorkspace({ detailId }: { detailId?: string }) {
+  const router = useRouter();
+  const [loaded, setLoaded] = useState(false);
   const history = useCreateStore((state) => state.generationHistory);
   const hydrateLibrary = useCreateStore((state) => state.hydrateLibrary);
   const toggleBookmark = useCreateStore((state) => state.toggleBookmark);
-  const detailsPanelWidth = useWorkspaceLayoutStore(
-    (state) => state.bookmarkDetailsPanelWidth,
-  );
-  const resizeDetailsPanel = useWorkspaceLayoutStore(
-    (state) => state.resizeBookmarkDetailsPanel,
-  );
-  const [selectedId, setSelectedId] = useState<string | null>(null);
   const bookmarks = getBookmarkedImages(history);
-  const selected = bookmarks.find((shot) => shot.id === selectedId) ?? null;
+  const selected = bookmarks.find((shot) => shot.id === detailId) ?? null;
 
   useEffect(() => {
-    void hydrateLibrary();
+    void hydrateLibrary().then(() => setLoaded(true));
   }, [hydrateLibrary]);
 
   return (
@@ -213,7 +201,7 @@ export function BookmarksWorkspace() {
       <NavigationTop />
       <NavigationLeft />
       <Workspace>
-        <Content>
+        {!detailId && <Content>
           <LabelTitle
             title="북마크"
             description="생성 결과에서 저장한 이미지와 생성 메타데이터를 한곳에서 확인합니다."
@@ -222,8 +210,8 @@ export function BookmarksWorkspace() {
             {bookmarks.length ? bookmarks.map((shot) => (
               <ItemBookmark
                 shot={shot}
-                active={shot.id === selectedId}
-                onClick={() => setSelectedId(shot.id)}
+                active={shot.id === detailId}
+                onClick={() => router.push(`/bookmarks/${encodeURIComponent(shot.id)}`)}
                 key={shot.id}
               />
             )) : (
@@ -236,28 +224,10 @@ export function BookmarksWorkspace() {
               </Empty>
             )}
           </Grid>
-        </Content>
-        <Details data-resize-layout $width={detailsPanelWidth}>
-          <PanelResizeHandle previewProperty="--panel-width"
-            edge="left"
-            label="북마크 상세 너비 조절"
-            value={detailsPanelWidth}
-            minimum={BOOKMARK_DETAILS_PANEL_MIN_WIDTH}
-            maximum={BOOKMARK_DETAILS_PANEL_MAX_WIDTH}
-            onResize={resizeDetailsPanel}
-          />
-          {selected ? (
-            <>
-              <DetailHeader>
-                <strong>{selected.label}</strong>
-                <button
-                  type="button"
-                  aria-label="상세 닫기"
-                  onClick={() => setSelectedId(null)}
-                >
-                  <X size={17} />
-                </button>
-              </DetailHeader>
+        </Content>}
+        {detailId && <DetailHeader><LibraryDetailHeader href="/bookmarks" backLabel="북마크 목록" title={selected?.label ?? "북마크"} description="저장한 이미지와 생성 정보" /></DetailHeader>}
+        {detailId && !selected && <Empty>{loaded ? "북마크를 찾을 수 없습니다." : "북마크를 불러오는 중입니다."}</Empty>}
+        {selected && <Details aria-label="북마크 상세 정보">
               <DetailBody>
                 <DetailPreview>
                   <LoadingImage
@@ -265,32 +235,23 @@ export function BookmarksWorkspace() {
                     alt={selected.label}
                     fill
                     unoptimized
-                    sizes={`${Math.round(detailsPanelWidth / 2)}px`}
+                    sizes="(max-width: 900px) 90vw, 45vw"
                   />
                 </DetailPreview>
-                <MetadataColumn>
-                  <MetadataList shot={selected} />
+                <MetadataContent><MetadataList shot={selected} /></MetadataContent>
+              </DetailBody>
+              <DetailFooter>
                   <Remove
                     type="button"
                     onClick={() => {
                       toggleBookmark(selected.id);
-                      setSelectedId(null);
+                      router.push("/bookmarks");
                     }}
                   >
                     북마크 해제
                   </Remove>
-                </MetadataColumn>
-              </DetailBody>
-            </>
-          ) : (
-            <Empty>
-              <Bookmark size={30} strokeWidth={1.3} />
-              <span className="type-xsmall-thin">
-                이미지를 선택하면 원본 이미지와 메타데이터를 표시합니다.
-              </span>
-            </Empty>
-          )}
-        </Details>
+              </DetailFooter>
+        </Details>}
       </Workspace>
     </StudioShell>
   );

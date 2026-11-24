@@ -20,14 +20,10 @@ const Card = styled.button<{ $active: boolean }>`
   cursor: pointer;
   text-align: left;
   transition:
-    border-color 180ms ease,
-    box-shadow 180ms ease,
     transform 180ms ease;
 
   &:hover {
-    border-color: var(--color-main-primary);
-    box-shadow: 0 10px 26px rgb(32 29 23 / 10%);
-    transform: translateY(-3px);
+    background: var(--color-main-neutral-light);
   }
 
 

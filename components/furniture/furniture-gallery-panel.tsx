@@ -19,22 +19,26 @@ const Panel = styled.aside<{ $width: number }>`
   min-height: 0;
   flex: 0 0 var(--panel-width, ${({ $width }) => $width}px);
   flex-direction: column;
-  border-left: 1px solid var(--color-border);
+  margin: 8px 8px 8px 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-panel);
   background: var(--color-surface);
 `;
 
 const Header = styled.div`
   display: flex;
-  height: 48px;
-  flex: 0 0 48px;
-  padding: var(--space-3xs) var(--space-sm);
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  strong { font-size: 13px; font-weight: 500; }
   border-bottom: 1px solid var(--color-border);
 `;
 
 const SearchField = styled.label`
   display: flex;
   width: 100%;
-  height: 40px;
+  height: 32px;
+  flex: 0 0 32px;
   align-items: center;
   gap: var(--space-2xs);
   padding: 0 var(--space-xs);
@@ -86,7 +90,6 @@ const GalleryItem = styled.button<{ $selected: boolean }>`
   overflow: hidden;
   cursor: pointer;
   transition:
-    border-color 150ms ease,
     transform 150ms ease;
 
   img {
@@ -94,7 +97,6 @@ const GalleryItem = styled.button<{ $selected: boolean }>`
   }
 
   &:hover {
-    border-color: var(--color-main-primary);
     background: var(--color-main-neutral-light);
   }
 
@@ -130,6 +132,7 @@ export function FurnitureGalleryPanel({
         onResize={resize}
       />
       <Header>
+        <strong>앨범 · {images.length}장</strong>
         <SearchField>
           <Search size={16} aria-hidden="true" />
           <SearchInput

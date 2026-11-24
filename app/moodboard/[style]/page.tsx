@@ -4,7 +4,7 @@ import { NavigationTop } from "@/components/layout/navigation-top";
 import { MoodboardDetail } from "@/components/moodboard/moodboard-detail";
 import { getMoodboardLayoutManifest } from "@/system/moodboard/moodboard-manifest";
 import { getMoodboard, MOODBOARDS } from "@/system/moodboard/moodboards";
-import { StudioShell, WorkspaceContent } from "@/system/styles/layout";
+import { StudioShell, LibraryDetailWorkspace } from "@/system/styles/layout";
 
 export function generateStaticParams() {
   return MOODBOARDS.map((moodboard) => ({
@@ -34,9 +34,9 @@ export default async function MoodboardStylePage({
     <StudioShell>
       <NavigationTop />
       <NavigationLeft />
-      <WorkspaceContent $surface>
+      <LibraryDetailWorkspace>
         <MoodboardDetail moodboard={moodboard} manifest={manifest} />
-      </WorkspaceContent>
+      </LibraryDetailWorkspace>
     </StudioShell>
   );
 }
