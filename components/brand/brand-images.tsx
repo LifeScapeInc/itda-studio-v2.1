@@ -6,11 +6,10 @@ import { LoadingImage } from "@/components/ui/loading-image";
 import { MoodboardDetailViewer } from "@/components/moodboard/moodboard-detail-viewer";
 import type { BrandCase, BrandImage } from "@/system/brand/brand-library";
 const Root = styled.div`
- display: grid; min-height: 0; flex: 1; grid-template-columns: minmax(0, calc((100% - 12px) * var(--brand-positive-ratio, .5))) 12px minmax(0, 1fr); overflow: hidden; margin-top: 24px;
+ display: grid; min-height: 0; flex: 1; grid-template-columns: minmax(0, calc((100% - 12px) * var(--brand-positive-ratio, .5))) 12px minmax(0, 1fr); overflow: hidden;
 `;
 const Section = styled.section`
- display: flex; min-width: 0; min-height: 0; flex-direction: column; overflow: hidden; border: 0;
- & + & { border: 0; padding-top: 0; }
+ display: flex; min-width: 0; min-height: 0; flex-direction: column; overflow: hidden; padding: 16px; border: 1px solid var(--color-border); border-radius: var(--radius-panel); background: var(--color-surface);
  h2 { margin: 0; font-size: 14px; font-weight: 500; }
  header { flex-shrink: 0; display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
  span { color: var(--color-label-studio-comment); font-size: 12px; }

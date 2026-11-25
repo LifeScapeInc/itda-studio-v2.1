@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Images, Plus } from "lucide-react";
+import { ChartNoAxesCombined, Images, Plus } from "lucide-react";
 import { LibraryDetailHeader } from "@/components/references/library-detail-header";
 import styled from "styled-components";
 import { NavigationLeft } from "@/components/layout/navigation-left";
@@ -33,6 +33,16 @@ const Empty = styled.div`
  display: flex; flex: 1; min-height: 200px; align-items: center; justify-content: center; flex-direction: column; gap: 16px;
  color: var(--color-label-studio-comment); font-size: 13px;
  p { max-width: 520px; text-align: center; line-height: 1.6; }
+`;
+const DetailContent = styled.div`
+ display: grid; min-height: 0; flex: 1; grid-template-rows: minmax(0, 1fr) minmax(0, 4fr); gap: 16px; margin-top: 24px;
+`;
+const BrandAnalysis = styled.section`
+ display: flex; min-width: 0; min-height: 0; align-items: center; justify-content: center; gap: 12px; padding: 16px;
+ border: 1px solid var(--color-border); border-radius: var(--radius-panel); background: var(--color-surface);
+ color: var(--color-label-studio-comment);
+ svg { flex-shrink: 0; }
+ p { margin: 0; font-size: 13px; line-height: 1.6; }
 `;
 const Description = styled.p`margin-top: 8px; color: var(--color-label-studio-comment); font-size: 12px; line-height: 1.6;`;
 const ErrorMessage = styled.p`margin-top: 16px; font-size: 13px; line-height: 1.6; color: var(--color-label-studio-black);`;
@@ -79,7 +89,10 @@ export function BrandWorkspace({ id }: { id?: string }) {
    </> : <>
      {brand ? <>
        <LibraryDetailHeader href="/brand" backLabel="브랜드 목록" title={<EditableTitle value={brand.name} onSave={rename} label="브랜드 이름" />} description={`${brand.images.length}장의 이미지`} />
-       <BrandImages key={brand.id} images={brand.images} busy={busy} onAdd={addImages} />
+       <DetailContent>
+         <BrandAnalysis aria-label="브랜드 분석"><ChartNoAxesCombined size={28} strokeWidth={1.4} aria-hidden="true" /><p>아직 충분한 자료가 모이지 않아 분석을 실행하지 않았습니다</p></BrandAnalysis>
+         <BrandImages key={brand.id} images={brand.images} busy={busy} onAdd={addImages} />
+       </DetailContent>
      </> : <Empty><p>{loaded ? "브랜드를 찾을 수 없습니다." : "브랜드를 불러오는 중입니다."}</p></Empty>}
    </>}
    {busy && <Description role="status">저장하는 중입니다.</Description>}
