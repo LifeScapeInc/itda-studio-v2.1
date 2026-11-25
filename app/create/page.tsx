@@ -9,7 +9,7 @@ export default async function CreatePage({
   const { projectId } = await searchParams;
   return (
     <CreateWorkspace
-      library={getReferenceLibraryData()}
+      library={await getReferenceLibraryData()}
       requestedProjectId={projectId ?? null}
     />
   );

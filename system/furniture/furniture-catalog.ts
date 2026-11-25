@@ -1,5 +1,4 @@
-import { readdirSync } from "node:fs";
-import path from "node:path";
+import { cloudFurniture } from "@/system/server/cloud-catalog";
 import type { ReferenceItemData } from "@/system/references/reference-types";
 
 export type FurnitureCategory = ReferenceItemData & {
@@ -50,60 +49,5 @@ export const FURNITURE_CATEGORIES: FurnitureCategoryMeta[] = [
   },
 ];
 
-const IMAGE_EXTENSION = /\.(avif|gif|jpe?g|png|webp)$/i;
-const collator = new Intl.Collator("ko", {
-  numeric: true,
-  sensitivity: "base",
-});
-
-function getCategoryDirectory(slug: string): string {
-  return path.join(
-    process.cwd(),
-    "public",
-    "references",
-    "furniture",
-    slug,
-  );
-}
-
-function getCategoryImages(slug: string): string[] {
-  return readdirSync(getCategoryDirectory(slug), { withFileTypes: true })
-    .filter((entry) => entry.isFile() && IMAGE_EXTENSION.test(entry.name))
-    .map((entry) => entry.name)
-    .sort((left, right) => collator.compare(left, right))
-    .map(
-      (fileName) => (
-        `/references/furniture/${slug}/${encodeURIComponent(fileName)}`
-      ),
-    );
-}
-
-export function getFurnitureCategories(): FurnitureCategory[] {
-  return FURNITURE_CATEGORIES.map((category) => {
-    const images = getCategoryImages(category.slug);
-
-    return {
-      ...category,
-      images,
-      previewImages: images.slice(0, 3),
-    };
-  });
-}
-
-export function getFurnitureCategory(
-  slug: string,
-): FurnitureCategory | undefined {
-  const category = FURNITURE_CATEGORIES.find((item) => item.slug === slug);
-
-  if (!category) {
-    return undefined;
-  }
-
-  const images = getCategoryImages(category.slug);
-
-  return {
-    ...category,
-    images,
-    previewImages: images.slice(0, 3),
-  };
-}
+export async function getFurnitureCategories():Promise<FurnitureCategory[]>{return cloudFurniture();}
+export async function getFurnitureCategory(slug:string):Promise<FurnitureCategory|undefined>{return (await cloudFurniture()).find(c=>c.slug===slug);}

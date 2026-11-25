@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { CloudSyncStatus } from "@/components/cloud-sync-status";
 import { ProjectStoreHydration } from "@/components/projects/project-store-hydration";
 import { StyledComponentsRegistry } from "@/system/styles/styled-components-registry";
 import "./globals.css";
@@ -31,6 +32,7 @@ export default function RootLayout({
       <body>
         <StyledComponentsRegistry>
           <ProjectStoreHydration />
+          <CloudSyncStatus />
           {children}
         </StyledComponentsRegistry>
       </body>

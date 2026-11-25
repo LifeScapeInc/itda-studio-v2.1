@@ -45,7 +45,7 @@ export const useImportStore = create<ImportStore>((set, get) => ({
       error: null
     });
     try {
-      const response = await fetch("/api/integrations/cases", {
+      const response = await fetch("/api/studio/cases", {
         method: "GET",
         cache: "no-store"
       });

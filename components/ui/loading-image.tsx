@@ -76,6 +76,8 @@ export function LoadingImage({
   onError,
   ...props
 }: LoadingImageProps) {
+  // Authenticated asset routes cannot be fetched by Next's cookie-less optimizer.
+  const privateAsset=typeof src === "string" && src.startsWith("/api/assets/");
   const sourceKey = getSourceKey(src);
   const [result, setResult] = useState<{
     sourceKey: string;
@@ -99,6 +101,7 @@ export function LoadingImage({
       </Placeholder>
       <ContentImage
         {...props}
+        unoptimized={props.unoptimized||privateAsset}
         src={src}
         alt={alt}
         $visible={status === "loaded"}

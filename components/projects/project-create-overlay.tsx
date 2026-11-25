@@ -192,7 +192,8 @@ export function ProjectCreateOverlay({
     };
   }, [onClose]);
 
-  const submit = (event: FormEvent) => {
+  const [saving, setSaving] = useState(false);
+  const submit = async (event: FormEvent) => {
     event.preventDefault();
 
     if (!name.trim() || !work || !stage) {
@@ -207,7 +208,9 @@ export function ProjectCreateOverlay({
       return;
     }
 
-    create({
+    if(saving)return;
+    setSaving(true);
+    try { await create({
       projectName: name,
       workType: work,
       stage,
@@ -216,7 +219,7 @@ export function ProjectCreateOverlay({
       email,
       deliveryDueDate: date.value,
     });
-    onClose();
+    onClose(); } catch(error) { setError(error instanceof Error ? error.message : "프로젝트를 저장하지 못했습니다."); } finally { setSaving(false); }
   };
 
   const digits = (setValue: (value: string) => void) => (
@@ -334,6 +337,7 @@ export function ProjectCreateOverlay({
               취소
             </Cancel>
             <Submit
+              disabled={saving}
               className="type-small-body"
               type="submit"
             >

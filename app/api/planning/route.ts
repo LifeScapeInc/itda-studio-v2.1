@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { imageDataUrl } from "@/system/server/cloud-assets";
 import {
   MOCK_PLANNING_CANDIDATES,
   type PlanningGenerationResponse,
@@ -45,7 +46,8 @@ export async function POST(request: Request): Promise<NextResponse> {
   try {
     const form = await request.formData();
     const requestDocument = form.get("request_document");
-    const furnitureImage = form.get("furniture_image");
+    const sourceImage = form.get("furniture_image");
+    const furnitureImage = typeof sourceImage === "string" ? await imageDataUrl(sourceImage) : sourceImage;
     const mockMode = form.get("mock_mode") === "true";
 
     if (mockMode) {

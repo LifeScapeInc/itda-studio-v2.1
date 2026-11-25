@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { reportCloudError } from "@/stores/useCloudSyncStore";
 import { useEffect } from "react";
 import { useImportStore } from "@/stores/useImportStore";
 import { projectExistsForCase, useProjectStore } from "@/stores/useProjectStore";
@@ -19,9 +20,9 @@ export function useImportWorkspace() {
   const availableCases = selectedCustomer?.cases.filter(item => !caseHasProject(item)) ?? [];
   const existingProjectCases = selectedCustomer?.cases.filter(caseHasProject) ?? [];
   const selectedCase = availableCases.find(item => getCaseKey(item) === importStore.selectedCaseKey);
-  const createProject = () => {
+  const createProject = async () => {
     if (!selectedCase) return;
-    createProjectFromCase(selectedCase);
+    try { await createProjectFromCase(selectedCase); } catch(error){reportCloudError(error);return;}
     importStore.returnToCustomerList();
     router.push("/projects");
   };

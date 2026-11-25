@@ -18,7 +18,7 @@ import { generateDetailPage } from "@/system/detail-page/page-generation-api";
 import type { GeneratedDetailPage } from "@/system/detail-page/page-generation-types";
 import { useProjectStore } from "@/stores/useProjectStore";
 
-type DetailWorkspaceSnapshot = {
+export type DetailWorkspaceSnapshot = {
   step: DetailPageStep;
   furnitureImage: string | null;
   requestDocument: RequestDocument | null;
@@ -111,7 +111,7 @@ function createEmptyWorkspace(): DetailWorkspaceSnapshot {
   };
 }
 
-function captureWorkspace(state: DetailPageStore): DetailWorkspaceSnapshot {
+export function captureWorkspace(state: DetailPageStore): DetailWorkspaceSnapshot {
   return {
     step: state.step,
     furnitureImage: state.furnitureImage,

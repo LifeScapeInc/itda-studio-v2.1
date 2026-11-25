@@ -11,8 +11,10 @@ import { LabelTitle } from "@/components/ui/label-title";
 import { LoadingImage } from "@/components/ui/loading-image";
 import { GenerationInputImages } from "@/components/ui/generation-input-images";
 import { useCreateStore } from "@/stores/useCreateStore";
+import { cloudRequest } from "@/system/cloud/client";
+import { reportCloudError } from "@/stores/useCloudSyncStore";
 import {
-  getBookmarkedImages,
+  loadBookmarkedImages,
   type LibraryGenerationShot,
 } from "@/system/create/generation-library";
 import { StudioShell } from "@/system/styles/layout";
@@ -187,14 +189,14 @@ export function BookmarksWorkspace({ detailId }: { detailId?: string }) {
   const router = useRouter();
   const [loaded, setLoaded] = useState(false);
   const history = useCreateStore((state) => state.generationHistory);
-  const hydrateLibrary = useCreateStore((state) => state.hydrateLibrary);
-  const toggleBookmark = useCreateStore((state) => state.toggleBookmark);
-  const bookmarks = getBookmarkedImages(history);
+  const [bookmarks,setBookmarks]=useState<LibraryGenerationShot[]>([]);
   const selected = bookmarks.find((shot) => shot.id === detailId) ?? null;
 
   useEffect(() => {
-    void hydrateLibrary().then(() => setLoaded(true));
-  }, [hydrateLibrary]);
+    let active=true;
+    void loadBookmarkedImages().then(rows=>{if(active){setBookmarks(rows);setLoaded(true);}}).catch(error=>{if(active)reportCloudError(error);});
+    return()=>{active=false;};
+  }, [history]);
 
   return (
     <StudioShell>
@@ -243,9 +245,9 @@ export function BookmarksWorkspace({ detailId }: { detailId?: string }) {
               <DetailFooter>
                   <Remove
                     type="button"
-                    onClick={() => {
-                      toggleBookmark(selected.id);
-                      router.push("/bookmarks");
+                    onClick={async () => {
+                      try { await cloudRequest("delete-bookmark",{id:selected.id.replace("bookmark:","")});setBookmarks(rows=>rows.filter(r=>r.id!==selected.id));await useCreateStore.getState().hydrateLibrary(true);router.push("/bookmarks"); }
+                      catch(error){reportCloudError(error);}
                     }}
                   >
                     북마크 해제

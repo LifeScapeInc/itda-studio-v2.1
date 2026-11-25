@@ -1,129 +1,126 @@
+import { cloudRequest, portableState } from "@/system/cloud/client";
+import { reportCloudError } from "@/stores/useCloudSyncStore";
 import type { BrandSelection } from "@/system/brand/brand-library";
 import type { GenerationShot } from "@/system/create/generation-shots";
 import { cloneBatch, type BatchEntry } from "./generation-batch";
-import type {
-  AngleVariationId,
-  ContentSetId,
-  GenerationQuality,
-} from "@/system/create/generation-options";
-
+import type { AngleVariationId, ContentSetId, GenerationQuality, } from "@/system/create/generation-options";
 export type GenerationInputImage = {
-  kind: "product" | "reference";
-  label: string;
-  imageUrl: string;
+    kind: "product" | "reference";
+    label: string;
+    imageUrl: string;
 };
-
 export type GenerationSettingsSnapshot = {
-  brandSelection?: BrandSelection | null;
-  batchEntries?: BatchEntry[];
-  contentSet: ContentSetId | null;
-  angleVariationIds: AngleVariationId[];
-  freeCount: number;
-  quality: GenerationQuality;
-  editMode?: string;
-  light: string;
-  mood: string;
-  props: string[];
-  prompt: string;
+    brandSelection?: BrandSelection | null;
+    batchEntries?: BatchEntry[];
+    contentSet: ContentSetId | null;
+    angleVariationIds: AngleVariationId[];
+    freeCount: number;
+    quality: GenerationQuality;
+    editMode?: string;
+    light: string;
+    mood: string;
+    props: string[];
+    prompt: string;
 };
-
 export type GenerationImageMetadata = {
-  finalPrompt: string;
-  generatedAt: string;
-  aiModel: string;
-  variationType: string;
-  quality: string;
-  editMode: string;
-  light: string;
-  mood: string;
-  props: string[];
-  additionalDirection: string;
-  imageSize: string;
-  inputImages?: GenerationInputImage[];
-  generationSettings?: GenerationSettingsSnapshot;
+    finalPrompt: string;
+    generatedAt: string;
+    aiModel: string;
+    variationType: string;
+    quality: string;
+    editMode: string;
+    light: string;
+    mood: string;
+    props: string[];
+    additionalDirection: string;
+    imageSize: string;
+    inputImages?: GenerationInputImage[];
+    generationSettings?: GenerationSettingsSnapshot;
 };
-
 export type LibraryGenerationShot = GenerationShot & {
-  metadata: GenerationImageMetadata;
-  bookmarked: boolean;
+    metadata: GenerationImageMetadata;
+    bookmarked: boolean;
 };
-
 export type GenerationHistorySet = {
-  id: string;
-  projectId?: string | null;
-  createdAt: string;
-  title: string;
-  shots: LibraryGenerationShot[];
+    version?: number;
+    id: string;
+    projectId?: string | null;
+    createdAt: string;
+    title: string;
+    shots: LibraryGenerationShot[];
 };
-
-export function belongsToProject(
-  history: GenerationHistorySet,
-  projectId: string | null,
-): boolean {
-  return (history.projectId ?? null) === projectId;
+export function belongsToProject(history: GenerationHistorySet, projectId: string | null): boolean {
+    return (history.projectId ?? null) === projectId;
 }
-
 // Normalize retired free-generation presets when loading or saving older history.
 function normalizeHistory(history: GenerationHistorySet[]): GenerationHistorySet[] {
-  return history.map(set => ({ ...set, shots: set.shots.map(shot => {
-    const settings = shot.metadata.generationSettings;
-    return settings?.batchEntries ? { ...shot, metadata: { ...shot.metadata, generationSettings: {
-      ...settings, batchEntries: cloneBatch(settings.batchEntries),
-    } } } : shot;
-  }) }));
+    return history.map(set => ({ ...set, shots: set.shots.map(shot => {
+            const settings = shot.metadata.generationSettings;
+            return settings?.batchEntries ? { ...shot, metadata: { ...shot.metadata, generationSettings: {
+                        ...settings, batchEntries: cloneBatch(settings.batchEntries),
+                    } } } : shot;
+        }) }));
 }
-
-const DATABASE_NAME = "itda-studio-generation-library";
-const STORE_NAME = "library";
-const LIBRARY_KEY = "generation-history";
-
-function openDatabase(): Promise<IDBDatabase> {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DATABASE_NAME, 1);
-    request.onupgradeneeded = () => {
-      if (!request.result.objectStoreNames.contains(STORE_NAME)) {
-        request.result.createObjectStore(STORE_NAME);
-      }
+let queue: Promise<void> = Promise.resolve();
+const baseline = new Map<string, string>();
+const versions = new Map<string, number>();
+const deleted = new Set<string>();
+let latestSnapshot: GenerationHistorySet[] = [];
+let loading: Promise<GenerationHistorySet[]> | null = null;
+export function loadGenerationHistory(): Promise<GenerationHistorySet[]> {
+    if (loading)
+        return loading;
+    loading = cloudRequest<GenerationHistorySet[]>("histories").then(rows => {
+        const history = normalizeHistory(rows);
+        for (const h of history) {
+            versions.set(h.id, h.version ?? 1);
+            baseline.set(h.id, JSON.stringify({ ...h, version: undefined }));
+        }
+        return history;
+    }).finally(() => { loading = null; });
+    return loading;
+}
+export function saveGenerationHistory(history: GenerationHistorySet[]): Promise<void> {
+    const snapshot = structuredClone(history);
+    latestSnapshot = snapshot;
+    const operation = async () => {
+        for (const h of normalizeHistory(snapshot)) {
+            if (deleted.has(h.id))
+                continue;
+            const signature = JSON.stringify({ ...h, version: undefined });
+            if (baseline.get(h.id) === signature)
+                continue;
+            const portable = await portableState({ ...h, version: versions.get(h.id) ?? h.version ?? 0 }) as GenerationHistorySet;
+            const result = await cloudRequest<{
+                version: number;
+            }>("histories", portable);
+            versions.set(h.id, result.version);
+            baseline.set(h.id, signature);
+        }
     };
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-  });
+    const task = queue.catch(() => undefined).then(operation);
+    queue = task;
+    void task.catch(error => reportCloudError(error, () => saveGenerationHistory(latestSnapshot)));
+    return task;
 }
-
-export async function loadGenerationHistory(): Promise<GenerationHistorySet[]> {
-  if (typeof indexedDB === "undefined") return [];
-
-  const database = await openDatabase();
-  return new Promise((resolve, reject) => {
-    const transaction = database.transaction(STORE_NAME, "readonly");
-    const request = transaction.objectStore(STORE_NAME).get(LIBRARY_KEY);
-    request.onsuccess = () => resolve(
-      Array.isArray(request.result) ? normalizeHistory(request.result as GenerationHistorySet[]) : [],
-    );
-    request.onerror = () => reject(request.error);
-    transaction.oncomplete = () => database.close();
-  });
+export async function flushHistorySaves() {
+    try { await queue; }
+    catch { await saveGenerationHistory(latestSnapshot); }
 }
-
-export async function saveGenerationHistory(
-  history: GenerationHistorySet[],
-): Promise<void> {
-  if (typeof indexedDB === "undefined") return;
-
-  const database = await openDatabase();
-  await new Promise<void>((resolve, reject) => {
-    const transaction = database.transaction(STORE_NAME, "readwrite");
-    transaction.objectStore(STORE_NAME).put(normalizeHistory(history), LIBRARY_KEY);
-    transaction.oncomplete = () => resolve();
-    transaction.onerror = () => reject(transaction.error);
-  });
-  database.close();
+export async function deleteGenerationHistory(id: string) {
+    deleted.add(id);
+    await queue.catch(() => undefined);
+    try {
+        await cloudRequest("delete-history", { id });
+        baseline.delete(id);
+        versions.delete(id);
+    }
+    catch (error) {
+        deleted.delete(id);
+        throw error;
+    }
 }
-
-export function getBookmarkedImages(
-  history: GenerationHistorySet[],
-): LibraryGenerationShot[] {
-  return history.flatMap((set) => set.shots).filter(
-    (shot) => shot.bookmarked && shot.status === "done" && shot.imageUrl,
-  );
+export async function loadBookmarkedImages() { await queue.catch(() => undefined); return cloudRequest<LibraryGenerationShot[]>("bookmarks"); }
+export function getBookmarkedImages(history: GenerationHistorySet[]): LibraryGenerationShot[] {
+    return history.flatMap((set) => set.shots).filter((shot) => shot.bookmarked && shot.status === "done" && shot.imageUrl);
 }

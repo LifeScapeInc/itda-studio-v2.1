@@ -33,11 +33,13 @@ const Button = styled.button`
 
 export function ButtonAdd({
   onClick,
+  disabled=false,
 }: {
   onClick: () => void;
+  disabled?: boolean;
 }) {
   return (
-    <Button onClick={onClick} aria-label="새 프로젝트 추가">
+    <Button disabled={disabled} onClick={onClick} aria-label="새 프로젝트 추가">
       <Image
         src="/assets/button-add-circle.svg"
         alt=""

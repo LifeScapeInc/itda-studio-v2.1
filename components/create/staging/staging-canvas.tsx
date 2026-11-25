@@ -106,7 +106,7 @@ export const StagingCanvas = memo(function StagingCanvas({
   }, [maximumHistoryHeight]);
 
   useEffect(() => {
-    void hydrateLibrary();
+    void hydrateLibrary().catch(() => undefined);
   }, [hydrateLibrary]);
 
   useEffect(() => {

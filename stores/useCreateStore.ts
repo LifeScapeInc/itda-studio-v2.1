@@ -1,4 +1,5 @@
 "use client";
+import { reportCloudError } from "@/stores/useCloudSyncStore";
 
 import { create } from "zustand";
 import type { BrandSelection } from "@/system/brand/brand-library";
@@ -28,6 +29,7 @@ import { optimizeImageDataUrl } from "@/system/create/image-files";
 import {
   belongsToProject,
   loadGenerationHistory,
+  deleteGenerationHistory,
   saveGenerationHistory,
   type GenerationHistorySet,
   type LibraryGenerationShot,
@@ -50,7 +52,7 @@ export type GenerationRunResult = {
   failed: number;
 };
 
-type CreateWorkspaceSnapshot = {
+export type CreateWorkspaceSnapshot = {
   draftTitle: string;
   batchEntries: BatchEntry[];
   productImage: string | null;
@@ -129,7 +131,7 @@ type CreateStore = {
   setMood: (mood: string) => void;
   toggleProp: (prop: string) => void;
   setPrompt: (prompt: string) => void;
-  hydrateLibrary: () => Promise<void>;
+  hydrateLibrary: (force?:boolean) => Promise<void>;
   selectShot: (shotId: string | null, modifiers?: { shiftKey?: boolean; ctrlKey?: boolean; metaKey?: boolean }) => void;
   navigateSelection: (direction: -1 | 1) => void;
   clearStaging: () => void;
@@ -173,7 +175,7 @@ function createEmptyWorkspace(): CreateWorkspaceSnapshot {
   };
 }
 
-function captureWorkspace(state: CreateStore): CreateWorkspaceSnapshot {
+export function captureWorkspace(state: CreateStore): CreateWorkspaceSnapshot {
   return {
     draftTitle: state.draftTitle,
     batchEntries: cloneBatch(state.batchEntries),
@@ -217,6 +219,9 @@ function restoreLatestHistory(
 
   return {
     ...workspace,
+    ...(restoreProjectLatest&&!workspace.activeHistoryId&&activeHistory.shots[0]
+      ? {...historySettings(activeHistory.shots[0]),draftTitle:activeHistory.title}
+      : {}),
     generationRequested: true,
     generationShots: activeHistory.shots,
     selectedShotIds: workspace.selectedShotIds.filter(id => activeHistory.shots.some(shot => shot.id === id && shot.status === "done" && shot.imageUrl)),
@@ -304,7 +309,7 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
       const update = <T extends GenerationShot>(image: T): T => image.id === id && image.status === "done" && image.imageUrl === shot.imageUrl ? { ...image, fidelity } : image;
       return { generationHistory: current.generationHistory.map(item => ({ ...item, shots: item.shots.map(update) })), generationShots: current.generationShots.map(update), reevaluatingIds: current.reevaluatingIds.filter(value => value !== id) };
     });
-    await saveGenerationHistory(get().generationHistory);
+    await saveGenerationHistory(get().generationHistory).catch(() => undefined);
   },
   draftTitle: "새 생성",
   renameDraft: title => { if (title.trim()) set({ draftTitle: title.trim() }); },
@@ -312,14 +317,14 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
     if (!title.trim()) return;
     const generationHistory = get().generationHistory.map(history => history.id === id ? { ...history, title: title.trim() } : history);
     set({ generationHistory });
-    void saveGenerationHistory(generationHistory);
+    void saveGenerationHistory(generationHistory).catch(() => undefined);
   },
   renameShot: (id, title) => {
     if (!title.trim()) return;
     const rename = <T extends GenerationShot>(shot: T): T => shot.id === id ? { ...shot, label: title.trim() } : shot;
     const generationHistory = get().generationHistory.map(history => ({ ...history, shots: history.shots.map(rename) }));
     set({ generationHistory, generationShots: get().generationShots.map(rename) });
-    void saveGenerationHistory(generationHistory);
+    void saveGenerationHistory(generationHistory).catch(() => undefined);
   },
   generationPanelTab: "settings",
   setGenerationPanelTab: generationPanelTab => set({ generationPanelTab }),
@@ -425,8 +430,8 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
   setPrompt: (prompt) => {
     set({ prompt });
   },
-  hydrateLibrary: async () => {
-    if (get().libraryHydrated) return;
+  hydrateLibrary: async (force=false) => {
+    if (get().libraryHydrated&&!force) return;
     try {
       const generationHistory = await loadGenerationHistory();
       set(state => ({
@@ -497,7 +502,8 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
       generationMessage: `${new Date(history.createdAt).toLocaleString("ko-KR")} 생성 결과`,
     });
   },
-  deleteHistory: (historyId) => {
+  deleteHistory: async (historyId) => {
+    try { await deleteGenerationHistory(historyId); } catch(error) { reportCloudError(error); return; }
     const current = get();
 
     const generationHistory = current.generationHistory.filter(
@@ -525,14 +531,14 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
           : "",
       } : {}),
     });
-    void saveGenerationHistory(generationHistory);
+    void saveGenerationHistory(generationHistory).catch(() => undefined);
   },
   setBookmarks: (shotIds, bookmarked) => {
     const ids = new Set(shotIds);
     const generationHistory = get().generationHistory.map(history => ({ ...history, shots: history.shots.map(shot => ids.has(shot.id) ? { ...shot, bookmarked } : shot) }));
     const generationShots = get().generationShots.map(shot => ids.has(shot.id) ? { ...shot, bookmarked } : shot);
     set({ generationHistory, generationShots });
-    void saveGenerationHistory(generationHistory);
+    void saveGenerationHistory(generationHistory).catch(() => undefined);
   },
   toggleBookmark: (shotId) => {
     set((state) => {
@@ -545,7 +551,7 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
       const active = generationHistory.find(
         (history) => history.id === state.activeHistoryId,
       );
-      void saveGenerationHistory(generationHistory);
+      void saveGenerationHistory(generationHistory).catch(() => undefined);
       return {
         generationHistory,
         generationShots: active?.shots ?? state.generationShots,
@@ -598,7 +604,7 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
     } finally {
       queuedRetries.delete(shotId);
       set({ isGenerating: batchRunning || queuedRetries.size > 0 });
-      await saveGenerationHistory(get().generationHistory);
+      await saveGenerationHistory(get().generationHistory).catch(() => undefined);
     }
     });
   },
@@ -608,7 +614,7 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
     const runProjectId = current.workspaceProjectId;
     const lastGenerationPrompts = buildGenerationPrompts(current);
     const runCreatedAt = new Date().toISOString();
-    const runId = `generation-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const runId = crypto.randomUUID();
     const editModeLabel = EDIT_MODE_OPTIONS.find(
       (option) => option.id === current.editMode,
     )?.label ?? "기본";
@@ -728,7 +734,18 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
     let completed = 0;
     let failed = 0;
 
-    await saveGenerationHistory(get().generationHistory);
+    try { await saveGenerationHistory(get().generationHistory); }
+    catch(error){
+      batchRunning=false;
+      const message=error instanceof Error?error.message:"생성 준비를 저장하지 못했습니다.";
+      const failedShots:LibraryGenerationShot[]=generationShots.map(shot=>({...shot,status:"error",error:message}));
+      set(state=>({
+        isGenerating:queuedRetries.size>0,
+        generationHistory:state.generationHistory.map(history=>history.id===runId?{...history,shots:failedShots}:history),
+        ...(state.activeHistoryId===runId&&state.workspaceProjectId===runProjectId?{generationShots:failedShots,generationMessage:message}:{})
+      }));
+      return {usedActualGeneration:false,actualCompleted:0,completed:0,failed:generationShots.length};
+    }
 
     const concurrency = FREE_GENERATION_CONCURRENCY;
 
@@ -893,7 +910,7 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
         } : {}),
     }));
 
-    await saveGenerationHistory(get().generationHistory);
+    await saveGenerationHistory(get().generationHistory).catch(() => undefined);
 
     return {
       usedActualGeneration,

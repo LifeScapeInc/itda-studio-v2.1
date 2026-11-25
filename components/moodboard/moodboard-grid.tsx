@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import styled from "styled-components";
 import { ItemReferences } from "@/components/references/item-references";
 import { LabelTitle } from "@/components/ui/label-title";
-import { MOODBOARDS } from "@/system/moodboard/moodboards";
+import type { Moodboard } from "@/system/moodboard/moodboards";
 import { HiddenScrollbar } from "@/system/styles/layout";
 
 const Scroll = styled(HiddenScrollbar)`
@@ -26,7 +26,7 @@ const Grid = styled.section`
   }
 `;
 
-export function MoodboardGrid() {
+export function MoodboardGrid({moodboards}:{moodboards:Moodboard[]}) {
   const router = useRouter();
 
   return (
@@ -37,7 +37,7 @@ export function MoodboardGrid() {
       />
       <Scroll>
         <Grid aria-label="무드보드 스타일 목록">
-          {MOODBOARDS.map((moodboard) => (
+          {moodboards.map((moodboard) => (
             <ItemReferences
               title={moodboard.name}
               description={moodboard.description}

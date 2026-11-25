@@ -1,4 +1,5 @@
 import { readFile } from "node:fs/promises";
+import { assetId, readAsset } from "./cloud-assets";
 import path from "node:path";
 import OpenAI, { toFile } from "openai";
 import sharp from "sharp";
@@ -57,6 +58,8 @@ export async function resolveImage(
   source: string,
   name: string,
 ): Promise<Awaited<ReturnType<typeof toFile>>> {
+  const id=assetId(source);
+  if(id)return normalizeImage((await readAsset(id)).bytes,name);
   const parsed = parseDataUrl(source);
   if (parsed) {
     return normalizeImage(parsed.buffer, name);

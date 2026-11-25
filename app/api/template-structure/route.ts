@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { imageDataUrl } from "@/system/server/cloud-assets";
 import {
   DETAIL_TILE_DEFINITIONS,
   type PlanningCandidate,
@@ -46,7 +47,8 @@ export async function POST(request: Request): Promise<NextResponse> {
   try {
     const form = await request.formData();
     const planValue = form.get("plan");
-    const furnitureImage = form.get("furniture_image");
+    const sourceImage = form.get("furniture_image");
+    const furnitureImage = typeof sourceImage === "string" ? await imageDataUrl(sourceImage) : sourceImage;
     const mockMode = form.get("mock_mode") === "true";
     if (typeof planValue !== "string") {
       return NextResponse.json({ error: "선택한 기획안이 필요합니다." }, { status: 400 });

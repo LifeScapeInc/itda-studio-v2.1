@@ -1,3 +1,4 @@
+import { cloudImage } from "@/system/cloud/client";
 export type ReferencePreset = {
   id: string;
   label: string;
@@ -102,8 +103,8 @@ async function optimizeImageBlob(source: Blob): Promise<string> {
   }
 }
 
-export function readImageFile(file: File): Promise<string> {
-  return optimizeImageBlob(file);
+export async function readImageFile(file: File): Promise<string> {
+  return cloudImage(await optimizeImageBlob(file));
 }
 
 export async function optimizeImageDataUrl(source: string): Promise<string> {
