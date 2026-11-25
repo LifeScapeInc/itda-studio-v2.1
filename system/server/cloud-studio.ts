@@ -1,4 +1,5 @@
 import "server-only";
+import { duplicateProjectData } from "@/system/projects/duplicate-project";
 import { createHash } from "node:crypto";
 import { z } from "zod";
 import { cloudConfig, CloudError, db, list, rpc } from "./cloud-db";
@@ -280,4 +281,18 @@ async function preserveImportedBookmarks() {
         if (shot)
             await db(`bookmarks?workspace_id=eq.${workspace}&user_id=eq.${owner}&asset_id=eq.${bookmark.asset_id}`, { method: "PATCH", body: JSON.stringify({ snapshot: shot }) });
     }
+}
+
+export async function duplicateProject(id: string): Promise<StudioProject> {
+    uuid.parse(id);
+    const source = (await loadProjects()).find(project => project.id === id);
+    if (!source) throw new CloudError("프로젝트를 찾을 수 없습니다.", 404);
+    const [histories, cuts, detail] = await Promise.all([loadHistories(), loadWorkspace("studio_cut", id), loadWorkspace("detail_page", id)]);
+    const project = await duplicateProjectData(source, histories.filter(history => history.projectId === id), { studio_cut: cuts.state, detail_page: detail.state }, {
+        create: (input, sourceCase) => createProject(input, sourceCase ?? undefined),
+        saveHistory,
+        saveWorkspace: (kind, projectId, state) => saveWorkspace(kind, projectId, state, 0),
+        removeProject: deleteProject,
+    });
+    return (await loadProjects()).find(item => item.id === project.id) ?? project;
 }

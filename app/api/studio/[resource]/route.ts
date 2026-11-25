@@ -57,6 +57,7 @@ export async function POST(request: Request, { params }: {
                 const sourceCase = body.sourceCase ? z.object({ id: z.string().nullish(), email: z.string().nullable(), name: z.string().nullable(), case_name: z.string().nullable(), delivery_due_date: z.string().nullable(), status: z.string().nullable(), service_label: z.string().nullable() }).passthrough().parse(body.sourceCase) as IntegrationCase : undefined;
                 return Response.json(await studio.createProject(input, sourceCase));
             }
+            case "duplicate-project": return Response.json(await studio.duplicateProject(uuid.parse(body.id)));
             case "delete-project":
                 await studio.deleteProject(uuid.parse(body.id));
                 break;

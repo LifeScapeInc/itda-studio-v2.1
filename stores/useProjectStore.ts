@@ -52,6 +52,7 @@ type ProjectStore = {
     recordDetailPageDraft: (projectId: string, workId: string, createdAt: string) => void;
     markHydrated: () => void;
     deleteProject: (projectId: string) => Promise<void>;
+    duplicateProject: (projectId: string) => Promise<StudioProject>;
     hydrate: () => Promise<void>;
 };
 const FINAL_STATUSES = new Set(["completed", "delivered", "done", "final"]);
@@ -112,5 +113,10 @@ export const useProjectStore = create<ProjectStore>()(persist((set, get) => ({
     recordGenerationSet: (projectId, historyId, createdAt) => set(s => ({ projects: s.projects.map(p => p.id === projectId && !p.workHistory.some(w => w.id === historyId) ? { ...p, updatedAt: createdAt, workHistory: [{ id: historyId, kind: "generated_image", createdAt }, ...p.workHistory] } : p) })),
     recordDetailPageDraft: (projectId, workId, createdAt) => set(s => ({ projects: s.projects.map(p => p.id === projectId && !p.workHistory.some(w => w.id === workId) ? { ...p, updatedAt: createdAt, workHistory: [{ id: workId, kind: "detail_page", createdAt }, ...p.workHistory] } : p) })),
     markHydrated: () => set({ hydrated: true }),
+    duplicateProject: async (projectId) => {
+        const project = await cloudRequest<StudioProject>("duplicate-project", { id: projectId });
+        set(state => ({ projects: [project, ...state.projects] }));
+        return project;
+    },
     deleteProject: async (projectId) => { await cloudRequest("delete-project", { id: projectId }); set(s => ({ projects: s.projects.filter(p => p.id !== projectId), openProjectIds: s.openProjectIds.filter(id => id !== projectId), activeProjectId: s.activeProjectId === projectId ? null : s.activeProjectId })); }
 }), { name: "itda-studio-v2.1:project-tabs", skipHydration: true, partialize: state => ({ openProjectIds: state.openProjectIds }) }));

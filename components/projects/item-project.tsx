@@ -1,87 +1,29 @@
 "use client";
 
-import { Trash2 } from "lucide-react";
+import { useCallback, useState } from "react";
+import { ContextMenu } from "@/components/ui/context-menu";
+import { Copy as CopyIcon, Trash2 } from "lucide-react";
 import styled from "styled-components";
 import { LabelDraft } from "@/components/ui/label-draft";
 import { getProjectWorkTypeLabel, type StudioProject } from "@/stores/useProjectStore";
 import { ProjectPreview } from "./project-preview";
 
 const Item = styled.article`
-  position: relative;
-  width: 332px;
-  height: 335px;
+position: relative; width: 100%; height: 280px;
 `;
 
 const Card = styled.button<{
   $active: boolean;
 }>`
-  position: relative;
-  display: block;
-  width: 100%;
-  height: 100%;
-  padding: 0;
-  border: 1px solid ${({
-  $active
-}) => $active ? "var(--color-main-primary)" : "var(--color-border)"};
-  border-radius: var(--radius-panel);
-  background: var(--color-surface);
-  text-align: left;
-  cursor: pointer;
-  transition:
-    border-color 180ms ease,
-    box-shadow 180ms ease,
-    transform 180ms ease;
-
-  &:hover {
-    border-color: var(--color-main-primary);
-    box-shadow: 0 10px 26px rgb(32 29 23 / 10%);
-    transform: translateY(-3px);
-  }
-
-
-
-  & > span:last-child {
-    right: 18px;
-    bottom: var(--space-sm);
-  }
+position: relative; display: flex; width: 100%; height: 100%; flex-direction: column; gap: 12px; padding: 12px;
+ border: 1px solid ${({ $active }) => $active ? "var(--color-main-primary)" : "var(--color-border)"};
+ border-radius: var(--radius-panel); background: var(--color-surface); text-align: left; cursor: pointer;
+ &:hover { background: var(--color-main-neutral-light); }
+ > span:last-child { right: 12px; bottom: 12px; width: 36px; height: 22px; font-size: 12px; }
 `;
 
-const DeleteButton = styled.button`
-  position: absolute;
-  z-index: 3;
-  top: 28px;
-  right: 28px;
-  display: grid;
-  width: 32px;
-  height: 32px;
-  place-items: center;
-  padding: 0;
-  border: 1px solid var(--color-border);
-  border-radius: 50%;
-  background: rgb(255 255 255 / 92%);
-  color: var(--color-label-studio-comment);
-  cursor: pointer;
-  box-shadow: 0 3px 10px rgb(32 29 23 / 10%);
-  transition:
-    border-color 150ms ease,
-    color 150ms ease,
-    transform 150ms ease;
-
-  &:hover {
-    border-color: #a33c2a;
-    outline: none;
-    color: #a33c2a;
-    background: var(--color-main-neutral-light);
-  }
-`;
 const Previews = styled.span`
-  position: absolute;
-  top: var(--space-sm);
-  left: var(--space-sm);
-  display: flex;
-  width: 300px;
-  height: 214px;
-  gap: var(--space-sm);
+display: flex; width: 100%; height: 164px; flex: 0 0 164px; gap: 8px;
 `;
 const Preview = styled.span`
   position: relative;
@@ -93,42 +35,15 @@ const Preview = styled.span`
   background: var(--color-main-neutral);
 `;
 const MainPreview = styled(Preview)`
-  width: 180px;
-  flex: 0 0 180px;
+width: 62%; flex: 0 0 62%;
 `;
 const PreviewStack = styled.span`
-  display: flex;
-  min-width: 0;
-  flex: 1;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: var(--space-sm);
-
-  & > span {
-    height: 99px;
-    flex: 0 0 99px;
-  }
+display: flex; min-width: 0; flex: 1; flex-direction: column; gap: 8px; > span { flex: 1; min-height: 0; }
 `;
 const Copy = styled.span`
-  position: absolute;
-  top: 246px;
-  left: var(--space-sm);
-  display: flex;
-  width: 300px;
-  min-width: 0;
-  flex-direction: column;
-  gap: var(--space-xs);
-
-  span {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  span:not(:first-child) {
-    padding-right: 56px;
-    color: var(--color-label-studio-comment);
-  }
+display: flex; width: 100%; min-width: 0; flex-direction: column; gap: 8px;
+ span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+ span:not(:first-child) { padding-right: 48px; color: var(--color-label-studio-comment); }
 `;
 type ItemProjectProps = {
   project: StudioProject;
@@ -136,6 +51,8 @@ type ItemProjectProps = {
   active: boolean;
   onOpen: () => void;
   onDelete: () => void;
+  onDuplicate: () => void;
+  duplicating?: boolean;
 };
 export function ItemProject({
   project,
@@ -143,14 +60,23 @@ export function ItemProject({
   active,
   onOpen,
   onDelete,
+  onDuplicate,
+  duplicating = false,
 }: ItemProjectProps) {
+  const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
+  const closeMenu = useCallback(() => setMenu(null), []);
   return (
-    <Item>
+    <Item onContextMenu={event => { event.preventDefault(); setMenu({ x: event.clientX, y: event.clientY }); }}>
+
       <Card
         $active={active}
         aria-pressed={active}
         aria-label={`${project.projectName} 프로젝트 열기`}
         onDoubleClick={onOpen}
+        onKeyDown={event => {
+          if (event.key === "ContextMenu" || (event.shiftKey && event.key === "F10")) { event.preventDefault(); const rect = event.currentTarget.getBoundingClientRect(); setMenu({ x: rect.left + 16, y: rect.top + 16 }); }
+          else if (event.key === "Enter") { event.preventDefault(); onOpen(); }
+        }}
       >
         <Previews>
           <MainPreview>
@@ -190,17 +116,10 @@ export function ItemProject({
         </Copy>
         <LabelDraft variant={project.stage} />
       </Card>
-      <DeleteButton
-        type="button"
-        aria-label={`${project.projectName} 프로젝트 삭제`}
-        onClick={onDelete}
-      >
-        <Trash2
-          size={16}
-          strokeWidth={1.8}
-          aria-hidden="true"
-        />
-      </DeleteButton>
+      {menu && <ContextMenu x={menu.x} y={menu.y} height={76} label="프로젝트 메뉴" onClose={closeMenu}>
+        <button type="button" role="menuitem" disabled={duplicating} onClick={() => { closeMenu(); onDuplicate(); }}><CopyIcon />프로젝트 복제</button>
+        <button type="button" role="menuitem" disabled={duplicating} onClick={() => { closeMenu(); onDelete(); }}><Trash2 />삭제</button>
+      </ContextMenu>}
     </Item>
   );
 }

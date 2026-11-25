@@ -12,11 +12,11 @@ export function ButtonCreateProject({
 }) {
   return (
     <PrimaryIconButton
-      className="type-small-body"
+      className="type-xsmall-body"
       type="button"
       icon={FolderPlus}
       iconSize={17}
-      height={52}
+      height={32}
       disabled={disabled}
       onClick={onClick}
     >

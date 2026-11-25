@@ -5,8 +5,8 @@ import styled from "styled-components";
 
 const Card = styled.button`
   display: flex;
-  width: 314px;
-  height: 198px;
+  width: 100%;
+  height: 172px;
   flex-direction: column;
   align-items: flex-start;
   gap: var(--space-md);
@@ -16,12 +16,8 @@ const Card = styled.button`
   background: var(--color-surface);
   text-align: left;
   cursor: pointer;
-  transition:
-    border-color 140ms ease,
-    transform 140ms ease;
 
   &:hover {
-    border-color: var(--color-main-primary);
     outline: none;
     background: var(--color-main-neutral-light);
   }
@@ -29,9 +25,9 @@ const Card = styled.button`
 
 const Illustration = styled.span`
   display: block;
-  width: 96px;
-  height: 96px;
-  flex: 0 0 96px;
+  width: 72px;
+  height: 72px;
+  flex: 0 0 72px;
   overflow: hidden;
 
   img {
@@ -78,8 +74,8 @@ export function ItemCustomer({
       <Illustration>
         <Image
           src="/assets/customer-illustration.svg"
-          width={96}
-          height={96}
+          width={72}
+          height={72}
           alt=""
           priority
         />

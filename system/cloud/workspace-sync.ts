@@ -4,6 +4,11 @@ import { useDetailPageStore, captureWorkspace as captureDetail, type DetailWorks
 import { cloudRequest, portableState, restoreState } from "./client";
 import { flushHistorySaves } from "@/system/create/generation-library";
 import { reportCloudError, useCloudSyncStore } from "@/stores/useCloudSyncStore";
+const workspaceFlushes = new Set<() => Promise<void>>();
+export async function flushWorkspaceSaves() {
+    await flushHistorySaves();
+    await Promise.all([...workspaceFlushes].map(flush => flush()));
+}
 type Adapter = {
     kind: "studio_cut" | "detail_page";
     project: () => string | null;
@@ -136,6 +141,11 @@ export function installWorkspaceSync() {
                 clearTimeout(slot.timer);
             slot.timer = setTimeout(() => void flush(slot).catch(() => undefined), 600);
         }));
+        const flushPending = async () => {
+            await Promise.all([...slots.values()].map(async slot => { if (slot.loading) await slot.loading; await flush(slot); }));
+        };
+        workspaceFlushes.add(flushPending);
+        cleanups.push(() => workspaceFlushes.delete(flushPending));
         void load(previousId).catch(() => undefined);
         flushes.push(() => {
             for (const slot of slots.values())

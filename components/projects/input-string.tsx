@@ -4,31 +4,13 @@ import styled from "styled-components";
 import type { ComponentProps } from "react";
 
 const Label = styled.label`
-  display: flex;
-  width: 514px;
-  height: 23px;
-  align-items: center;
-  gap: var(--space-2xs);
-
-  span {
-    width: 103px;
-    flex: 0 0 103px;
-    text-align: right;
-  }
+display: flex; width: 100%; align-items: center; gap: 16px;
+ span { width: 104px; flex: 0 0 104px; text-align: left; font-size: 13px; font-weight: 500; }
 `;
 
 const Input = styled.input`
-  height: 23px;
-  min-width: 0;
-  flex: 1;
-  padding: 0 4px 2px;
-  border: 0;
-  border-bottom: 1px solid var(--color-label-studio-black);
-  border-radius: 0;
-  background: var(--color-main-neutral);
-  outline: none;
-
-
+height: 32px; min-width: 0; flex: 1; padding: 0 8px; border: 1px solid var(--color-border); border-radius: 4px;
+ background: var(--color-surface); color: var(--color-label-studio-black); outline: none; font-size: 13px; font-weight: 400;
 `;
 export function InputString({
   label,

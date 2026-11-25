@@ -4,37 +4,10 @@ import styled from "styled-components";
 const Button = styled.button<{
   $focused: boolean;
 }>`
-  position: relative;
-  display: grid;
-  width: 187px;
-  height: 36px;
-  place-items: center;
-  padding: 5px 0;
-  border: 0;
-  background: transparent;
-  color: ${({ $focused }) => (
-    $focused ? "var(--color-surface)" : "var(--color-label-studio-black)"
-  )};
-  cursor: pointer;
-
-  &::before {
-    position: absolute;
-    z-index: 0;
-    inset: 5px 0;
-    border: 1px solid var(--color-label-studio-black);
-    border-radius: 3px;
-    background: ${({ $focused }) => (
-      $focused ? "var(--color-main-primary)" : "var(--color-main-neutral)"
-    )};
-    content: "";
-  }
-
-  span {
-    position: relative;
-    z-index: 1;
-  }
-
-
+display: inline-flex; min-height: 28px; align-items: center; justify-content: center; padding: 0 12px;
+ border: 1px solid ${({ $focused }) => $focused ? "var(--color-main-primary)" : "var(--color-border)"}; border-radius: 4px;
+ background: ${({ $focused }) => $focused ? "var(--color-main-neutral)" : "var(--color-surface)"}; color: var(--color-label-studio-black); font-size: 12px; font-weight: 400; cursor: pointer;
+ &:hover { background: var(--color-main-neutral-light); }
 `;
 export function InputButton({
   children,

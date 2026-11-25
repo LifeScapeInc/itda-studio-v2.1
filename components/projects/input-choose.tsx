@@ -4,23 +4,15 @@ import styled from "styled-components";
 import { InputButton } from "./input-button";
 
 const Row = styled.div`
-  display: flex;
-  width: 514px;
-  height: 36px;
-  align-items: center;
-  gap: var(--space-md);
+display: flex; width: 100%; align-items: center; gap: 16px;
 `;
 
 const Label = styled.span`
-  width: 104px;
-  flex: 0 0 104px;
-  text-align: right;
+width: 104px; flex: 0 0 104px; text-align: left; font-size: 13px; font-weight: 500;
 `;
 
 const Choices = styled.div`
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
+display: flex; min-width: 0; flex: 1; flex-wrap: wrap; align-items: center; gap: 8px;
 `;
 
 type InputChooseProps<T extends string> = {

@@ -1,10 +1,9 @@
 "use client";
 
-import Image from "next/image";
+import { ArrowLeft } from "lucide-react";
 import styled from "styled-components";
 import { NavigationLeft } from "@/components/layout/navigation-left";
 import { NavigationTop } from "@/components/layout/navigation-top";
-import { ButtonBack } from "@/components/ui/button-back";
 import { LabelTitle } from "@/components/ui/label-title";
 import { StudioShell, WorkspaceContent, HiddenScrollbar } from "@/system/styles/layout";
 import { getCaseKey } from "@/system/integrations/cases";
@@ -12,18 +11,21 @@ import { useImportWorkspace } from "@/system/import/use-import-workspace";
 import { ButtonCreateProject } from "./button-create-project";
 import { ItemCase } from "./item-case";
 import { ItemCustomer } from "./item-customer";
+const Back = styled.button`display: inline-flex; align-self: flex-start; align-items: center; gap: 8px; margin-bottom: 16px; padding: 0; border: 0; background: transparent; color: var(--color-label-studio-comment); font-size: 12px; cursor: pointer; &:hover { color: var(--color-main-primary); }`;
 const Header = styled.div`display:flex;width:100%;flex:0 0 auto;align-items:flex-start;justify-content:space-between;gap:var(--space-xl);&>header{min-width:0;flex:1}`;
-const CustomerScroll = styled(HiddenScrollbar)`min-height:0;flex:1;margin-top:var(--space-2xl);overflow-x:hidden;overflow-y:auto;overscroll-behavior-y:contain;padding-block:var(--space-3xs)`;
-const CustomerGrid = styled.section`display:grid;grid-template-columns:repeat(auto-fill,314px);align-content:start;gap:var(--space-lg)`;
+const CustomerScroll = styled(HiddenScrollbar)`min-height:0;flex:1;margin-top:32px;overflow-x:hidden;overflow-y:auto;overscroll-behavior-y:contain;padding-block:var(--space-3xs)`;
+const CustomerGrid = styled.section`display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,336px));align-content:start;gap:var(--space-lg)`;
 const Feedback = styled.div<{
   $error?: boolean;
-}>`grid-column:1/-1;display:flex;min-height:96px;align-items:${p => p.$error ? "flex-start" : "center"};flex-direction:${p => p.$error ? "column" : "row"};justify-content:center;gap:var(--space-sm);color:var(--color-label-studio-comment);font-size:14px`;
-const Retry = styled.button`padding:var(--space-xs) var(--space-sm);border:1px solid var(--color-main-primary);border-radius:8px;background:var(--color-main-primary);color:white;cursor:pointer`;
-const CaseView = styled.div`display:grid;min-height:0;flex:1;grid-template-rows:minmax(0,449fr) minmax(56px,347fr);gap:var(--space-2xl);margin-top:var(--space-2xl);overflow:hidden`;
-const CaseGrid = styled(HiddenScrollbar)`display:grid;min-height:0;height:100%;grid-template-columns:repeat(auto-fill,379px);align-content:start;gap:var(--space-lg);overflow-x:hidden;overflow-y:auto;padding-block:var(--space-3xs)`;
-const Existing = styled.section`display:grid;min-height:0;height:100%;grid-template-rows:20px minmax(0,1fr);gap:var(--space-2xl);overflow:hidden`;
-const ExistingHeading = styled.div`display:flex;align-items:center;gap:var(--space-md);color:var(--color-main-primary);h2{flex:0 0 auto}`;
-const Divider = styled.span`position:relative;height:2px;flex:1;overflow:hidden;img{object-fit:fill}`;
+}>`grid-column:1/-1;display:flex;min-height:96px;align-items:${p => p.$error ? "flex-start" : "center"};flex-direction:${p => p.$error ? "column" : "row"};justify-content:center;gap:var(--space-sm);color:var(--color-label-studio-comment);font-size:13px`;
+const Retry = styled.button`height:32px;padding:0 12px;border:0;border-radius:4px;background:var(--color-main-primary);color:var(--color-surface);font-size:12px;cursor:pointer`;
+const CaseView = styled.div`display:grid;min-height:0;flex:1;grid-template-rows:minmax(0,449fr) minmax(56px,347fr);gap:24px;margin-top:32px;overflow:hidden`;
+const CaseGrid = styled(HiddenScrollbar)`display:grid;min-height:0;height:100%;grid-template-columns:repeat(auto-fill,minmax(280px,336px));align-content:start;gap:var(--space-lg);overflow-x:hidden;overflow-y:auto;padding-block:var(--space-3xs)`;
+const Existing = styled.section`display:grid;min-height:0;height:100%;grid-template-rows:20px minmax(0,1fr);gap:24px;overflow:hidden`;
+const ExistingHeading = styled.div`display:flex;align-items:center;gap:var(--space-md);color:var(--color-label-studio-black);h2{flex:0 0 auto}`;
+const Divider = styled.span`
+height: 1px; flex: 1; background: var(--color-border);
+`;
 export function ImportWorkspace() {
   const m = useImportWorkspace();
   return (
@@ -32,11 +34,7 @@ export function ImportWorkspace() {
       <NavigationLeft />
       <WorkspaceContent>
         {m.customer ? (
-          <ButtonBack
-            label="고객 목록"
-            ariaLabel="고객 목록으로 돌아가기"
-            onClick={m.returnToCustomerList}
-          />
+          <Back type="button" onClick={m.returnToCustomerList}><ArrowLeft size={16} />고객 목록</Back>
         ) : null}
         <Header>
           <LabelTitle
@@ -68,19 +66,12 @@ export function ImportWorkspace() {
             <Existing aria-labelledby="existing-project-title">
               <ExistingHeading>
                 <h2
-                  className="type-small-body"
+                  className="type-xsmall-body"
                   id="existing-project-title"
                 >
                   이미 프로젝트가 존재하는 케이스
                 </h2>
-                <Divider>
-                  <Image
-                    src="/assets/existing-project-divider.svg"
-                    alt=""
-                    fill
-                    sizes="100vw"
-                  />
-                </Divider>
+                <Divider aria-hidden="true" />
               </ExistingHeading>
               <CaseGrid>
                 {m.existing.map(item => (

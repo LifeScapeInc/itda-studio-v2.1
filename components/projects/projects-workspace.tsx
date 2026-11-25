@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { flushWorkspaceSaves } from "@/system/cloud/workspace-sync";
 import { reportCloudError } from "@/stores/useCloudSyncStore";
 import { useEffect, useState } from "react";
 import styled from "styled-components";
@@ -18,9 +19,10 @@ import { ButtonAdd } from "./button-add";
 import { ItemProject } from "./item-project";
 import { ProjectCreateOverlay } from "./project-create-overlay";
 import { ProjectDeleteOverlay } from "./project-delete-overlay";
-const Scroll = styled(HiddenScrollbar)`min-height:0;flex:1;margin-top:var(--space-3xl);overflow:auto;padding-block:var(--space-3xs)`;
-const Grid = styled.section`display:grid;grid-template-columns:repeat(auto-fill,332px);align-content:start;gap:var(--space-lg);padding-bottom:96px`;
+const Scroll = styled(HiddenScrollbar)`min-height:0;flex:1;margin-top:32px;overflow:auto;padding-block:var(--space-3xs)`;
+const Grid = styled.section`display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,336px));align-content:start;gap:var(--space-lg);padding-bottom:96px`;
 export function ProjectsWorkspace() {
+  const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<StudioProject | null>(null);
   const router = useRouter();
@@ -31,6 +33,7 @@ export function ProjectsWorkspace() {
   const projectError = useProjectStore(state=>state.loadError);
   const active = useProjectStore((state) => state.activeProjectId);
   const openProject = useProjectStore((state) => state.openProject);
+  const duplicateProject = useProjectStore(state => state.duplicateProject);
   const deleteProject = useProjectStore((state) => state.deleteProject);
   const generationHistory = useCreateStore((state) => state.generationHistory);
   const hydrateLibrary = useCreateStore((state) => state.hydrateLibrary);
@@ -65,9 +68,10 @@ export function ProjectsWorkspace() {
       <WorkspaceContent>
         <LabelTitle
           title="프로젝트"
-          description="카드를 더블클릭하면 이어서 작업할 수 있으며, 카드의 삭제 버튼으로 프로젝트를 삭제할 수 있습니다."
+          description="카드를 더블클릭하면 이어서 작업할 수 있으며, 우클릭 메뉴에서 프로젝트를 복제하거나 삭제할 수 있습니다."
         />
         <Scroll>
+          {duplicatingId && <p role="status" className="type-medium-thin">프로젝트를 복제하는 중입니다.</p>}
           {projectError ? <div role="alert"><p>{projectError}</p><button type="button" disabled={projectsLoading} onClick={()=>void hydrateProjects().catch(()=>undefined)}>다시 불러오기</button></div>
             : (!projectsHydrated||projectsLoading)&&!projects.length ? <p role="status">프로젝트를 불러오는 중…</p>
             : projectsHydrated&&!projects.length ? <p>등록된 프로젝트가 없습니다. 새 프로젝트를 추가해 주세요.</p> : null}
@@ -93,6 +97,16 @@ export function ProjectsWorkspace() {
                     ? "/detail-page"
                     : "/create";
                   router.push(`${path}?projectId=${encodeURIComponent(p.id)}`);
+                }}
+                duplicating={Boolean(duplicatingId)}
+                onDuplicate={() => {
+                  if (duplicatingId) return;
+                  setDuplicatingId(p.id);
+                  void (async () => {
+                    try { await flushWorkspaceSaves(); await duplicateProject(p.id); await hydrateLibrary(true); }
+                    catch (error) { reportCloudError(error); }
+                    finally { setDuplicatingId(null); }
+                  })();
                 }}
                 onDelete={() => setDeleteTarget(p)}
                 key={p.id}

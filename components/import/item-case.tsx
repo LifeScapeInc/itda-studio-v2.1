@@ -13,58 +13,31 @@ type State = "idle" | "focused" | "disabled";
 const Card = styled.button<{
   $state: State;
 }>`
-  position: relative;
-  display: flex;
-  width: 379px;
-  height: 104px;
-  align-items: center;
-  gap: var(--space-xs);
-  padding: var(--space-sm);
-  border: 2px solid ${({ $state }) => {
-    if ($state === "focused") return "var(--color-main-secondary)";
-    if ($state === "disabled") return "var(--color-label-assistive)";
-    return "var(--color-border)";
-  }};
-  border-radius: var(--radius-panel);
-  background: ${({ $state }) => (
-    $state === "disabled"
-      ? "var(--color-label-disabled)"
-      : "var(--color-surface)"
-  )};
-  text-align: left;
-  cursor: ${({ $state }) => ($state === "disabled" ? "default" : "pointer")};
-
-  &:hover {
-    border-color: ${({ $state }) => (
-      $state === "disabled"
-        ? "var(--color-label-assistive)"
-        : "var(--color-main-secondary)"
-    )};
-    outline: none;
-  }
-
-  & > span:last-child {
-    right: var(--space-sm);
-    bottom: 17px;
-  }
+position: relative; display: flex; width: 100%; min-height: 112px; align-items: center; gap: 12px; padding: 12px;
+ border: 1px solid ${({ $state }) => $state === "focused" ? "var(--color-main-primary)" : "var(--color-border)"};
+ border-radius: var(--radius-panel); background: ${({ $state }) => $state === "focused" ? "var(--color-main-neutral)" : "var(--color-surface)"};
+ text-align: left; cursor: ${({ $state }) => $state === "disabled" ? "default" : "pointer"};
+ opacity: ${({ $state }) => $state === "disabled" ? .55 : 1};
+ &:hover:not(:disabled) { background: var(--color-main-neutral-light); }
+ > span:last-child { right: 12px; bottom: 12px; font-size: 12px; width: 36px; height: 22px; }
 `;
 
 const Placeholder = styled.span<{
   $disabled: boolean;
 }>`
-  width: 72px;
-  height: 72px;
-  flex: 0 0 72px;
+  width: 64px;
+  height: 64px;
+  flex: 0 0 64px;
   display: grid;
   place-items: center;
   border-radius: var(--radius-panel);
   background: ${({ $disabled }) => (
-    $disabled ? "#dbdbdb" : "var(--color-main-neutral)"
+    $disabled ? "var(--color-main-neutral-light)" : "var(--color-main-neutral)"
   )};
 
   svg {
-    width: 44px;
-    height: 44px;
+    width: 28px;
+    height: 28px;
     color: var(--color-main-primary);
     opacity: ${({ $disabled }) => $disabled ? 0.48 : 1};
   }
@@ -76,7 +49,7 @@ const Copy = styled.span`
   flex: 1;
   flex-direction: column;
   gap: var(--space-2xs);
-  padding-right: 54px;
+  padding-right: 36px;
 
   span {
     display: block;
