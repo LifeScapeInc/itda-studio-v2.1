@@ -51,6 +51,7 @@ export function MoodboardCollage({
       </Canvas>
       {activeIndex !== null ? (
         <MoodboardDetailViewer
+          showPlaceholder={false}
           images={images}
           name={styleName}
           initialIndex={activeIndex}

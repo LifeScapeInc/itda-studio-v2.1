@@ -177,6 +177,7 @@ export function ImageAlbum({
   selectedIndex,
   onIndexChange,
   showFooter = true,
+  showPlaceholder = true,
 }: {
   images: string[];
   name: string;
@@ -185,6 +186,7 @@ export function ImageAlbum({
   selectedIndex?: number;
   onIndexChange?: (index: number) => void;
   showFooter?: boolean;
+  showPlaceholder?: boolean;
 }) {
   const [internalIndex, setInternalIndex] = useState(0);
   const index = selectedIndex ?? internalIndex;
@@ -256,6 +258,7 @@ export function ImageAlbum({
               aria-hidden={imageIndex !== index}
             >
               <LoadingImage
+                showPlaceholder={showPlaceholder}
                 src={src}
                 alt={`${name} 레퍼런스 ${imageIndex + 1}`}
                 fill
@@ -304,6 +307,7 @@ export function ImageAlbum({
               key={src}
             >
               <LoadingImage
+                showPlaceholder={showPlaceholder}
                 src={src}
                 alt=""
                 fill

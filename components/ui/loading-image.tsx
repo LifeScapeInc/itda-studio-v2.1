@@ -55,7 +55,7 @@ const ContentImage = styled(Image)<{ $visible: boolean }>`
   transition: opacity 180ms ease;
 `;
 
-type LoadingImageProps = ImageProps;
+type LoadingImageProps = ImageProps & { showPlaceholder?: boolean };
 
 function getSourceKey(src: ImageProps["src"]): string {
   if (typeof src === "string") {
@@ -74,6 +74,7 @@ export function LoadingImage({
   alt,
   onLoad,
   onError,
+  showPlaceholder = true,
   ...props
 }: LoadingImageProps) {
   // Authenticated asset routes cannot be fetched by Next's cookie-less optimizer.
@@ -89,7 +90,7 @@ export function LoadingImage({
 
   return (
     <Root>
-      <Placeholder
+      {showPlaceholder && <Placeholder
         $visible={status !== "loaded"}
         aria-hidden="true"
       >
@@ -98,7 +99,7 @@ export function LoadingImage({
           size={24}
           strokeWidth={1.8}
         />
-      </Placeholder>
+      </Placeholder>}
       <ContentImage
         {...props}
         unoptimized={props.unoptimized||privateAsset}

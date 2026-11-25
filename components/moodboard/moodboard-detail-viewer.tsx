@@ -59,12 +59,14 @@ export function MoodboardDetailViewer({
   initialIndex,
   isOpen,
   onClose,
+  showPlaceholder = true,
 }: {
   images: string[];
   name: string;
   initialIndex: number;
   isOpen: boolean;
   onClose: () => void;
+  showPlaceholder?: boolean;
 }) {
   const [selectedIndex, setSelectedIndex] = useState(initialIndex);
   const workspaceContent = typeof document === "undefined"
@@ -115,6 +117,7 @@ export function MoodboardDetailViewer({
               <X size={19} />
             </CloseButton>
             <ImageAlbum
+              showPlaceholder={showPlaceholder}
               images={images}
               name={name}
               overlay

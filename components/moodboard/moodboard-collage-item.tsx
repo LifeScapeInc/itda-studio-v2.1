@@ -14,14 +14,14 @@ const Tile = styled.button<{ $item: MoodboardLayoutItem }>`
   padding: 0;
   border: 0;
   border-radius: 0;
-  background: var(--color-main-neutral);
+  background: transparent;
   overflow: hidden;
   cursor: zoom-in;
 
   img {
     object-fit: cover;
     transform: scale(1);
-    transition: transform 280ms ease-out;
+    transition: opacity 240ms ease-out, transform 280ms ease-out;
   }
 
   &:hover img {
@@ -57,6 +57,7 @@ export function MoodboardCollageItem({
       onClick={() => onSelect(imageIndex)}
     >
       <LoadingImage
+        showPlaceholder={false}
         src={item.src}
         alt={`${styleName} 무드보드 이미지 ${imageIndex + 1}`}
         fill
