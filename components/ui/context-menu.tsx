@@ -1,9 +1,16 @@
 "use client";
 import { useEffect, useRef, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
+
+const appear = keyframes`
+  from { transform: scale(.8); }
+  to { transform: scale(1); }
+`;
 
 const Menu = styled.div`
+  animation: ${appear} 100ms cubic-bezier(.16, 1, .3, 1) both;
+  @media (prefers-reduced-motion: reduce) { animation: none; }
   position: fixed; z-index: 210; width: 200px; padding: 4px;
   border: 1px solid var(--color-border); border-radius: 7px;
   background: var(--color-surface); box-shadow: 0 8px 24px rgb(32 29 23 / 18%);
@@ -24,8 +31,10 @@ export function ContextMenu({ x, y, label, height = 190, onClose, children }: { 
     document.addEventListener("pointerdown", outside);
     window.addEventListener("resize", close); window.addEventListener("scroll", close, true);
     return () => { document.removeEventListener("pointerdown", outside); window.removeEventListener("resize", close); window.removeEventListener("scroll", close, true); previous?.focus(); };
-  }, [onClose]);
-  return createPortal(<Menu ref={ref} role="menu" aria-label={label} style={{ left: Math.max(8, Math.min(x, window.innerWidth - 208)), top: Math.max(8, Math.min(y, window.innerHeight - height - 8)) }}
+  }, [onClose, x, y]);
+  const left = Math.max(8, Math.min(x, window.innerWidth - 208));
+  const top = Math.max(8, Math.min(y, window.innerHeight - height - 8));
+  return createPortal(<Menu key={`${x}:${y}`} ref={ref} role="menu" aria-label={label} style={{ left, top, transformOrigin: `${Math.max(0, Math.min(200, x - left))}px ${Math.max(0, Math.min(height, y - top))}px` }}
     onContextMenu={event => event.preventDefault()} onKeyDown={event => {
       if (event.key === "Escape" || event.key === "Tab") { if (event.key === "Escape") event.preventDefault(); onClose(); }
       if (["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) {
