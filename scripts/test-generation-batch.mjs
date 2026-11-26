@@ -194,16 +194,24 @@ check("Navigation defaults to compact, expands and returns", () => {
   checks++; console.log("PASS Shared regeneration queue caps concurrency at four, starts FIFO and releases failed slots");
   const savedFetch = global.fetch;
   global.window = { setTimeout: callback => { callback(); return 0; } };
-  global.fetch = async (_url, options) => {
+  // Keep the regression suite offline after cloud persistence was introduced.
+  const setFetch = handler => { global.fetch = async (url, options) => {
+    if (String(url).startsWith("/api/studio/")) {
+      const body = options?.body ? JSON.parse(options.body) : null;
+      return { ok: true, json: async () => body ? { version: (body.version ?? 0) + 1 } : [] };
+    }
+    return handler(url, options);
+  }; };
+  setFetch(async (_url, options) => {
     requests.push(JSON.parse(options.body));
-    return { ok: true, json: async () => ({ images: ["data:image/png;base64,test"], fidelityEvaluations: [{ status: "scored", score: 72.6, modelVersion: "test-v1" }], mock: true, note: "mock result" }) };
-  };
+    return { ok: true, json: async () => ({ images: ["/test/generated.png"], fidelityEvaluations: [{ status: "scored", score: 72.6, modelVersion: "test-v1" }], brandFitEvaluations: [{ status: "scored", score: 81.2, modelVersion: "bf-test" }], mock: true, note: "mock result" }) };
+  });
   try {
     store.getState().setProjectContext(null);
     store.getState().clearEntries(); store.getState().addPreset("ad");
     const id = store.getState().batchEntries[0].id;
     store.getState().setEntryQuantity(id, 2);
-    store.getState().setProductImage("data:image/png;base64,fixture");
+    store.getState().setProductImage("/test/product.png");
     store.getState().setBrandSelection({ id: "brand-fixture", name: "Brand fixture", version: 2 });
     const [result, duplicate] = await Promise.all([store.getState().requestGeneration(true), store.getState().requestGeneration(true)]);
     assert.equal(duplicate.completed, 0);
@@ -212,6 +220,9 @@ check("Navigation defaults to compact, expands and returns", () => {
     assert.equal(store.getState().selectedShotId, null);
     const [shot] = store.getState().generationShots;
     assert.deepEqual(shot.fidelity, { status: "scored", score: 72.6, modelVersion: "test-v1" });
+    assert.deepEqual(shot.brandFit, { status: "scored", score: 81.2, modelVersion: "bf-test" });
+    assert.ok(requests.every(request => request.brandId === "brand-fixture"));
+    assert.equal(shot.metadata.brandSelection.id, "brand-fixture");
     assert.equal(shot.metadata.generationSettings.batchEntries[0].quantity, 2);
     assert.deepEqual(shot.metadata.generationSettings.brandSelection, { id: "brand-fixture", name: "Brand fixture", version: 2 });
     store.getState().selectShot(shot.id); assert.equal(store.getState().selectedShotId, shot.id);
@@ -245,13 +256,14 @@ check("Navigation defaults to compact, expands and returns", () => {
     assert.equal(requests.at(-1).prompt, failed.metadata.finalPrompt);
     assert.equal(requests.at(-1).productImage, failed.metadata.inputImages.find(image => image.kind === "product").imageUrl);
     assert.equal(requests.at(-1).quality, failed.metadata.generationSettings.quality);
+    assert.equal(requests.at(-1).brandId, "brand-fixture");
     assert.equal(store.getState().generationShots[0].status, "done");
     assert.equal(store.getState().generationShots[0].label, "Keep my name");
     assert.deepEqual(store.getState().generationShots.slice(1), retryRun.shots.slice(1));
     assert.equal(store.getState().isGenerating, false);
     await store.getState().retryShot(failed.id, true);
     assert.equal(requests.length, beforeRequests + 1);
-    global.fetch = async () => ({ ok: false, status: 503, json: async () => ({ error: "Retry failed" }) });
+    setFetch(async () => ({ ok: false, status: 503, json: async () => ({ error: "Retry failed" }) }));
     store.setState({ generationHistory: [retryRun], generationShots: retryRun.shots });
     await store.getState().retryShot(failed.id, true);
     assert.equal(store.getState().generationShots[0].status, "error");
@@ -264,7 +276,7 @@ check("Navigation defaults to compact, expands and returns", () => {
     await store.getState().retryShot(successful.id, true, true);
     assert.equal(store.getState().generationShots[0].status, "done");
     assert.equal(store.getState().generationShots[0].imageUrl, "old-result");
-    global.fetch = async () => ({ ok: true, json: async () => ({ images: ["new-result"], fidelityEvaluations: [{ status: "unavailable", reason: "evaluation offline" }], mock: true }) });
+    setFetch(async () => ({ ok: true, json: async () => ({ images: ["new-result"], fidelityEvaluations: [{ status: "unavailable", reason: "evaluation offline" }], mock: true }) }));
     await store.getState().retryShot(successful.id, true, true);
     assert.equal(store.getState().generationShots[0].imageUrl, "new-result");
     assert.deepEqual(store.getState().generationShots[0].fidelity, { status: "unavailable", reason: "evaluation offline" });
@@ -272,19 +284,22 @@ check("Navigation defaults to compact, expands and returns", () => {
     checks++; console.log("PASS Evaluation regeneration replaces a completed image on success and preserves it on failure");
     let releaseEvaluation;
     const evaluationCalls = [];
-    global.fetch = async (url, options) => {
+    setFetch(async (url, options) => {
       evaluationCalls.push({ url, body: JSON.parse(options.body) });
       await new Promise(resolve => { releaseEvaluation = resolve; });
-      return { ok: true, json: async () => ({ fidelity: { status: "scored", score: 88.5, modelVersion: "test" } }) };
-    };
+      return { ok: true, json: async () => ({ fidelity: { status: "scored", score: 88.5, modelVersion: "test" }, brandFit: { status: "scored", score: 65.4, modelVersion: "bf-test2" } }) };
+    });
     const evaluating = store.getState().reevaluateShot(successful.id);
     await store.getState().reevaluateShot(successful.id);
     assert.equal(evaluationCalls.length, 1);
     assert.equal(evaluationCalls[0].url, "/api/evaluate");
     assert.equal(evaluationCalls[0].body.generatedImage, "new-result");
+    assert.equal(evaluationCalls[0].body.brandId, "brand-fixture");
     assert.ok(store.getState().reevaluatingIds.includes(successful.id));
     releaseEvaluation(); await evaluating;
     assert.equal(store.getState().generationShots[0].fidelity.score, 88.5);
+    assert.equal(store.getState().generationShots[0].brandFit.score, 65.4);
+    assert.equal(store.getState().generationHistory[0].shots[0].brandFit.score, 65.4);
     assert.equal(store.getState().generationHistory[0].shots[0].fidelity.score, 88.5);
     assert.equal(store.getState().generationShots[0].imageUrl, "new-result");
     assert.equal(store.getState().reevaluatingIds.length, 0);
@@ -299,13 +314,15 @@ check("Navigation defaults to compact, expands and returns", () => {
     store.getState().reuseGenerationSettings(successful); assert.equal(store.getState().productImage, successful.metadata.inputImages[0].imageUrl);
     store.getState().addMake(); const added = store.getState().batchEntries.at(-1);
     store.getState().updateMake(added.id, { ratio: "16:9" }); assert.equal(store.getState().batchEntries.at(-1).ratio, "16:9");
-    store.getState().deleteHistory(historyId); assert.ok(!store.getState().generationHistory.some(item => item.id === historyId));
+    const deleting = store.getState().deleteHistory(historyId); assert.ok(!store.getState().generationHistory.some(item => item.id === historyId));
+    await deleting;
     assert.equal((await store.getState().requestGeneration(true)).completed, 0);
     store.setState({ isGenerating: false });
     checks++; console.log("PASS Editing, settings reuse, closing and history deletion remain available while generation submission stays locked");
 
 
 
+    await load("../system/create/generation-library.ts").flushHistorySaves();
   } finally { global.fetch = savedFetch; delete global.window; }
   console.log(`${checks} checks passed; no paid API requests`);
 })().catch(error => { console.error(error); process.exitCode = 1; });

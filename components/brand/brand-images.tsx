@@ -1,6 +1,7 @@
 "use client";
-import { Fragment, useRef, useState, type CSSProperties, type MouseEvent } from "react";
-import { ImagePlus } from "lucide-react";
+import { Fragment, useCallback, useEffect, useRef, useState, type CSSProperties, type MouseEvent } from "react";
+import { ContextMenu } from "@/components/ui/context-menu";
+import { ArrowLeftRight, ImagePlus, Trash2 } from "lucide-react";
 import styled from "styled-components";
 import { LoadingImage } from "@/components/ui/loading-image";
 import { MoodboardDetailViewer } from "@/components/moodboard/moodboard-detail-viewer";
@@ -37,7 +38,12 @@ const Upload = styled.button<{ $dragging: boolean }>`
  &:hover:not(:disabled) { background: var(--color-main-neutral-light); }
  &:disabled { opacity: .5; cursor: default; }
 `;
-export function BrandImages({ images, busy, onAdd }: { images: BrandImage[]; busy: boolean; onAdd: (files: File[], caseType: BrandCase) => void }) {
+export function BrandImages({ images, busy, onAdd, onMove, onRemove }: {
+ images: BrandImage[]; busy: boolean;
+ onAdd: (files: File[], caseType: BrandCase) => void;
+ onMove: (ids: string[], caseType: BrandCase) => void;
+ onRemove: (ids: string[]) => void;
+}) {
  const root = useRef<HTMLDivElement>(null);
  const [ratio, setRatio] = useState(.5);
  const liveRatio = useRef(.5);
@@ -47,6 +53,8 @@ export function BrandImages({ images, busy, onAdd }: { images: BrandImage[]; bus
    liveRatio.current = Math.max(minimum, Math.min(1 - minimum, value));
    root.current?.style.setProperty("--brand-positive-ratio", String(liveRatio.current));
  };
+ const [menu, setMenu] = useState<{ x: number; y: number; ids: string[]; targetCase: BrandCase } | null>(null);
+ const closeMenu = useCallback(() => setMenu(null), []);
  const [selected, setSelected] = useState<string[]>([]);
  const [anchor, setAnchor] = useState<string | null>(null);
  const [dragging, setDragging] = useState<BrandCase | null>(null);
@@ -54,6 +62,28 @@ export function BrandImages({ images, busy, onAdd }: { images: BrandImage[]; bus
  const input = useRef<HTMLInputElement>(null);
  const uploadCase = useRef<BrandCase>("positive");
  const ordered = [...images.filter(image => image.caseType !== "negative"), ...images.filter(image => image.caseType === "negative")];
+ const viewedImage = images.find(image => image.id === viewing);
+ const album = viewedImage ? ordered.filter(image => (image.caseType ?? "positive") === (viewedImage.caseType ?? "positive")) : [];
+ const openImage = (image: BrandImage) => { setSelected([image.id]); setAnchor(image.id); setViewing(image.id); };
+ const openMenu = (image: BrandImage, x: number, y: number) => {
+   const ids = selected.includes(image.id) ? selected.filter(id => images.some(item => item.id === id)) : [image.id];
+   if (!selected.includes(image.id)) { setSelected(ids); setAnchor(image.id); }
+   setMenu({ x, y, ids, targetCase: image.caseType === "negative" ? "positive" : "negative" });
+ };
+ useEffect(() => {
+   const removeOnDelete = (event: KeyboardEvent) => {
+     if (event.key !== "Delete" || event.repeat || event.defaultPrevented || busy) return;
+     if (event.target instanceof Element && event.target.closest('input, textarea, select, [contenteditable=""], [contenteditable="true"], [role="textbox"]')) return;
+     const ids = (menu?.ids ?? selected).filter(id => images.some(image => image.id === id));
+     if (!ids.length) return;
+     event.preventDefault();
+     closeMenu();
+     setViewing(null);
+     onRemove(ids);
+   };
+   window.addEventListener("keydown", removeOnDelete);
+   return () => window.removeEventListener("keydown", removeOnDelete);
+ }, [busy, images, selected, menu, onRemove, closeMenu]);
  const clickImage = (event: MouseEvent<HTMLButtonElement>, image: BrandImage) => {
    const additive = event.ctrlKey || event.metaKey;
    if (event.shiftKey) {
@@ -66,14 +96,16 @@ export function BrandImages({ images, busy, onAdd }: { images: BrandImage[]; bus
      setSelected(previous => additive ? previous.includes(image.id) ? previous.filter(id => id !== image.id) : [...previous, image.id] : [image.id]);
      setAnchor(image.id);
    }
-   if (!additive && !event.shiftKey) setViewing(image.id);
  };
  return <><Root ref={root} style={{ "--brand-positive-ratio": ratio } as CSSProperties} onDragOver={event => { if (event.dataTransfer.types.includes("Files") && !event.defaultPrevented) { event.preventDefault(); event.dataTransfer.dropEffect = "none"; } }} onDrop={event => { if (event.dataTransfer.types.includes("Files")) event.preventDefault(); setDragging(null); }}>
    {(["positive", "negative"] as const).map(caseType => {
      const group = ordered.filter(image => (image.caseType ?? "positive") === caseType);
      const label = caseType === "positive" ? "긍정 사례" : "부정 사례";
      return <Fragment key={caseType}><Section id={`brand-${caseType}`} aria-label={label}><header><h2>{label}</h2><span>{group.length}장</span></header><Grid>
-       {group.map(image => <Photo key={image.id} type="button" $selected={selected.includes(image.id)} aria-pressed={selected.includes(image.id)} aria-label={`${image.name} 크게 보기`} onClick={event => clickImage(event, image)} onMouseDown={event => { if (event.shiftKey) event.preventDefault(); }}><LoadingImage src={image.imageUrl} alt={image.name} fill unoptimized sizes="132px" /></Photo>)}
+       {group.map(image => <Photo key={image.id} type="button" $selected={selected.includes(image.id)} aria-pressed={selected.includes(image.id)} aria-label={`${image.name} 선택`} onClick={event => clickImage(event, image)} onDoubleClick={() => openImage(image)}
+         onContextMenu={event => { event.preventDefault(); event.currentTarget.focus(); openMenu(image, event.clientX, event.clientY); }}
+         onKeyDown={event => { if (event.key === "Enter") { event.preventDefault(); openImage(image); } else if (event.key === "ContextMenu" || (event.shiftKey && event.key === "F10")) { event.preventDefault(); const rect = event.currentTarget.getBoundingClientRect(); openMenu(image, rect.left + 16, rect.top + 16); } }}
+         onMouseDown={event => { if (event.shiftKey) event.preventDefault(); }}><LoadingImage src={image.imageUrl} alt={image.name} fill unoptimized sizes="132px" /></Photo>)}
      </Grid>
        <Upload type="button" $dragging={!busy && dragging === caseType} disabled={busy}
          onDragEnter={event => { if (!busy && event.dataTransfer.types.includes("Files")) { event.preventDefault(); setDragging(caseType); } }}
@@ -91,6 +123,10 @@ export function BrandImages({ images, busy, onAdd }: { images: BrandImage[]; bus
    })}
  </Root>
  <input ref={input} type="file" accept="image/jpeg,image/png,image/webp,image/avif,image/gif" multiple hidden onChange={event => { onAdd(Array.from(event.target.files ?? []), uploadCase.current); event.target.value = ""; }} />
- {viewing && <MoodboardDetailViewer key={viewing} name="브랜드 사례" images={ordered.map(image => image.imageUrl)} initialIndex={Math.max(0, ordered.findIndex(image => image.id === viewing))} isOpen onClose={() => setViewing(null)} />}
+ {menu && <ContextMenu x={menu.x} y={menu.y} height={76} label="브랜드 이미지 메뉴" onClose={closeMenu}>
+   <button type="button" role="menuitem" disabled={busy} onClick={() => { closeMenu(); onMove(menu.ids, menu.targetCase); }}><ArrowLeftRight />{menu.targetCase === "negative" ? "부정 사례로 이동" : "긍정 사례로 이동"}</button>
+   <button type="button" role="menuitem" disabled={busy} onClick={() => { closeMenu(); onRemove(menu.ids); }}><Trash2 />삭제</button>
+ </ContextMenu>}
+ {viewing && viewedImage && <MoodboardDetailViewer key={viewing} name={viewedImage.caseType === "negative" ? "부정 사례" : "긍정 사례"} images={album.map(image => image.imageUrl)} initialIndex={Math.max(0, album.findIndex(image => image.id === viewing))} onIndexChange={index => { const image = album[index]; if (image) { setSelected([image.id]); setAnchor(image.id); } }} isOpen onClose={() => setViewing(null)} />}
  </>;
 }

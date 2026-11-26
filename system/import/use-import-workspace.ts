@@ -22,7 +22,7 @@ export function useImportWorkspace() {
   const selectedCase = availableCases.find(item => getCaseKey(item) === importStore.selectedCaseKey);
   const createProject = async () => {
     if (!selectedCase) return;
-    try { await createProjectFromCase(selectedCase); } catch(error){reportCloudError(error);return;}
+    void createProjectFromCase(selectedCase).catch(reportCloudError);
     importStore.returnToCustomerList();
     router.push("/projects");
   };

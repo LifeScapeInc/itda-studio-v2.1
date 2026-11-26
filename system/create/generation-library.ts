@@ -23,6 +23,7 @@ export type GenerationSettingsSnapshot = {
     prompt: string;
 };
 export type GenerationImageMetadata = {
+    brandSelection?: BrandSelection | null;
     finalPrompt: string;
     generatedAt: string;
     aiModel: string;

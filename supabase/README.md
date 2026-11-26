@@ -1,5 +1,7 @@
 # Studio database
 
+테이블·관계·컬럼·제약 조건과 현재 앱의 저장 구조는 [DB 구조 문서](../docs/database.md)를 참조한다.
+
 ## 적용
 
 저장소 루트에서 실행합니다. `npx push`가 아니라 Supabase CLI의 `db push` 명령입니다.
@@ -79,8 +81,7 @@ API는 세션과 변경 요청의 Origin을 검증하며, 브라우저가 소유
   변경 행이 0개이면 충돌로 처리합니다. 트리거가 lock_version을 증가시킵니다.
 - 컷 재생성은 generation_shots.asset_id를 새 자산으로 교체합니다. 과거 결과는 자동으로
   컷 버전으로 보관하지 않습니다. 북마크와 저장 버전이 참조하는 자산은 유지합니다.
-- 평가는 asset_id + original_asset_id에 연결합니다. 재평가는 새 행을 추가하며,
-  현재 결과 asset_id의 최신 평가를 표시합니다. 이전 결과의 점수를 재사용하지 않습니다.
+- 평가는 workspace_id + asset_id별 한 행이며 재평가는 해당 항목을 갱신합니다. Fidelity는 비교 원본도 확인합니다.
 - 생성 결과와 ai_runs 성공 전환은 같은 transaction에서 결과 자산을 먼저 연결합니다.
   호출마다 새 idempotency_key를 사용하며 같은 요청 재전송에는 같은 키를 사용합니다.
 - generation_shot_inputs는 현재 결과의 입력입니다. 과거 작업 복원용 입력은
@@ -103,8 +104,15 @@ API는 세션과 변경 요청의 Origin을 검증하며, 브라우저가 소유
 ```powershell
 psql "$env:TEST_DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/initial_studio.sql
 psql "$env:TEST_DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/cloud_persistence.sql
+psql "$env:TEST_DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/tests/current_brand_embeddings.sql
 npm run test:cloud
 ```
 
 기존 localStorage/IndexedDB 데이터가 migration 실행만으로 이전되지는 않습니다.
 로컬에서 보유한 데이터의 최초 이전과 별개로, 앱은 위 API를 통해 영구 저장합니다.
+
+## 브랜드 집계와 이미지별 최신 평가
+
+20261125030000_current_brand_embeddings.sql이 앞서 적용된 BF 테이블 5개를 제거하고 brand_embeddings 한 테이블로 대체합니다. image_evaluations는 이미지별 한 행에 fidelity/bf/tq/overall과 항목별 상태·사유·버전을 저장합니다. 재평가는 UPDATE/UPSERT하며 과거 점수·진단·Pool 스냅샷을 보관하지 않습니다.
+
+[설계와 작업자 연결 계약](../docs/brand-embedding-storage.md)을 참조하세요. 기존 migration은 순서대로 모두 적용해야 합니다. 실제 Python 특징 추출·원격 동기화는 별도입니다.

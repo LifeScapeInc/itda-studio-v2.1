@@ -1,8 +1,8 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import styled from "styled-components";
 import { useCreateStore } from "@/stores/useCreateStore";
-import { loadBrands, type BrandCollection } from "@/system/brand/brand-library";
+import { useBrandStore } from "@/stores/useBrandStore";
 import { LoadingImage } from "@/components/ui/loading-image";
 import { MaterialPreparationSection } from "./material-preparation-layout";
 const Body = styled.div`
@@ -16,18 +16,18 @@ const Preview = styled.div`
  img { object-fit: cover; }
 `;
 export function BrandAssignment() {
- const [brands, setBrands] = useState<BrandCollection[]>([]);
- const [loaded, setLoaded] = useState(false);
- const [failed, setFailed] = useState(false);
+ const brands = useBrandStore(state => state.brands);
+ const loaded = useBrandStore(state => state.loaded);
+ const failed = useBrandStore(state => Boolean(state.error));
+ const hydrate = useBrandStore(state => state.hydrate);
  const selected = useCreateStore(state => state.brandSelection);
  const setSelected = useCreateStore(state => state.setBrandSelection);
  useEffect(() => {
-   let active = true;
-   const refresh = () => { void loadBrands().then(value => { if (active) { setBrands(value); setLoaded(true); setFailed(false); } }).catch(() => { if (active) { setLoaded(true); setFailed(true); } }); };
-   refresh();
+   void hydrate();
+   const refresh = () => { void hydrate(true); };
    window.addEventListener("focus", refresh);
-   return () => { active = false; window.removeEventListener("focus", refresh); };
- }, []);
+   return () => window.removeEventListener("focus", refresh);
+ }, [hydrate]);
  const brand = brands.find(item => item.id === selected?.id);
  const previewImages = brand?.images.filter(image => image.caseType !== "negative").slice(0, 3) ?? [];
  return <MaterialPreparationSection index={3} title="브랜드 지정"><Body>
@@ -37,7 +37,7 @@ export function BrandAssignment() {
    }}>
      <option value="">{loaded ? "브랜드 지정 안 함" : "브랜드 불러오는 중"}</option>
      {selected && !brand && <option value={selected.id}>{selected.name} · 저장된 지정</option>}
-     {brands.map(item => <option key={item.id} value={item.id}>{item.name} · {item.images.length}장</option>)}
+     {brands.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}
    </select>
    {previewImages.length > 0 && <Preview>{previewImages.map(image => <div key={image.id}><LoadingImage src={image.imageUrl} alt={image.name} fill unoptimized sizes="(max-width: 1200px) 120px, 160px" /></div>)}</Preview>}
    {failed ? <p role="alert">브랜드 자료를 불러오지 못했습니다.</p> : loaded && !brands.length && !selected ? <p>등록된 브랜드가 없습니다. 브랜드 페이지에서 자료 모음을 추가해 주세요.</p> : null}

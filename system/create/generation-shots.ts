@@ -26,6 +26,7 @@ export type GenerationShot = {
   status: GenerationShotStatus;
   imageUrl?: string;
   fidelity?: FidelityEvaluation;
+  brandFit?: FidelityEvaluation;
   error?: string;
 };
 

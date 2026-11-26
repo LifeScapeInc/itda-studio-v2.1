@@ -37,13 +37,13 @@ begin
   insert into public.assets(id,workspace_id,created_by,bucket,object_key,filename,mime_type,status)
     values(a,ws,u,'test',a::text,'image.webp','image/webp','ready'),(a2,ws,u,'test',a2::text,'original.webp','image/webp','ready');
   insert into public.generation_shots(id,workspace_id,history_id,label,position,ratio,asset_id) values(s,ws,h,'cut',0,'1:1',a);
-  insert into public.image_evaluations(workspace_id,asset_id,original_asset_id,status,score,model_version)
+  insert into public.image_evaluations(workspace_id,asset_id,original_asset_id,fidelity_status,fidelity,fidelity_version)
     values(ws,a,a2,'scored',92,'v1');
   begin
-    insert into public.image_evaluations(workspace_id,asset_id,original_asset_id,status,score,model_version) values(ws,a,a2,'scored',101,'v1');
+    update public.image_evaluations set fidelity=101 where workspace_id=ws and asset_id=a;
     raise exception 'Expected invalid score rejection';
   exception when check_violation then null; end;
-  insert into public.image_evaluations(workspace_id,asset_id,status,reason) values(ws,a,'unavailable','offline');
+  update public.image_evaluations set fidelity=null,fidelity_status='unavailable',fidelity_reason='offline' where workspace_id=ws and asset_id=a;
   insert into public.work_revisions(id,workspace_id,work_id,revision_number,created_by) values(r,ws,w,1,u);
   update public.work_revisions set state = '{"prompt":"saved"}' where id=r and lock_version=1;
   if (select lock_version from public.work_revisions where id=r) <> 2 then raise exception 'Lock version not advanced'; end if;

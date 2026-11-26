@@ -298,15 +298,21 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
     const original = shot.metadata.inputImages?.find(image => image.kind === "product")?.imageUrl;
     set(current => ({ reevaluatingIds: [...current.reevaluatingIds, id] }));
     let fidelity: NonNullable<GenerationShot["fidelity"]>;
+    let brandFit: GenerationShot["brandFit"];
     try {
       if (!original) throw new Error("원본 제품 이미지가 없어 재평가할 수 없습니다.");
-      const response = await fetch("/api/evaluate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ originalImage: original, generatedImage: shot.imageUrl }) });
+      const brand = shot.metadata.brandSelection ?? shot.metadata.generationSettings?.brandSelection;
+      const response = await fetch("/api/evaluate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ originalImage: original, generatedImage: shot.imageUrl, brandId: brand?.id }) });
       const result = await response.json();
       if (!response.ok || !result.fidelity) throw new Error(result.error ?? "재평가에 실패했습니다.");
       fidelity = result.fidelity;
-    } catch (error) { fidelity = { status: "unavailable", reason: error instanceof Error ? error.message : "재평가에 실패했습니다." }; }
+      brandFit = result.brandFit;
+    } catch (error) {
+      fidelity = { status: "unavailable", reason: error instanceof Error ? error.message : "재평가에 실패했습니다." };
+      brandFit = fidelity;
+    }
     set(current => {
-      const update = <T extends GenerationShot>(image: T): T => image.id === id && image.status === "done" && image.imageUrl === shot.imageUrl ? { ...image, fidelity } : image;
+      const update = <T extends GenerationShot>(image: T): T => image.id === id && image.status === "done" && image.imageUrl === shot.imageUrl ? { ...image, fidelity, brandFit } : image;
       return { generationHistory: current.generationHistory.map(item => ({ ...item, shots: item.shots.map(update) })), generationShots: current.generationShots.map(update), reevaluatingIds: current.reevaluatingIds.filter(value => value !== id) };
     });
     await saveGenerationHistory(get().generationHistory).catch(() => undefined);
@@ -503,8 +509,10 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
     });
   },
   deleteHistory: async (historyId) => {
-    try { await deleteGenerationHistory(historyId); } catch(error) { reportCloudError(error); return; }
     const current = get();
+    const removed = current.generationHistory.find(history => history.id === historyId);
+    if (!removed) return;
+    const deletion = deleteGenerationHistory(historyId);
 
     const generationHistory = current.generationHistory.filter(
       (history) => history.id !== historyId,
@@ -531,7 +539,18 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
           : "",
       } : {}),
     });
-    void saveGenerationHistory(generationHistory).catch(() => undefined);
+    const afterDeletion = get();
+    try { await deletion; }
+    catch (error) {
+      set(state => {
+        const generationHistory = [...state.generationHistory];
+        if (!generationHistory.some(history => history.id === historyId)) generationHistory.splice(Math.min(current.generationHistory.indexOf(removed), generationHistory.length), 0, removed);
+        const restoreView = deletedActiveHistory && state.workspaceProjectId === current.workspaceProjectId && state.activeHistoryId === (nextActiveHistory?.id ?? null) && state.generationShots === afterDeletion.generationShots && state.selectedShotId === afterDeletion.selectedShotId;
+        return { generationHistory, ...(restoreView ? { activeHistoryId: current.activeHistoryId, generationRequested: current.generationRequested, generationShots: current.generationShots, selectedShotId: current.selectedShotId, selectedShotIds: current.selectedShotIds, selectionAnchorId: current.selectionAnchorId, generationMessage: current.generationMessage } : {}) };
+      });
+      reportCloudError(error); return;
+    }
+    void saveGenerationHistory(get().generationHistory).catch(() => undefined);
   },
   setBookmarks: (shotIds, bookmarked) => {
     const ids = new Set(shotIds);
@@ -587,6 +606,7 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
       const [productImage, referenceImage] = await Promise.all([optimizeImageDataUrl(product), reference ? optimizeImageDataUrl(reference) : Promise.resolve(null)]);
       const response = await fetch("/api/generate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({
         productImage, referenceImages: referenceImage ? [referenceImage] : [], prompt: shot.metadata.finalPrompt, quality, ratio: shot.ratio, mockMode,
+        brandId: (shot.metadata.brandSelection ?? shot.metadata.generationSettings?.brandSelection)?.id,
       }) });
       const result = await response.json().catch(() => ({ error: `서버가 올바르지 않은 응답을 반환했습니다. (${response.status})` })) as GenerationApiResponse | GenerationApiError;
       if (!response.ok || !("images" in result) || !result.images[0]) {
@@ -597,7 +617,7 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
         model: result.metadata?.model ?? "unknown-image-model", contentSet: shot.metadata.generationSettings?.contentSet ?? null,
         shotId, shotLabel: shot.label, ratio: shot.ratio, quality, hasReference: Boolean(referenceImage),
       }));
-      updateShot({ status: "done", imageUrl: result.images[0], fidelity: result.fidelityEvaluations?.[0], error: undefined, metadata: { ...shot.metadata, generatedAt: new Date().toISOString() } }, "다시 생성이 완료되었습니다.");
+      updateShot({ status: "done", imageUrl: result.images[0], fidelity: result.fidelityEvaluations?.[0], brandFit: result.brandFitEvaluations?.[0], error: undefined, metadata: { ...shot.metadata, generatedAt: new Date().toISOString() } }, "다시 생성이 완료되었습니다.");
     } catch (error) {
       const message = error instanceof Error ? error.message : "이미지를 다시 생성하지 못했습니다.";
       updateShot({ status: shot.imageUrl ? "done" : "error", error: message }, message);
@@ -661,6 +681,7 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
           id: `${runId}-${shot.id}`,
           bookmarked: false,
           metadata: {
+            brandSelection: current.brandSelection ? { ...current.brandSelection } : null,
             finalPrompt: shotPrompt?.prompt ?? "",
             generatedAt: runCreatedAt,
             aiModel: "gpt-image-2",
@@ -794,6 +815,7 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
             quality: current.quality,
             ratio: shot.ratio,
             mockMode,
+            brandId: current.brandSelection?.id,
           }),
         });
         const result = await response.json().catch(() => ({
@@ -845,6 +867,7 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
                 status: "done",
                 imageUrl: result.images[0],
                 fidelity: result.fidelityEvaluations?.[0],
+                brandFit: result.brandFitEvaluations?.[0],
               }
             : item,
           ) as LibraryGenerationShot[];

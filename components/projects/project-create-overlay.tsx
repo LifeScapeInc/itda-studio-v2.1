@@ -1,5 +1,6 @@
 "use client";
 
+import { reportCloudError } from "@/stores/useCloudSyncStore";
 import { X } from "lucide-react";
 import { ModalCloseAction } from "@/components/ui/workbench";
 import { useDialogFocus } from "@/components/ui/use-dialog-focus";
@@ -121,7 +122,7 @@ export function ProjectCreateOverlay({
 
     if(saving)return;
     setSaving(true);
-    try { await create({
+    const savingProject = create({
       projectName: name,
       workType: work,
       stage,
@@ -130,7 +131,8 @@ export function ProjectCreateOverlay({
       email,
       deliveryDueDate: date.value,
     });
-    onClose(); } catch(error) { setError(error instanceof Error ? error.message : "프로젝트를 저장하지 못했습니다."); } finally { setSaving(false); }
+    onClose();
+    void savingProject.catch(reportCloudError);
   };
 
   const digits = (setValue: (value: string) => void) => (

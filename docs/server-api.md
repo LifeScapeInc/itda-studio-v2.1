@@ -155,11 +155,21 @@ curl -X POST http://127.0.0.1:8000/api/v1/cut-evaluation/fidelity/feedback \
 
 저장된 피드백은 기본 데이터셋 `fidelity-v1`에 추가된다. 저장 후 백그라운드에서 온라인 학습 조건을 확인하며, 기본적으로 학습용 피드백 8건마다 후보를 학습하고 자동 적용한다. 응답은 학습 완료를 기다리지 않는다. 검증·시험용 제품에 배정된 피드백은 저장되지만 학습 배치에는 포함되지 않는다. 서버 측 `FIDELITY_FEEDBACK_DATASET`과 `FIDELITY_ONLINE_BATCH_SIZE`로 설정할 수 있다.
 
-## 종합 점수
+## 브랜드 적합성 점수
+
+`POST /api/v1/cut-evaluation/brandfit/predict`는 `multipart/form-data`의 `brand_id`와 `generated_image`를 받는다. Studio는 생성 당시 선택한 브랜드 ID를 `brand_id`로 전달한다. 점수 응답의 `score`와 `scoring_version`(또는 `model_version`)을 컷의 `brandFit`에 저장해 브랜드 적합성 항목에 표시한다. 브랜드 미지정과 목업 결과는 미적용으로 처리한다.
+
+새 생성·재생성·재평가에 연결되어 있으며, 생성 정보에는 브랜드 이름·ID를 포함한다. 종합 점수는 기존 Fidelity 점수 표시를 유지한다. API 호출 실패 시 평가 탭에는 `서버가 정상적으로 연결되어 있지 않습니다`를 표시한다.
+
+DB에 BF 점수를 보존하려면 `20261126000000_brand_fit_history.sql`을 적용해야 한다. 이 변경은 히스토리 저장 트랜잭션 안에서 BF 컬럼만 갱신하며 다른 평가 항목을 보존한다. 해당 운영 DB 마이그레이션은 적용 승인 대기 상태다.
+
+2026-11-26 갱신된 Swagger와 실제 호출을 확인했다. `brand_id`를 지정하면 서버가 원격 브랜드 자료를 사용하며, 등록된 Studio 브랜드로 `200`, `status: scored`, `score`, `model_version: prototype-concentration-v2` 응답을 수신했다. 테스트는 합성 단색 이미지로 수행해 통신 형식과 응답 파싱을 확인했다. 브랜드별 명시적 동기화는 `POST /api/v1/cut-evaluation/brandfit/brands/{brand_id}/sync`로 제공된다. 기존 로컬 Pool용 `pool_id`도 명세에 남아 있다.
+
+## 종합 점수 API
 
 ### `POST /api/v1/cut-evaluation/predict`
 
-이미지 대신 이미 산출된 Fidelity, BF, TQ 점수와 상태를 전달한다. BF·TQ 점수 산출 API는 현재 등록되어 있지 않다.
+이미지 대신 이미 산출된 Fidelity, BF, TQ 점수와 상태를 전달한다. TQ 점수 산출 API는 현재 등록되어 있지 않다.
 
 **요청 — `application/json`**
 

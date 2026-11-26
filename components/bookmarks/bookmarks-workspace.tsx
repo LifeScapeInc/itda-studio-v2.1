@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { LibraryDetailHeader } from "@/components/references/library-detail-header";
 import { ImageIcon } from "lucide-react";
@@ -11,10 +11,8 @@ import { LabelTitle } from "@/components/ui/label-title";
 import { LoadingImage } from "@/components/ui/loading-image";
 import { GenerationInputImages } from "@/components/ui/generation-input-images";
 import { useCreateStore } from "@/stores/useCreateStore";
-import { cloudRequest } from "@/system/cloud/client";
-import { reportCloudError } from "@/stores/useCloudSyncStore";
+import { useBookmarkStore } from "@/stores/useBookmarkStore";
 import {
-  loadBookmarkedImages,
   type LibraryGenerationShot,
 } from "@/system/create/generation-library";
 import { StudioShell } from "@/system/styles/layout";
@@ -187,16 +185,14 @@ function MetadataList({ shot }: { shot: LibraryGenerationShot }) {
 
 export function BookmarksWorkspace({ detailId }: { detailId?: string }) {
   const router = useRouter();
-  const [loaded, setLoaded] = useState(false);
+  const loaded = useBookmarkStore(state => state.loaded);
   const history = useCreateStore((state) => state.generationHistory);
-  const [bookmarks,setBookmarks]=useState<LibraryGenerationShot[]>([]);
+  const bookmarks = useBookmarkStore(state => state.rows);
+  const hydrateBookmarks = useBookmarkStore(state => state.hydrate);
+  const removeBookmark = useBookmarkStore(state => state.remove);
   const selected = bookmarks.find((shot) => shot.id === detailId) ?? null;
 
-  useEffect(() => {
-    let active=true;
-    void loadBookmarkedImages().then(rows=>{if(active){setBookmarks(rows);setLoaded(true);}}).catch(error=>{if(active)reportCloudError(error);});
-    return()=>{active=false;};
-  }, [history]);
+  useEffect(() => { void hydrateBookmarks(); }, [history, hydrateBookmarks]);
 
   return (
     <StudioShell>
@@ -245,10 +241,7 @@ export function BookmarksWorkspace({ detailId }: { detailId?: string }) {
               <DetailFooter>
                   <Remove
                     type="button"
-                    onClick={async () => {
-                      try { await cloudRequest("delete-bookmark",{id:selected.id.replace("bookmark:","")});setBookmarks(rows=>rows.filter(r=>r.id!==selected.id));await useCreateStore.getState().hydrateLibrary(true);router.push("/bookmarks"); }
-                      catch(error){reportCloudError(error);}
-                    }}
+                    onClick={() => { removeBookmark(selected.id); router.push("/bookmarks"); }}
                   >
                     북마크 해제
                   </Remove>

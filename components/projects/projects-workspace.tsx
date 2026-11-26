@@ -1,7 +1,6 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { flushWorkspaceSaves } from "@/system/cloud/workspace-sync";
 import { reportCloudError } from "@/stores/useCloudSyncStore";
 import { useEffect, useState } from "react";
 import styled from "styled-components";
@@ -26,6 +25,7 @@ export function ProjectsWorkspace() {
   const [open, setOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<StudioProject | null>(null);
   const router = useRouter();
+  const pendingProjectIds = useProjectStore(state => state.pendingProjectIds);
   const projects = useProjectStore((state) => state.projects);
   const hydrateProjects = useProjectStore(state=>state.hydrate);
   const projectsHydrated = useProjectStore(state=>state.hydrated);
@@ -57,7 +57,9 @@ export function ProjectsWorkspace() {
       return;
     }
 
-    try { await deleteProject(deleteTarget.id); setDeleteTarget(null); }
+    const target = deleteTarget;
+    setDeleteTarget(null);
+    try { await deleteProject(target.id); }
     catch(error){ reportCloudError(error); }
   };
 
@@ -87,6 +89,7 @@ export function ProjectsWorkspace() {
                   .slice(0, 3)}
                 active={p.id === active}
                 onOpen={() => {
+                  if (pendingProjectIds.includes(p.id)) return;
                   if (p.workType === "detail_page") {
                     setDetailProjectContext(p.id);
                   } else {
@@ -103,7 +106,7 @@ export function ProjectsWorkspace() {
                   if (duplicatingId) return;
                   setDuplicatingId(p.id);
                   void (async () => {
-                    try { await flushWorkspaceSaves(); await duplicateProject(p.id); await hydrateLibrary(true); }
+                    try { await duplicateProject(p.id); await hydrateLibrary(true); }
                     catch (error) { reportCloudError(error); }
                     finally { setDuplicatingId(null); }
                   })();

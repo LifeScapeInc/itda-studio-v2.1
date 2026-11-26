@@ -84,10 +84,15 @@ type EvaluationRow = {
     id: string;
     asset_id: string;
     original_asset_id: string | null;
-    status: FidelityEvaluation["status"];
-    score: number | null;
-    model_version: string | null;
-    reason: string | null;
+    fidelity_status: FidelityEvaluation["status"] | null;
+    fidelity: number | null;
+    fidelity_version: string | null;
+    fidelity_reason: string | null;
+    brand_id: string | null;
+    bf_status: FidelityEvaluation["status"] | null;
+    bf: number | null;
+    bf_version: string | null;
+    bf_reason: string | null;
     evaluated_at: string;
 };
 type RevisionRow = {
@@ -123,7 +128,8 @@ export async function loadHistories(): Promise<GenerationHistorySet[]> {
             const interrupted = !s.asset_id && (m.status === "pending" || m.status === "generating");
             return { id: m._clientId ?? s.id, label: s.label, ratio: s.ratio, resolution: s.resolution, status: s.asset_id ? "done" : interrupted ? "error" : m.status ?? "error", imageUrl: s.asset_id ? assetUrl(s.asset_id) : undefined,
                 error: interrupted ? "중단된 생성입니다. 다시 생성해 주세요." : m.error, bookmarked: bookmarks.some(b => b.asset_id === s.asset_id),
-                fidelity: evaluation ? (evaluation.status === "scored" ? { status: "scored", score: Number(evaluation.score), modelVersion: evaluation.model_version! } : { status: evaluation.status, reason: evaluation.reason! }) : undefined,
+                fidelity: evaluation?.fidelity_status ? (evaluation.fidelity_status === "scored" ? { status: "scored", score: Number(evaluation.fidelity), modelVersion: evaluation.fidelity_version! } : { status: evaluation.fidelity_status, reason: evaluation.fidelity_reason! }) : undefined,
+                brandFit: evaluation?.bf_status ? (evaluation.bf_status === "scored" ? { status: "scored", score: Number(evaluation.bf), modelVersion: evaluation.bf_version! } : { status: evaluation.bf_status, reason: evaluation.bf_reason! }) : undefined,
                 metadata: { ...m, finalPrompt: s.final_prompt, aiModel: s.model, generatedAt: s.generated_at ?? h.created_at, inputImages: sourceInputs.map(i => ({ kind: i.role === "product" ? "product" : "reference", label: i.label, imageUrl: assetUrl(i.asset_id) })) } };
         }) }));
 }
@@ -145,10 +151,18 @@ export async function saveHistory(history: GenerationHistorySet) {
             return { asset_id: id, role: i.kind, label: i.label, position: counts[i.kind] === undefined ? (counts[i.kind] = 0) : ++counts[i.kind] };
         });
         const fidelity = s.fidelity;
+        const brandFit = s.brandFit;
+        const brand = s.metadata.brandSelection ?? s.metadata.generationSettings?.brandSelection;
         const original = inputs.find(i => i.role === "product")?.asset_id;
         return { id: canonicalId(s.id, `shot:${history.id}:${s.id}`), label: s.label, position, ratio: s.ratio, resolution: s.resolution, asset_id: file, final_prompt: s.metadata.finalPrompt,
             settings: { ...s.metadata, _clientId: s.id, status: s.status, error: s.error }, model: s.metadata.aiModel, is_mock: /mock|debug/i.test(s.metadata.aiModel), generated_at: s.metadata.generatedAt || null,
             inputs, bookmarked: s.bookmarked, bookmark_snapshot: s,
+            brand_evaluation: file && brandFit ? {
+                brand_id: brand?.id ?? null, status: brandFit.status,
+                score: brandFit.status === "scored" ? brandFit.score : null,
+                model_version: brandFit.status === "scored" ? brandFit.modelVersion : null,
+                reason: brandFit.status === "scored" ? null : brandFit.reason,
+            } : null,
             evaluation: file && fidelity ? { id: stableId(`evaluation:${file}:${original}:${JSON.stringify(fidelity)}`), original_asset_id: original ?? null, status: fidelity.status, score: fidelity.status === "scored" ? fidelity.score : null, model_version: fidelity.status === "scored" ? fidelity.modelVersion : null, reason: fidelity.status === "scored" ? null : fidelity.reason } : null };
     });
     return commit<{
@@ -202,8 +216,8 @@ export async function loadProjects(): Promise<StudioProject[]> {
             workHistory: works.filter(w => w.project_id === p.id).map(w => ({ id: histories.find(h => h.work_id === w.id)?.id ?? w.id, kind: w.kind === "studio_cut" ? "generated_image" : "detail_page", createdAt: w.created_at })) };
     });
 }
-export async function createProject(input: ManualProjectInput, sourceCase?: IntegrationCase) {
-    const id = crypto.randomUUID();
+export async function createProject(input: ManualProjectInput, sourceCase?: IntegrationCase, id = crypto.randomUUID()) {
+    uuid.parse(id);
     const caseKey = sourceCase ? getCaseKey(sourceCase) : null;
     await commit("project", { id, name: input.projectName, work_type: input.workType, stage: input.stage, manager: input.manager, company: input.company, email: input.email, delivery_due_date: input.deliveryDueDate, source_case: sourceCase ? { ...sourceCase, case_name: sourceCase.case_name || input.projectName } : undefined, case_key: caseKey, case_id: caseKey ? stableId(`case:${caseKey}`) : null });
     return (await loadProjects()).find(p => p.id === id)!;
@@ -283,13 +297,14 @@ async function preserveImportedBookmarks() {
     }
 }
 
-export async function duplicateProject(id: string): Promise<StudioProject> {
+export async function duplicateProject(id: string, copyId = crypto.randomUUID()): Promise<StudioProject> {
     uuid.parse(id);
+    uuid.parse(copyId);
     const source = (await loadProjects()).find(project => project.id === id);
     if (!source) throw new CloudError("프로젝트를 찾을 수 없습니다.", 404);
     const [histories, cuts, detail] = await Promise.all([loadHistories(), loadWorkspace("studio_cut", id), loadWorkspace("detail_page", id)]);
     const project = await duplicateProjectData(source, histories.filter(history => history.projectId === id), { studio_cut: cuts.state, detail_page: detail.state }, {
-        create: (input, sourceCase) => createProject(input, sourceCase ?? undefined),
+        create: (input, sourceCase) => createProject(input, sourceCase ?? undefined, copyId),
         saveHistory,
         saveWorkspace: (kind, projectId, state) => saveWorkspace(kind, projectId, state, 0),
         removeProject: deleteProject,

@@ -10,6 +10,7 @@ export type GenerationApiRequest = {
   quality: GenerationQuality;
   ratio: GenerationRatio;
   mockMode?: boolean;
+  brandId?: string | null;
 };
 
 export type GenerationApiResponse = {
@@ -17,6 +18,7 @@ export type GenerationApiResponse = {
   prompt: string;
   images: string[];
   fidelityEvaluations?: FidelityEvaluation[];
+  brandFitEvaluations?: FidelityEvaluation[];
   note: string;
   tokenUsage?: TokenUsage;
   metadata?: {

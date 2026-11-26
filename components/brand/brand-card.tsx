@@ -8,12 +8,13 @@ import { EditableTitle } from "@/components/ui/editable-title";
 import { LoadingImage } from "@/components/ui/loading-image";
 import type { BrandCollection } from "@/system/brand/brand-library";
 const Card = styled.article`
- display: flex; width: min(100%, 336px); aspect-ratio: 3 / 2; flex-direction: column; padding: var(--space-xs);
+ position: relative; cursor: pointer; display: flex; width: min(100%, 336px); aspect-ratio: 3 / 2; flex-direction: column; padding: var(--space-xs);
  border: 1px solid var(--color-border); border-radius: var(--radius-panel); background: var(--color-surface); overflow: hidden;
  &:hover { background: var(--color-main-neutral-light); }
  &:hover img { transform: scale(1.035); }
 `;
 const Preview = styled(Link)`
+ &::after { content: ""; position: absolute; inset: 0; z-index: 1; }
  display: grid; min-height: 0; flex: 1; grid-template-columns: 1.75fr 1fr; grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 8px;
 `;
 const Frame = styled.div`
@@ -26,13 +27,15 @@ const Footer = styled.div`
  display: flex; height: 58px; flex: 0 0 58px; align-items: center; justify-content: space-between; gap: 8px; padding-top: 8px;
  > div { display: flex; min-width: 0; flex: 1; flex-direction: column; align-items: stretch; font-size: 14px; font-weight: 500; --editable-title-height: 24px; }
  small { padding-left: 4px; color: var(--color-label-studio-comment); font-size: 11px; font-weight: 400; }
- > a { display: grid; width: 28px; height: 28px; place-items: center; }
+ button, input { position: relative; z-index: 2; }
+ > a { position: relative; z-index: 2; display: grid; width: 28px; height: 28px; place-items: center; }
 `;
 export function BrandCard({ brand, onRename, onDelete }: { brand: BrandCollection; onRename: (value: string) => void; onDelete: () => void }) {
  const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
  const closeMenu = useCallback(() => setMenu(null), []);
  const href = `/brand/${brand.id}`;
  return <><Card onContextMenu={event => { event.preventDefault(); setMenu({ x: event.clientX, y: event.clientY }); }} onKeyDown={event => {
+   if (event.key === "Delete" && !event.repeat && !(event.target instanceof Element && event.target.closest('input, textarea, [contenteditable="true"]'))) { event.preventDefault(); closeMenu(); onDelete(); }
    if (event.key === "ContextMenu" || (event.shiftKey && event.key === "F10")) {
      event.preventDefault(); const rect = event.currentTarget.getBoundingClientRect(); setMenu({ x: rect.left + 16, y: rect.top + 16 });
    }

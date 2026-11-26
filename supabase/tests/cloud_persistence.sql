@@ -16,6 +16,11 @@ begin
   if(result->>'version')::integer<>1 then raise exception 'First history version should be 1';end if;
   result:=public.studio_commit(ws,u,'history',payload||jsonb_build_object('expected_version',1,'title','renamed'));
   if(result->>'version')::integer<>2 then raise exception 'History version did not advance';end if;
+  update public.image_evaluations set tq=80,tq_status='scored',tq_version='tq-test' where workspace_id=ws and asset_id=a;
+  result:=public.studio_commit(ws,u,'history',jsonb_set(payload,'{shots,0,evaluation,score}','77'::jsonb)||jsonb_build_object('expected_version',2));
+  if (select fidelity from public.image_evaluations where workspace_id=ws and asset_id=a)<>77
+    or (select tq from public.image_evaluations where workspace_id=ws and asset_id=a)<>80 then
+    raise exception 'Re-evaluation did not update Fidelity independently'; end if;
   begin
     perform public.studio_commit(ws,u,'history',payload||jsonb_build_object('expected_version',1));
     raise exception 'Stale history save succeeded';

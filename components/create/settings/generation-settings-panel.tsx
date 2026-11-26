@@ -72,6 +72,8 @@ export const GenerationSettingsPanel = memo(function GenerationSettingsPanel() {
   const renameShot = useCreateStore(s => s.renameShot);
   const activeHistory = history.find(item => item.id === activeHistoryId);
   const fidelity = selected?.fidelity;
+  const brandFit = selected?.brandFit;
+  const evaluationUnavailable = fidelity?.status === "unavailable" || brandFit?.status === "unavailable";
   const fidelityScore = fidelity?.status === "scored" ? fidelity.score : undefined;
   const scoreLabel = fidelityScore === undefined ? "—" : fidelityScore.toFixed(1);
   const evaluationMessage = fidelity?.status === "not_applicable"
@@ -91,11 +93,11 @@ export const GenerationSettingsPanel = memo(function GenerationSettingsPanel() {
       <Divider />
       <SettingsSection><WorkbenchSectionHeader><button type="button" aria-expanded={expertOpen} onClick={() => setExpertOpen(value => !value)}>{expertOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}전문가 설정 (선택)</button></WorkbenchSectionHeader>
       {expertOpen && <ExpertBody><ExpertSettings /></ExpertBody>}</SettingsSection>
-    </Scroll><GenerationAction /></> : <>{fidelity?.status === "unavailable" ? <Empty role="tabpanel" id="evaluation-content" aria-labelledby="evaluation-tab">서버가 정상적으로 연결되어 있지 않습니다</Empty> : selected ? <Evaluation role="tabpanel" id="evaluation-content" aria-labelledby="evaluation-tab">
+    </Scroll><GenerationAction /></> : <>{evaluationUnavailable ? <Empty role="tabpanel" id="evaluation-content" aria-labelledby="evaluation-tab">서버가 정상적으로 연결되어 있지 않습니다</Empty> : selected ? <Evaluation role="tabpanel" id="evaluation-content" aria-labelledby="evaluation-tab">
       <ImageHeading><TooltipIconAction caption="이전 이미지" disabled={currentIndex <= 0} onClick={() => navigateSelection(-1)}><ChevronLeft /></TooltipIconAction><h3><EditableTitle key={selected.id} label="이미지 제목" value={selected.label} onSave={title => renameShot(selected.id, title)} /></h3><TooltipIconAction caption="다음 이미지" disabled={currentIndex < 0 || currentIndex >= selectedShots.length - 1} onClick={() => navigateSelection(1)}><ChevronRight /></TooltipIconAction></ImageHeading>
       <section><EvaluationTitle><h3>종합 점수</h3><TooltipIconAction type="button" multiline aria-label="종합 점수 설명" caption="현재는 객체 무결성 점수를 종합 점수로 표시합니다."><CircleHelp /></TooltipIconAction></EvaluationTitle><span className="score">{scoreLabel}</span><span className="out-of">/ 100</span><p>{evaluationMessage}</p></section>
       {EVALUATION_ITEMS.map(({ label, description }) => {
-        const score = label === "객체 무결성" ? fidelityScore : undefined;
+        const score = label === "객체 무결성" ? fidelityScore : label === "브랜드 적합성" && brandFit?.status === "scored" ? brandFit.score : undefined;
         return <section key={label}><div className="score-row"><EvaluationTitle><h3>{label}</h3><TooltipIconAction type="button" multiline aria-label={`${label} 설명`} caption={description}><CircleHelp /></TooltipIconAction></EvaluationTitle><span>{score === undefined ? "—" : score.toFixed(1)} <span className="out-of">/ 100</span></span></div><div className="gauge" aria-label={score === undefined ? `${label} 점수 없음` : `${label} ${score.toFixed(1)}점`}>{score !== undefined && <div className="gauge-fill" style={{ width: `${score}%` }} />}</div><div className="range"><span>0</span><span>100</span></div></section>;
       })}
     </Evaluation> : <Empty role="tabpanel" id="evaluation-content" aria-labelledby="evaluation-tab">선택된 생성물이 없습니다</Empty>}<RegenerationAction /></>}

@@ -98,6 +98,8 @@ export function GeneratedMetadataModal({
     ["최종 프롬프트", metadata.finalPrompt],
     ["생성 시각", new Date(metadata.generatedAt).toLocaleString("ko-KR")],
     ["AI 모델", metadata.aiModel],
+    ["지정 브랜드", (metadata.brandSelection ?? metadata.generationSettings?.brandSelection)?.name ?? "미지정"],
+    ["브랜드 ID", (metadata.brandSelection ?? metadata.generationSettings?.brandSelection)?.id ?? "미지정"],
     ["생성 종류", metadata.variationType],
     ["품질", metadata.quality],
     ["AI 편집", metadata.editMode || "기본"],

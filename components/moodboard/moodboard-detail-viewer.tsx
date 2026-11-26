@@ -60,6 +60,7 @@ export function MoodboardDetailViewer({
   isOpen,
   onClose,
   showPlaceholder = true,
+  onIndexChange,
 }: {
   images: string[];
   name: string;
@@ -67,6 +68,7 @@ export function MoodboardDetailViewer({
   isOpen: boolean;
   onClose: () => void;
   showPlaceholder?: boolean;
+  onIndexChange?: (index: number) => void;
 }) {
   const [selectedIndex, setSelectedIndex] = useState(initialIndex);
   const workspaceContent = typeof document === "undefined"
@@ -122,7 +124,7 @@ export function MoodboardDetailViewer({
               name={name}
               overlay
               selectedIndex={selectedIndex}
-              onIndexChange={setSelectedIndex}
+              onIndexChange={index => { setSelectedIndex(index); onIndexChange?.(index); }}
               emptyDescription="이 무드보드의 상세 이미지가 추가되면 여기에 표시됩니다."
             />
           </Viewer>

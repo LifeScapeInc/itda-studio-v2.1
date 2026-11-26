@@ -3,6 +3,7 @@ import { getOpenAIApiKey } from "@/system/server/app-settings";
 import { imageResponseTokenUsage } from "@/system/usage/token-usage";
 import { runOpenAIImageEdit } from "@/system/server/openai-image";
 import { evaluateFidelity } from "@/system/server/fidelity-evaluation";
+import { evaluateBrandFit } from "@/system/server/brand-fit-evaluation";
 import { persistImage } from "@/system/server/cloud-assets";
 export const maxDuration = 300; // static configuration of Next.js Route Handler
 function isGenerationRequest(value: unknown): value is GenerationApiRequest {
@@ -15,7 +16,8 @@ function isGenerationRequest(value: unknown): value is GenerationApiRequest {
         && typeof request.prompt === "string"
         && Boolean(request.prompt.trim())
         && typeof request.quality === "string"
-        && typeof request.ratio === "string";
+        && typeof request.ratio === "string"
+        && (request.brandId == null || (typeof request.brandId === "string" && Boolean(request.brandId.trim())));
 }
 function mockDimensions(ratio: GenerationApiRequest["ratio"]): [
     number,
@@ -133,6 +135,7 @@ export async function POST(request: Request): Promise<Response> {
                 prompt: body.prompt,
                 images: [await persistImage(mockImage(body))],
                 fidelityEvaluations: [{ status: "not_applicable", reason: "목업 이미지는 평가하지 않습니다." }],
+                brandFitEvaluations: [{ status: "not_applicable", reason: "목업 이미지는 평가하지 않습니다." }],
                 note: body.mockMode
                     ? "설정에서 목업 모드를 사용해 생성했습니다."
                     : "API 키가 연결되지 않아 목업으로 생성했습니다.",
@@ -140,12 +143,16 @@ export async function POST(request: Request): Promise<Response> {
             return Response.json(response);
         }
         const result = await runOpenAIImageEdit(body, apiKey);
-        const fidelityEvaluations = await Promise.all(result.images.map(image => evaluateFidelity(body.productImage, image)));
+        const [fidelityEvaluations, brandFitEvaluations] = await Promise.all([
+            Promise.all(result.images.map(image => evaluateFidelity(body.productImage, image))),
+            Promise.all(result.images.map(image => evaluateBrandFit(image, body.brandId))),
+        ]);
         const response: GenerationApiResponse = {
             mock: false,
             prompt: body.prompt,
             images: await Promise.all(result.images.map(persistImage)),
             fidelityEvaluations,
+            brandFitEvaluations,
             tokenUsage: imageResponseTokenUsage(result.usage),
             metadata: { model: result.model },
             note: `실제 생성 완료 · ${result.quality} · ${result.size}`,
