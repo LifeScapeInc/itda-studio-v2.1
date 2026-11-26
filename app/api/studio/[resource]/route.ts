@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { after } from "next/server";
+import { callBrandAnalysis } from "@/system/server/brand-analysis";
 import { requireCloudSession, checkMutationOrigin, cloudResponseError, cloudConfig, db } from "@/system/server/cloud-db";
 import * as studio from "@/system/server/cloud-studio";
 import { loadUsage } from "@/system/server/cloud-usage";
@@ -6,6 +8,7 @@ import type { GenerationHistorySet } from "@/system/create/generation-library";
 import type { BrandCollection } from "@/system/brand/brand-library";
 import type { IntegrationCase } from "@/system/integrations/cases";
 export const runtime = "nodejs";
+export const maxDuration = 60;
 const uuid = z.uuid();
 const kind = z.enum(["studio_cut", "detail_page"]);
 const fidelity = z.discriminatedUnion("status", [
@@ -65,7 +68,15 @@ export async function POST(request: Request, { params }: {
             case "delete-history":
                 await studio.deleteHistory(uuid.parse(body.id));
                 break;
-            case "brands": return Response.json(await studio.saveBrand(brandSchema.parse(body.brand) as BrandCollection, z.number().int().nonnegative().parse(body.expectedVersion)));
+            case "brands": {
+                const brand = brandSchema.parse(body.brand) as BrandCollection;
+                const result = await studio.saveBrand(brand, z.number().int().nonnegative().parse(body.expectedVersion));
+                if (brand.images.filter(image => image.caseType !== "negative").length >= 20) after(async () => {
+                    try { await callBrandAnalysis(brand.id, "initial"); }
+                    catch { console.error("Could not submit initial brand analysis", { brandId: brand.id }); }
+                });
+                return Response.json(result);
+            }
             case "delete-brand":
                 await studio.deleteBrand(uuid.parse(body.id), z.number().int().positive().parse(body.version));
                 break;

@@ -5,7 +5,7 @@ import { createOptimisticRecord } from "@/system/cloud/optimistic-record";
 import { loadBrands, type BrandCollection } from "@/system/brand/brand-library";
 import { reportCloudError } from "./useCloudSyncStore";
 type BrandStore = {
- brands: BrandCollection[]; loaded: boolean; error: string | null;
+ pendingIds: string[]; brands: BrandCollection[]; loaded: boolean; error: string | null;
  hydrate: (force?: boolean) => Promise<void>;
  change: (id: string, update: (brand: BrandCollection | null) => BrandCollection | null) => Promise<void>;
  add: () => void;
@@ -14,7 +14,7 @@ const queues = new Map<string, ReturnType<typeof createOptimisticRecord<BrandCol
 let loading: Promise<void> | null = null;
 let epoch = 0;
 export const useBrandStore = create<BrandStore>((set, get) => ({
- brands: [], loaded: false, error: null,
+ pendingIds: [], brands: [], loaded: false, error: null,
  hydrate: (force = false) => {
    if (loading) return loading;
    if (get().loaded && !force) return Promise.resolve();
@@ -30,7 +30,7 @@ export const useBrandStore = create<BrandStore>((set, get) => ({
      const initial = get().brands.find(brand => brand.id === id) ?? null;
      queues.set(id, createOptimisticRecord(initial, (value, pending) => {
        epoch++;
-       set(state => ({ brands: value ? state.brands.some(brand => brand.id === id) ? state.brands.map(brand => brand.id === id ? value : brand) : [value, ...state.brands] : state.brands.filter(brand => brand.id !== id) }));
+       set(state => ({ pendingIds: pending ? [...new Set([...state.pendingIds, id])] : state.pendingIds.filter(item => item !== id), brands: value ? state.brands.some(brand => brand.id === id) ? state.brands.map(brand => brand.id === id ? value : brand) : [value, ...state.brands] : state.brands.filter(brand => brand.id !== id) }));
        if (!pending) queues.delete(id);
      }));
    }

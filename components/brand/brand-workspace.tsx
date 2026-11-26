@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ChartNoAxesCombined, Images, Plus } from "lucide-react";
+import { Images, Plus } from "lucide-react";
 import { LibraryDetailHeader } from "@/components/references/library-detail-header";
 import styled from "styled-components";
 import { NavigationLeft } from "@/components/layout/navigation-left";
@@ -9,6 +9,7 @@ import { NavigationTop } from "@/components/layout/navigation-top";
 import { BrandCard } from "./brand-card";
 import { EditableTitle } from "@/components/ui/editable-title";
 import { LabelTitle } from "@/components/ui/label-title";
+import { BrandAnalysisPanel } from "./brand-analysis-panel";
 import { BrandImages } from "./brand-images";
 import { StudioShell, WorkspaceContent } from "@/system/styles/layout";
 import { useBrandStore } from "@/stores/useBrandStore";
@@ -38,18 +39,12 @@ const Empty = styled.div`
 const DetailContent = styled.div`
  display: grid; min-height: 0; flex: 1; grid-template-rows: minmax(0, 1fr) minmax(0, 4fr); gap: 16px; margin-top: 24px;
 `;
-const BrandAnalysis = styled.section`
- display: flex; min-width: 0; min-height: 0; align-items: center; justify-content: center; gap: 12px; padding: 16px;
- border: 1px solid var(--color-border); border-radius: var(--radius-panel); background: var(--color-surface);
- color: var(--color-label-studio-comment);
- svg { flex-shrink: 0; }
- p { margin: 0; font-size: 13px; line-height: 1.6; }
-`;
 const ErrorMessage = styled.p`margin-top: 16px; font-size: 13px; line-height: 1.6; color: var(--color-label-studio-black);`;
 
 export function BrandWorkspace({ id }: { id?: string }) {
  const brands = useBrandStore(state => state.brands);
  const loaded = useBrandStore(state => state.loaded);
+ const pendingIds = useBrandStore(state => state.pendingIds);
  const storedError = useBrandStore(state => state.error);
  const hydrate = useBrandStore(state => state.hydrate);
  const change = useBrandStore(state => state.change);
@@ -76,7 +71,7 @@ export function BrandWorkspace({ id }: { id?: string }) {
      {brand ? <>
        <LibraryDetailHeader href="/brand" backLabel="브랜드 목록" title={<EditableTitle value={brand.name} onSave={rename} label="브랜드 이름" />} description={`${brand.images.length}장의 이미지`} />
        <DetailContent>
-         <BrandAnalysis aria-label="브랜드 분석"><ChartNoAxesCombined size={28} strokeWidth={1.4} aria-hidden="true" /><p>아직 충분한 자료가 모이지 않아 분석을 실행하지 않았습니다</p></BrandAnalysis>
+         <BrandAnalysisPanel brandId={brand.id} revision={brand.version} positiveCount={brand.images.filter(image => image.caseType !== "negative").length} pendingWrite={pendingIds.includes(brand.id)} />
          <BrandImages key={brand.id} images={brand.images} busy={false} onAdd={addImages}
            onMove={(ids, caseType) => { void change(brand.id, current => current ? reviseBrand(current, { images: current.images.map(image => ids.includes(image.id) ? { ...image, caseType } : image) }) : null); }}
            onRemove={ids => { void change(brand.id, current => current ? reviseBrand(current, { images: current.images.filter(image => !ids.includes(image.id)) }) : null); }}
