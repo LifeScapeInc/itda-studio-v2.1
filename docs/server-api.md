@@ -79,7 +79,7 @@ curl -X POST http://127.0.0.1:8000/api/v1/adarefsr/inference \
 
 ## Fidelity 점수
 
-Studio의 컷 연출 `/api/generate`는 실제 생성된 이미지마다 아래 API를 호출하고 결과를 `fidelityEvaluations` 배열로 반환한다. 서버 주소는 `CUT_EVALUATION_BASE_URL`로 지정하며 기본값은 `http://localhost:8000`이다. 브라우저는 Studio 서버를 통해 평가 결과를 받는다. 각 컷의 점수·모델 버전 또는 평가 실패 상태는 생성 히스토리에 저장한다. 평가 실패 시에도 생성 이미지는 유지하며, 목업 이미지는 평가하지 않는다. BF·TQ 도입 전까지 평가 탭의 종합 점수는 Fidelity 점수를 사용한다.
+Studio의 컷 연출 `/api/generate`는 실제 생성된 이미지마다 아래 API를 호출하고 결과를 `fidelityEvaluations` 배열로 반환한다. 서버 주소는 `CUT_EVALUATION_BASE_URL`로 지정하며 기본값은 `http://localhost:8000`이다. 브라우저는 Studio 서버를 통해 평가 결과를 받는다. 각 컷의 점수·모델 버전 또는 평가 실패 상태는 생성 히스토리에 저장한다. 평가 실패 시에도 생성 이미지는 유지하며, 목업 이미지는 평가하지 않는다. 평가 탭의 임시 종합 점수는 Fidelity와 BF의 산술평균이며, BF 미적용 시 Fidelity 점수를 사용한다.
 
 ### `POST /api/v1/cut-evaluation/fidelity/predict`
 
@@ -159,9 +159,9 @@ curl -X POST http://127.0.0.1:8000/api/v1/cut-evaluation/fidelity/feedback \
 
 `POST /api/v1/cut-evaluation/brandfit/predict`는 `multipart/form-data`의 `brand_id`와 `generated_image`를 받는다. Studio는 생성 당시 선택한 브랜드 ID를 `brand_id`로 전달한다. 점수 응답의 `score`와 `scoring_version`(또는 `model_version`)을 컷의 `brandFit`에 저장해 브랜드 적합성 항목에 표시한다. 브랜드 미지정과 목업 결과는 미적용으로 처리한다.
 
-새 생성·재생성·재평가에 연결되어 있으며, 생성 정보에는 브랜드 이름·ID를 포함한다. 종합 점수는 기존 Fidelity 점수 표시를 유지한다. API 호출 실패 시 평가 탭에는 `서버가 정상적으로 연결되어 있지 않습니다`를 표시한다.
+새 생성·재생성·재평가에 연결되어 있으며, 생성 정보에는 브랜드 이름·ID를 포함한다. 종합 점수는 Fidelity와 BF 점수의 산술평균을 임시값으로 표시한다. BF 미적용 시에는 Fidelity 점수를 사용한다. API 호출 실패 시 평가 탭에는 `서버가 정상적으로 연결되어 있지 않습니다`를 표시한다.
 
-DB에 BF 점수를 보존하려면 `20261126000000_brand_fit_history.sql`을 적용해야 한다. 이 변경은 히스토리 저장 트랜잭션 안에서 BF 컬럼만 갱신하며 다른 평가 항목을 보존한다. 해당 운영 DB 마이그레이션은 적용 승인 대기 상태다.
+DB에 BF 점수를 보존하려면 `20261126000000_brand_fit_history.sql`을 적용해야 한다. 이 변경은 히스토리 저장 트랜잭션 안에서 BF 컬럼만 갱신하며 다른 평가 항목을 보존한다. 2026-11-26 운영 DB에 적용했으며 원격 마이그레이션 이력에서 확인했다.
 
 2026-11-26 갱신된 Swagger와 실제 호출을 확인했다. `brand_id`를 지정하면 서버가 원격 브랜드 자료를 사용하며, 등록된 Studio 브랜드로 `200`, `status: scored`, `score`, `model_version: prototype-concentration-v2` 응답을 수신했다. 테스트는 합성 단색 이미지로 수행해 통신 형식과 응답 파싱을 확인했다. 브랜드별 명시적 동기화는 `POST /api/v1/cut-evaluation/brandfit/brands/{brand_id}/sync`로 제공된다. 기존 로컬 Pool용 `pool_id`도 명세에 남아 있다.
 

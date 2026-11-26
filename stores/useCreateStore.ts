@@ -296,12 +296,15 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
     const shot = history?.shots.find(shot => shot.id === id && shot.status === "done" && shot.imageUrl);
     if (!shot) return;
     const original = shot.metadata.inputImages?.find(image => image.kind === "product")?.imageUrl;
+    const savedBrand = shot.metadata.brandSelection ?? shot.metadata.generationSettings?.brandSelection;
+    const workspaceBrand = state.activeHistoryId === history?.id
+      && state.workspaceProjectId === (history?.projectId ?? null) ? state.brandSelection : null;
+    const brand = savedBrand ?? workspaceBrand;
     set(current => ({ reevaluatingIds: [...current.reevaluatingIds, id] }));
     let fidelity: NonNullable<GenerationShot["fidelity"]>;
     let brandFit: GenerationShot["brandFit"];
     try {
       if (!original) throw new Error("원본 제품 이미지가 없어 재평가할 수 없습니다.");
-      const brand = shot.metadata.brandSelection ?? shot.metadata.generationSettings?.brandSelection;
       const response = await fetch("/api/evaluate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ originalImage: original, generatedImage: shot.imageUrl, brandId: brand?.id }) });
       const result = await response.json();
       if (!response.ok || !result.fidelity) throw new Error(result.error ?? "재평가에 실패했습니다.");
@@ -312,7 +315,16 @@ export const useCreateStore = create<CreateStore>((set, get) => ({
       brandFit = fidelity;
     }
     set(current => {
-      const update = <T extends GenerationShot>(image: T): T => image.id === id && image.status === "done" && image.imageUrl === shot.imageUrl ? { ...image, fidelity, brandFit } : image;
+      const update = <T extends GenerationShot>(image: T): T => image.id === id && image.status === "done" && image.imageUrl === shot.imageUrl ? {
+        ...image, fidelity, brandFit,
+        metadata: {
+          ...shot.metadata,
+          brandSelection: brand ? { ...brand } : null,
+          ...(shot.metadata.generationSettings ? {
+            generationSettings: { ...shot.metadata.generationSettings, brandSelection: brand ? { ...brand } : null },
+          } : {}),
+        },
+      } : image;
       return { generationHistory: current.generationHistory.map(item => ({ ...item, shots: item.shots.map(update) })), generationShots: current.generationShots.map(update), reevaluatingIds: current.reevaluatingIds.filter(value => value !== id) };
     });
     await saveGenerationHistory(get().generationHistory).catch(() => undefined);

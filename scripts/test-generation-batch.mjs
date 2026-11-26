@@ -309,6 +309,27 @@ check("Navigation defaults to compact, expands and returns", () => {
     assert.equal(store.getState().generationShots[0].imageUrl, "replaced");
     checks++; console.log("PASS Re-evaluation refreshes and persists scores without generation, blocks duplicates and ignores replaced images");
 
+    const legacy = structuredClone(store.getState().generationHistory[0]);
+    for (const image of legacy.shots) {
+      delete image.metadata.brandSelection;
+      if (image.metadata.generationSettings) delete image.metadata.generationSettings.brandSelection;
+    }
+    const assignedBrand = { id: "legacy-assigned-brand", name: "Assigned brand", version: 1 };
+    store.setState({ activeHistoryId: legacy.id, workspaceProjectId: legacy.projectId ?? null, brandSelection: assignedBrand, generationHistory: [legacy], generationShots: legacy.shots });
+    const legacyRequests = [];
+    setFetch(async (_url, options) => {
+      legacyRequests.push(JSON.parse(options.body));
+      return { ok: true, json: async () => ({ fidelity: { status: "scored", score: 80, modelVersion: "test" }, brandFit: { status: "scored", score: 70, modelVersion: "bf-test" } }) };
+    });
+    await store.getState().reevaluateShot(successful.id);
+    assert.equal(legacyRequests[0].brandId, assignedBrand.id);
+    assert.equal(store.getState().generationHistory[0].shots[0].brandFit.score, 70);
+    assert.deepEqual(store.getState().generationHistory[0].shots[0].metadata.brandSelection, assignedBrand);
+    store.setState({ brandSelection: { id: "different-brand", name: "Other", version: 1 } });
+    await store.getState().reevaluateShot(successful.id);
+    assert.equal(legacyRequests[1].brandId, assignedBrand.id);
+    checks++; console.log("PASS Legacy re-evaluation uses the assigned workspace brand, saves it and retains it on subsequent evaluations");
+
     store.setState({ isGenerating: true, activeHistoryId: historyId });
     store.getState().clearStaging(); assert.equal(store.getState().activeHistoryId, null);
     store.getState().reuseGenerationSettings(successful); assert.equal(store.getState().productImage, successful.metadata.inputImages[0].imageUrl);
